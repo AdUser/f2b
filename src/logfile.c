@@ -45,14 +45,18 @@ f2b_logfile_rotated(const f2b_logfile_t *file) {
   if (stat(file->path, &st) != 0)
     return true;
 
-  if (file->st.st_dev != st.st_dev ||
-      file->st.st_ino != st.st_ino)
+  if (file->st.st_dev  != st.st_dev ||
+      file->st.st_ino  != st.st_ino ||
+      file->st.st_size  > st.st_size)
     return true;
 
   return false;
 }
 
-ssize_t
-f2b_logfile_getline(const f2b_logfile_t *file, const char *buf, size_t bufsize) {
-  return -1;
+bool
+f2b_logfile_getline(const f2b_logfile_t *file, char *buf, size_t bufsize) {
+  if (fgets(buf, bufsize, file->fd) != NULL)
+    return true;
+
+  return false;
 }
