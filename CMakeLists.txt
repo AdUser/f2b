@@ -1,11 +1,14 @@
-SET(CNAME "f2b")
-SET(VERSION 0.07)
+set(CNAME "f2b")
+set(VERSION 0.07)
 
-PROJECT(${CNAME} C)
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+project(${CNAME} C)
+cmake_minimum_required(VERSION 2.6)
 
-SET(CMAKE_INSTALL_PREFIX "/usr/local")
+set(CMAKE_INSTALL_PREFIX "/usr/local")
 
-ADD_SUBDIRECTORY (src)
-ADD_SUBDIRECTORY (t)
-SET_PROPERTY(DIRECTORY "t" PROPERTY COMPILE_FLAGS "-g;-ggdb;-Wall;-Wextra;-pedantic;-O0")
+include(CTest)
+
+add_subdirectory(src)
+add_subdirectory(t)
+
+set_property(DIRECTORY "t" PROPERTY COMPILE_FLAGS "-g;-ggdb;-Wall;-Wextra;-pedantic;-O0")
