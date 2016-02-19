@@ -3,10 +3,8 @@
 
 typedef struct {
   struct f2b_match_t *next;
-  const char *ip;
-  size_t count;
-  time_t firstseen;
-  time_t lastseen;
+  char ip[40]; /* 8 x "ffff" + 7 x ":" + '\0' */
+  time_t seen;
 } f2b_match_t;
 
 #endif /* F2B_MATCH_H_ */
