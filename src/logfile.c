@@ -15,13 +15,16 @@ f2b_logfile_open(f2b_logfile_t *file, const char *filename) {
   if (stat(filename, &st) != 0)
     return false;
 
+  if (!(S_ISREG(st.st_mode) || S_ISFIFO(st.st_mode)))
+    return false;
+
   strncpy(file->path, filename, sizeof(file->path));
   memcpy(&file->st, &st, sizeof(st));
 
   if ((file->fd = fopen(filename, "r")) == NULL)
     return false;
 
-  if (fseek(file->fd, 0, SEEK_END) < 0)
+  if (S_ISREG(st.st_mode) && fseek(file->fd, 0, SEEK_END) < 0)
     return false;
 
   return true;
