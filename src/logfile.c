@@ -37,7 +37,20 @@ f2b_logfile_close(const f2b_logfile_t *file) {
 }
 
 bool
-f2b_logfile_rotated(const f2b_logfile_t *file);
+f2b_logfile_rotated(const f2b_logfile_t *file) {
+  struct stat st;
+
+  assert(file != NULL);
+
+  if (stat(file->path, &st) != 0)
+    return true;
+
+  if (file->st.st_dev != st.st_dev ||
+      file->st.st_ino != st.st_ino)
+    return true;
+
+  return false;
+}
 
 ssize_t
 f2b_logfile_getline(const f2b_logfile_t *file, const char *buf, size_t bufsize) {
