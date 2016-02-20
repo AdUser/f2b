@@ -16,8 +16,11 @@ typedef struct f2b_ipaddr_t {
   f2b_matches_t matches;
 } f2b_ipaddr_t;
 
-f2b_ipaddr_t * f2b_ipaddr_create(const char *addr, size_t max_matches);
+f2b_ipaddr_t * f2b_ipaddr_create (const char *addr, size_t max_matches);
+void           f2b_ipaddr_destroy(f2b_ipaddr_t *ipaddr);
+
 f2b_ipaddr_t * f2b_addrlist_append(f2b_ipaddr_t *list, f2b_ipaddr_t *ipaddr);
 f2b_ipaddr_t * f2b_addrlist_lookup(f2b_ipaddr_t *list, const char *addr);
+f2b_ipaddr_t * f2b_addrlist_remove(f2b_ipaddr_t *list, const char *addr);
 
 #endif /* F2B_IPADDR_H_ */
