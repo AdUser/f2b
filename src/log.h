@@ -4,7 +4,6 @@
 typedef enum {
   log_debug = 0,
   log_info  = 1,
-  log_note  = 1,
   log_warn  = 2,
   log_error = 3,
   log_fatal = 4
