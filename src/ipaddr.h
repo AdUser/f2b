@@ -22,5 +22,6 @@ void           f2b_ipaddr_destroy(f2b_ipaddr_t *ipaddr);
 f2b_ipaddr_t * f2b_addrlist_append(f2b_ipaddr_t *list, f2b_ipaddr_t *ipaddr);
 f2b_ipaddr_t * f2b_addrlist_lookup(f2b_ipaddr_t *list, const char *addr);
 f2b_ipaddr_t * f2b_addrlist_remove(f2b_ipaddr_t *list, const char *addr);
+f2b_ipaddr_t * f2b_addrlist_destroy(f2b_ipaddr_t *list);
 
 #endif /* F2B_IPADDR_H_ */
