@@ -1,5 +1,3 @@
-#include <stdlib.h>
-
 #include "../src/common.h"
 #include "../src/logfile.h"
 
