@@ -1,7 +1,7 @@
 #ifndef F2B_LOGFILE_H_
 #define F2B_LOGFILE_H_
 
-typedef struct {
+typedef struct f2b_logfile_t {
   struct f2b_logfile_t *next;
   char path[PATH_MAX];
   FILE *fd;

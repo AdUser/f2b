@@ -1,5 +1,3 @@
-#include <sys/stat.h>
-
 #include "common.h"
 #include "logfile.h"
 
