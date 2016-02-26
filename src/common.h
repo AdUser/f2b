@@ -1,6 +1,7 @@
 #ifndef F2B_COMMON_H_
 #define F2B_COMMON_H_
 
+#include <alloca.h>
 #include <assert.h>
 #include <errno.h>
 #include <linux/limits.h>
@@ -9,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 
