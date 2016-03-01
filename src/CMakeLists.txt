@@ -1,6 +1,6 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set(SOURCES "main.c" "logfile.c" "log.c" "matches.c" "ipaddr.c" "filelist.c" "regexps_posix.c")
+set(SOURCES "main.c" "logfile.c" "log.c" "matches.c" "ipaddr.c" "filelist.c" "regexps_posix.c" "config.c")
 
 add_executable(f2b ${SOURCES})
 
