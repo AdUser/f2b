@@ -3,8 +3,9 @@
 
 #include <alloca.h>
 #include <assert.h>
+#include <ctype.h>
 #include <errno.h>
-#include <linux/limits.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
