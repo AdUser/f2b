@@ -1,6 +1,8 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include "backend.h"
@@ -42,7 +44,7 @@ cmd_from_str(const char *str) {
       goto cleanup;
    *cmd->argv = argv;
     if (strcmp(token, HOST_TOKEN) == 0)
-      cmd->pos = cmd->argc;
+      cmd->pos = cmd->argc + 1;
     cmd->argv[cmd->argc] = token;
     cmd->argc++;
   }
@@ -82,6 +84,33 @@ cmd_list_destroy(cmd_t *list) {
     free(list->argv);
     free(list);
   }
+}
+
+static bool
+cmd_list_exec(cmd_t *list, const char *ip) {
+  int status = 0;
+  pid_t pid;
+
+  for (cmd_t *cmd = list; cmd != NULL; cmd = cmd->next) {
+    pid = fork();
+    if (pid == 0) {
+      /* child */
+      if (ip && cmd->pos)
+        cmd->argv[cmd->pos - 1] = ip;
+      execv(cmd->args, cmd->argv);
+    } else if (pid > 0) {
+      /* parent */
+      waitpid(pid, &status, 0);
+      if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
+        continue;
+      return false;
+    } else {
+      /* parent, fork error */
+      return false;
+    }
+  }
+
+  return true;
 }
 
 /* handlers */
@@ -135,6 +164,51 @@ ready(cfg_t *cfg) {
 
   return false;
 }
+
+bool
+start(cfg_t *cfg) {
+  assert(cfg != NULL);
+
+  if (!cfg->start)
+    return true;
+
+  return cmd_list_exec(cfg->start, NULL);
+}
+
+bool
+stop(cfg_t *cfg) {
+  assert(cfg != NULL);
+
+  if (!cfg->stop)
+    return true;
+
+  return cmd_list_exec(cfg->stop, NULL);
+}
+
+bool
+ban(cfg_t *cfg, const char *ip) {
+  assert(cfg != NULL && ip != NULL);
+
+  return cmd_list_exec(cfg->ban, ip);
+}
+
+bool
+unban(cfg_t *cfg, const char *ip) {
+  assert(cfg != NULL && ip != NULL);
+
+  return cmd_list_exec(cfg->unban, ip);
+}
+
+bool
+exists(cfg_t *cfg, const char *ip) {
+  assert(cfg != NULL && ip != NULL);
+
+  if (!cfg->exists)
+    return true;
+
+  return cmd_list_exec(cfg->exists, ip);
+}
+
 
 bool
 ping(cfg_t *cfg) {
