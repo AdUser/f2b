@@ -6,14 +6,20 @@
 
 typedef struct f2b_backend_t {
   void *h;
-  bool (*init)  (const char *key, const char *value);
-  bool (*ready) (void);
-  bool (*ban)   (const char *ip);
-  bool (*unban) (const char *ip);
-  bool (*exists)(const char *ip);
+  void *cfg;
+  void *(*create)  (const char *id);
+  bool  (*config)  (void *cfg, const char *key, const char *value);
+  bool  (*ready)   (void *cfg);
+  bool  (*start)   (void *cfg);
+  bool  (*stop)    (void *cfg);
+  bool  (*ping)    (void *cfg);
+  bool  (*ban)     (void *cfg, const char *ip);
+  bool  (*unban)   (void *cfg, const char *ip);
+  bool  (*exists)  (void *cfg, const char *ip);
+  void  (*destroy) (void *cfg);
 } f2b_backend_t;
 
-f2b_backend_t * f2b_backend_create (f2b_config_section_t *config);
+f2b_backend_t * f2b_backend_create (f2b_config_section_t *config, const char *id);
 void            f2b_backend_destroy(f2b_backend_t *backend);
 
 #endif /* BACKEND_H_ */
