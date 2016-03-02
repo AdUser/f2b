@@ -7,3 +7,5 @@ target_link_libraries(f2b "dl")
 
 install(TARGETS f2b
         RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
+
+add_subdirectory("backends")
