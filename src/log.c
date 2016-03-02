@@ -1,7 +1,3 @@
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
-
 #include "common.h"
 #include "log.h"
 
@@ -26,9 +22,12 @@ void f2b_log_msg(log_msgtype_t l, const char *fmt, ...) {
     return;
 
   va_start(args, fmt);
-  snprintf(msg, sizeof(msg), fmt, args);
+  vsnprintf(msg, sizeof(msg), fmt, args);
   va_end(args);
-  printf(line, LOGLINE_MAX, "[%s] %s", loglevels[l], msg);
+  snprintf(line, LOGLINE_MAX, "[%s] %s", loglevels[l], msg);
+  /* TODO */
+  fputs(line, stderr);
+  fputc('\n', stderr);
 
   return;
 }

@@ -12,9 +12,11 @@ f2b_backend_create(f2b_config_section_t *config, const char *id) {
   assert(config != NULL);
   assert(config->type == t_backend);
 
-  f2b_config_find_param(config->param, BACKEND_LIBRARY_PARAM);
-  if (!param)
+  param = f2b_config_find_param(config->param, BACKEND_LIBRARY_PARAM);
+  if (!param) {
+    f2b_log_msg(log_error, "can't find '%s' param in backend config", BACKEND_LIBRARY_PARAM);
     return NULL;
+  }
 
   if ((backend = calloc(1, sizeof(f2b_backend_t))) == NULL)
     return NULL;
@@ -64,6 +66,7 @@ f2b_backend_create(f2b_config_section_t *config, const char *id) {
   f2b_log_msg(log_error, "backend '%s' not fully configured", config->name);
 
   cleanup:
+  f2b_log_msg(log_error, "load error: %s", dlerror());
   if (backend->h) {
     if (backend->cfg && backend->destroy)
       backend->destroy(backend->cfg);

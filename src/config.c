@@ -40,7 +40,7 @@ f2b_config_parse_kv_pair(const char *src) {
   p = value + strlen(value);
   if (p > value)
     p--; /* step back at char before '\0' */
-  while (p > value && isblank(*p))
+  while (p > value && isspace(*p))
     p--;
   p++, *p = '\0';
 
@@ -147,7 +147,7 @@ f2b_config_load(const char *path) {
   size_t linenum = 0; /* current line number in config */
 
   if ((f = fopen(path, "r")) == NULL) {
-    f2b_log_msg(log_error, "can't open config file: %s: %s", path, strerror(errno));
+    f2b_log_msg(log_error, "can't open config file '%s': %s", path, strerror(errno));
     return NULL;
   }
 
