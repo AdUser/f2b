@@ -9,6 +9,7 @@ typedef enum {
   log_fatal = 4
 } log_msgtype_t;
 
-void log_msg (log_msgtype_t l, const char *fmt, ...);
+void f2b_log_msg(log_msgtype_t l, const char *fmt, ...);
+void f2b_log_set_level(const char *level);
 
 #endif /* F2B_LOG_H_ */
