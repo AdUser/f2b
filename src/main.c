@@ -3,6 +3,7 @@
 #include "ipaddr.h"
 #include "regexps.h"
 #include "config.h"
+#include "jail.h"
 
 int main() {
     printf("Hello world!\n");
