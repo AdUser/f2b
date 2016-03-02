@@ -9,6 +9,7 @@ typedef struct f2b_ipaddr_t {
   struct f2b_ipaddr_t *next;
   int type;
   char text[40]; /* 8 x "ffff" + 7 x ":" + '\0' */
+  bool banned;
   union {
     struct in_addr  v4;
     struct in6_addr v6;

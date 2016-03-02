@@ -19,7 +19,7 @@ f2b_ipaddr_create(const char *addr, size_t matches) {
       if (inet_pton(a->type, addr, &a->binary.v6) < 1)
         goto cleanup;
     }
-    
+
     if (f2b_matches_create(&a->matches, matches) == false)
       goto cleanup;
   }
