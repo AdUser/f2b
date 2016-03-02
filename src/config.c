@@ -1,12 +1,23 @@
 #include "common.h"
 #include "config.h"
+#include "log.h"
+
+#define CONFIGLINE_MAX 256
 
 f2b_config_param_t *
-f2b_config_parse_kv_pair(char *line) {
+f2b_config_parse_kv_pair(const char *src) {
   f2b_config_param_t *param = NULL;
+  char line[CONFIGLINE_MAX] = "";
   char *p, *key, *value;
+  size_t len;
 
+  strncpy(line, src, sizeof(line));
+  line[CONFIGLINE_MAX] = '\0';
+
+  /* strip spaces before key */
   key = line;
+  while (isblank(*key))
+    key++;
 
   if ((value = strchr(key, '=')) == NULL)
     return NULL;
@@ -33,10 +44,15 @@ f2b_config_parse_kv_pair(char *line) {
     p--;
   p++, *p = '\0';
 
-  if (strlen(key) > CONFIG_KEY_MAX || strlen(value) > CONFIG_VAL_MAX)
+  len = strlen(key);
+  if (len < 1 || len > CONFIG_KEY_MAX)
     return NULL;
 
-  if ((param = calloc(1, sizeof(f2b_config_param_t))) == NULL) {
+  len = strlen(value);
+  if (len < 1 || len > CONFIG_VAL_MAX)
+    return NULL;
+
+  if ((param = calloc(1, sizeof(f2b_config_param_t))) != NULL) {
     strncpy(param->name,  key,   sizeof(param->name));
     strncpy(param->value, value, sizeof(param->value));
     param->name[CONFIG_KEY_MAX] = '\0';
@@ -48,9 +64,13 @@ f2b_config_parse_kv_pair(char *line) {
 }
 
 f2b_config_section_t *
-f2b_config_parse_section(char *line) {
+f2b_config_parse_section(const char *src) {
   f2b_config_section_t *section = NULL;
+  char line[CONFIGLINE_MAX] = "";
   char *name, *end;
+
+  strncpy(line, src, sizeof(line));
+  line[CONFIGLINE_MAX] = '\0';
 
   if ((end = strchr(line, ']')) == NULL)
     return NULL;
@@ -84,13 +104,104 @@ f2b_config_parse_section(char *line) {
 }
 
 f2b_config_section_t *
-f2b_config_find_section(f2b_config_section_t *config, f2b_section_type type, const char *name) {
-  for (; config != NULL; config = config->next) {
-    if (config->type == type && strcmp(config->name, name) == 0)
-      return config;
+f2b_config_find_section(f2b_config_section_t *section, f2b_section_type type, const char *name) {
+  for (; section != NULL; section = section->next) {
+    if (section->type == type && strcmp(section->name, name) == 0)
+      return section;
   }
 
   return NULL;
+}
+
+f2b_config_param_t *
+f2b_config_find_param(f2b_config_param_t *param, const char *name) {
+  for (; param != NULL; param = param->next) {
+    if (strcmp(name, param->name) == 0)
+      return param;
+  }
+
+  return NULL;
+}
+
+f2b_config_section_t *
+f2b_config_append_param(f2b_config_section_t *section, f2b_config_param_t *param) {
+  if (section->param) {
+    section->last->next = param;
+    section->last = section->last->next;
+  } else {
+    section->param = param;
+    section->last  = param;
+  }
+  return section;
+}
+
+f2b_config_section_t *
+f2b_config_load(const char *path) {
+  f2b_config_section_t *config  = NULL; /* always points to current section */
+  f2b_config_section_t *section = NULL; /* temp pointer */
+  f2b_config_param_t   *param   = NULL; /* temp pointer */
+  FILE *f = NULL; /* config file fd */
+  char *p; /* temp pointer */
+  char line[CONFIGLINE_MAX] = ""; /* last read line */
+  bool skip_section = false; /* if set - skip parameters unless next section */
+  size_t linenum = 0; /* current line number in config */
+
+  if ((f = fopen(path, "r")) == NULL) {
+    f2b_log_msg(log_error, "can't open config file: %s: %s", path, strerror(errno));
+    return NULL;
+  }
+
+  if ((config = calloc(1, sizeof(f2b_config_section_t))) == NULL)
+    return NULL;
+  config->type = t_main;
+
+  while (1) {
+    p = fgets(line, sizeof(line), f);
+    if (!p && (feof(f) || ferror(f)))
+      break;
+    while (isblank(*p))
+      p++;
+    linenum++;
+    switch(*p) {
+      case '\0':
+      case '\r':
+      case '\n':
+        /* empty line */
+        break;
+      case ';':
+      case '#':
+        /* comment line */
+        break;
+      case '[':
+        /* section header */
+        section = f2b_config_parse_section(p);
+        if (section) {
+          skip_section = false;
+          section->next = config;
+          config = section;
+        } else {
+          skip_section = true;
+          f2b_log_msg(log_error, "unknown section at line %d: %s", linenum, p);
+        }
+        break;
+      default:
+        if (skip_section) {
+          f2b_log_msg(log_warn, "skipping line in unknown section: %s", p);
+          continue;
+        }
+        /* key/value pair */
+        param = f2b_config_parse_kv_pair(p);
+        if (param) {
+          f2b_config_append_param(config, param);
+        } else {
+          f2b_log_msg(log_error, "can't parse key/value at line %d: %s", linenum, p);
+        }
+        break;
+    } /* switch */
+  } /* while */
+  fclose(f);
+
+  return config;
 }
 
 void
