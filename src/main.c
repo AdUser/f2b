@@ -4,6 +4,7 @@
 #include "regexps.h"
 #include "config.h"
 #include "jail.h"
+#include "backend.h"
 
 int main() {
     printf("Hello world!\n");
