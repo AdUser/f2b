@@ -127,6 +127,16 @@ config(cfg_t *cfg, const char *key, const char *value) {
 }
 
 bool
+ready(cfg_t *cfg) {
+  assert(cfg != NULL);
+
+  if (cfg->ban && cfg->unban)
+    return true;
+
+  return false;
+}
+
+bool
 ping(cfg_t *cfg) {
   return cfg != NULL;
 }
