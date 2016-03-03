@@ -9,6 +9,7 @@ void usage() {
 }
 
 int main(int argc, char *argv[]) {
+  const char *ip = "127.0.0.17";
   f2b_config_section_t *config  = NULL;
   f2b_config_section_t *b_conf  = NULL;
   f2b_backend_t        *backend = NULL;
@@ -31,8 +32,24 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  /* TODO */
+  if (!backend->ban(backend->cfg, ip)) {
+    f2b_log_msg(log_error, "action 'ban' failed");
+    goto cleanup;
+  }
 
+  if (!backend->exists(backend->cfg, ip)) {
+    f2b_log_msg(log_error, "action 'exists' failed");
+    goto cleanup;
+  }
+
+  if (!backend->unban(backend->cfg, ip)) {
+    f2b_log_msg(log_error, "action 'unban' failed");
+    goto cleanup;
+  }
+
+  f2b_log_msg(log_info, "all tests passed");
+
+  cleanup:
   f2b_backend_destroy(backend);
   f2b_config_free(config);
 
