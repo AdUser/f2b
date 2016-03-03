@@ -19,6 +19,7 @@ typedef struct cmd_t {
 
 struct _config {
   char name[ID_MAX + 1];
+  time_t timeout;
   cmd_t *start;
   cmd_t *stop;
   cmd_t *ban;
@@ -87,7 +88,7 @@ cmd_list_destroy(cmd_t *list) {
 }
 
 static bool
-cmd_list_exec(cmd_t *list, const char *ip) {
+cmd_list_exec(cmd_t *list, const char *ip, time_t timeout) {
   int status = 0;
   pid_t pid;
 
@@ -97,6 +98,8 @@ cmd_list_exec(cmd_t *list, const char *ip) {
       /* child */
       if (ip && cmd->pos)
         cmd->argv[cmd->pos - 1] = ip;
+      if (timeout)
+        alarm(timeout);
       execv(cmd->args, cmd->argv);
     } else if (pid > 0) {
       /* parent */
@@ -146,6 +149,11 @@ config(cfg_t *cfg, const char *key, const char *value) {
   assert(key != NULL);
   assert(value != NULL);
 
+  if (strcmp(key, "timeout") == 0) {
+    cfg->timeout = atoi(value);
+    return true;
+  }
+
   CREATE_CMD(start)
   CREATE_CMD(stop)
   CREATE_CMD(ban)
@@ -172,7 +180,7 @@ start(cfg_t *cfg) {
   if (!cfg->start)
     return true;
 
-  return cmd_list_exec(cfg->start, NULL);
+  return cmd_list_exec(cfg->start, NULL, cfg->timeout);
 }
 
 bool
@@ -182,21 +190,21 @@ stop(cfg_t *cfg) {
   if (!cfg->stop)
     return true;
 
-  return cmd_list_exec(cfg->stop, NULL);
+  return cmd_list_exec(cfg->stop, NULL, cfg->timeout);
 }
 
 bool
 ban(cfg_t *cfg, const char *ip) {
   assert(cfg != NULL && ip != NULL);
 
-  return cmd_list_exec(cfg->ban, ip);
+  return cmd_list_exec(cfg->ban, ip, cfg->timeout);
 }
 
 bool
 unban(cfg_t *cfg, const char *ip) {
   assert(cfg != NULL && ip != NULL);
 
-  return cmd_list_exec(cfg->unban, ip);
+  return cmd_list_exec(cfg->unban, ip, cfg->timeout);
 }
 
 bool
@@ -206,7 +214,7 @@ exists(cfg_t *cfg, const char *ip) {
   if (!cfg->exists)
     return true;
 
-  return cmd_list_exec(cfg->exists, ip);
+  return cmd_list_exec(cfg->exists, ip, cfg->timeout);
 }
 
 
