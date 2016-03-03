@@ -53,41 +53,26 @@ f2b_regex_destroy(f2b_regex_t * regex) {
   FREE(regex);
 }
 
-f2b_regex_t *
-f2b_regexlist_append(f2b_regex_t *list, f2b_regex_t *regex) {
-  assert(regex != NULL);
-
-  regex->next = list;
-  return regex;
-}
-
 bool
-f2b_regexlist_match(f2b_regex_t *list, const char *line, char *matchbuf, size_t matchbuf_size) {
+f2b_regex_match(f2b_regex_t *regex, const char *line, char *buf, size_t buf_size) {
   size_t match_len = 0;
   regmatch_t match[2];
 
-  for (; list != NULL; list = list->next) {
-    if (regexec(&list->regex, line, 2, &match[0], 0) != 0)
-      continue;
-    list->matches++;
-    match_len = match[1].rm_eo - match[1].rm_so;
-    assert(matchbuf_size > match_len);
-    strncpy(matchbuf, &line[match[1].rm_so], match_len);
-    matchbuf[match_len] = '\0';
-    return true;
-  }
+  assert(regex != NULL);
+  assert(line  != NULL);
+  assert(buf   != NULL);
 
-  return false;
+  if (regexec(&regex->regex, line, 2, &match[0], 0) != 0)
+    return false;
+
+  regex->matches++;
+  match_len = match[1].rm_eo - match[1].rm_so;
+  assert(buf_size > match_len);
+  strncpy(buf, &line[match[1].rm_so], match_len);
+  buf[match_len] = '\0';
+
+  return true;
 }
 
-f2b_regex_t *
-f2b_regexlist_destroy(f2b_regex_t *list) {
-  f2b_regex_t *next;
-
-  for (; list != NULL; list = next) {
-    next = list->next;
-    f2b_regex_destroy(list);
-  }
-
-  return NULL;
-}
+/* common f2b_regexlist_*() functions */
+#include "regexps.c"
