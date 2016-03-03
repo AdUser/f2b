@@ -33,8 +33,10 @@ f2b_config_parse_kv_pair(const char *src) {
     value++;
 
   /* strip trailing comment */
-  if ((p = strstr(value, " #")) || (p = strstr(value, "\t#")))
-    *p = '\0';
+  if ((p = strstr(value,  " #")) != NULL) *p = '\0';
+  if ((p = strstr(value, "\t#")) != NULL) *p = '\0';
+  if ((p = strstr(value,  " ;")) != NULL) *p = '\0';
+  if ((p = strstr(value, "\t;")) != NULL) *p = '\0';
 
   /* strip trailing spaces */
   p = value + strlen(value);
