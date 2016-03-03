@@ -14,7 +14,7 @@ typedef struct cmd_t {
   char  *args;   /**< stores path of cmd & args, delimited by '\0' */
   char **argv;   /**< stores array of pointers to args + NULL */
   size_t argc;   /**< args count */
-  size_t pos;    /**< index in argv[] where to insert IP address */
+  size_t pos;    /**< index+1 in argv[] where to insert IP address (zero means "no placeholder") */
 } cmd_t;
 
 struct _config {
@@ -31,7 +31,9 @@ static cmd_t *
 cmd_from_str(const char *str) {
   cmd_t *cmd = NULL;
   const char *delim = " \t";
-  char *token, *saveptr, *argv;
+  char *token, *saveptr, **argv;
+
+  assert(str != NULL);
 
   if ((cmd = calloc(1, sizeof(cmd_t))) == NULL)
     return NULL;
@@ -39,17 +41,24 @@ cmd_from_str(const char *str) {
   if ((cmd->args = strdup(str)) == NULL)
     goto cleanup;
 
+  cmd->argc = 1;
+  if ((cmd->argv = calloc(2, sizeof(cmd->argv))) == NULL)
+    goto cleanup;
+  cmd->argv[cmd->argc] = NULL;
+
   strtok_r(cmd->args, delim, &saveptr);
+  cmd->argv[0] = cmd->args;
+
   while ((token = strtok_r(NULL, delim, &saveptr)) != NULL) {
     if ((argv = realloc(cmd->argv, sizeof(cmd->argv) * (cmd->argc + 2))) == NULL)
       goto cleanup;
-   *cmd->argv = argv;
+    cmd->argv = argv;
     if (strcmp(token, HOST_TOKEN) == 0)
-      cmd->pos = cmd->argc + 1;
+      cmd->pos = cmd->argc;
     cmd->argv[cmd->argc] = token;
     cmd->argc++;
   }
-  cmd->argv[cmd->argc + 1] = NULL;
+  cmd->argv[cmd->argc] = NULL;
 
   return cmd;
 
@@ -97,7 +106,7 @@ cmd_list_exec(cmd_t *list, const char *ip, time_t timeout) {
     if (pid == 0) {
       /* child */
       if (ip && cmd->pos)
-        cmd->argv[cmd->pos - 1] = ip;
+        cmd->argv[cmd->pos - 1] = strdup(ip);
       if (timeout)
         alarm(timeout);
       execv(cmd->args, cmd->argv);

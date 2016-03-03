@@ -217,6 +217,6 @@ f2b_config_free(f2b_config_section_t *config) {
       next_param = config->param->next;
       FREE(config->param);
     }
-    FREE(next_section);
+    FREE(config);
   }
 }

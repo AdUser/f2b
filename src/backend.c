@@ -8,6 +8,7 @@ f2b_backend_create(f2b_config_section_t *config, const char *id) {
   f2b_config_param_t *param = NULL;
   f2b_backend_t *backend = NULL;
   int flags = RTLD_NOW | RTLD_LOCAL;
+  const char *dlerr = NULL;
 
   assert(config != NULL);
   assert(config->type == t_backend);
@@ -50,7 +51,7 @@ f2b_backend_create(f2b_config_section_t *config, const char *id) {
   }
 
   /* try init */
-  for (; param != NULL; param = param->next) {
+  for (param = config->param; param != NULL; param = param->next) {
     if (strcmp(param->name, BACKEND_LIBRARY_PARAM) == 0)
       continue;
     if (backend->config(backend->cfg, param->name, param->value))
@@ -66,7 +67,9 @@ f2b_backend_create(f2b_config_section_t *config, const char *id) {
   f2b_log_msg(log_error, "backend '%s' not fully configured", config->name);
 
   cleanup:
-  f2b_log_msg(log_error, "load error: %s", dlerror());
+  dlerr = dlerror();
+  if (dlerr)
+    f2b_log_msg(log_error, "backend load error: %s", dlerr);
   if (backend->h) {
     if (backend->cfg && backend->destroy)
       backend->destroy(backend->cfg);
