@@ -55,17 +55,30 @@ f2b_jail_set_defaults(f2b_config_section_t *config) {
   return;
 }
 
-/*
 size_t
-f2b_jail_poll(const jail_t *jail) {
+f2b_jail_poll(f2b_jail_t *jail) {
+  f2b_logfile_t *file = NULL;
+  f2b_ipaddr_t  *addr = NULL;
   size_t processed = 0;
-  char logline[LOGLINE_MAX] = { '\0' };
+  char logline[LOGLINE_MAX] = "";
+  char matchbuf[IPADDR_MAX] = "";
 
-  for (f2b_logfile_t *file = jail->logfiles; file != NULL; file = file->next) {
-    if (f2b_logfile_getline(file, logline) < 0)
+  assert(jail != NULL);
+
+  for (file = jail->logfiles; file != NULL; file = file->next) {
+    if (!f2b_logfile_getline(file, logline, sizeof(logline)))
       continue;
+    if (!f2b_regexlist_match(jail->regexps, logline, matchbuf, sizeof(matchbuf)))
+      continue;
+    addr = f2b_addrlist_lookup(jail->ipaddrs, matchbuf);
+    if (!addr) {
+      addr = f2b_ipaddr_create(matchbuf, jail->tries);
+      jail->ipaddrs = f2b_addrlist_append(jail->ipaddrs, addr);
+      /* TODO: log */
+      continue;
+    }
+    /* TODO: find & handle */
   }
 
   return processed;
 }
-*/
