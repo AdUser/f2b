@@ -3,7 +3,7 @@
 #include "log.h"
 
 f2b_config_param_t *
-f2b_config_parse_kv_pair(const char *src) {
+f2b_config_param_create(const char *src) {
   f2b_config_param_t *param = NULL;
   char line[CONFIG_LINE_MAX] = "";
   char *p, *key, *value;
@@ -63,12 +63,26 @@ f2b_config_parse_kv_pair(const char *src) {
   return NULL;
 }
 
+f2b_config_param_t *
+f2b_config_param_find(f2b_config_param_t *param, const char *name) {
+  for (; param != NULL; param = param->next) {
+    if (strcmp(name, param->name) == 0)
+      return param;
+  }
+
+  return NULL;
+}
+
 f2b_config_section_t *
-f2b_config_parse_section(const char *src) {
+f2b_config_section_create(const char *src) {
   f2b_config_section_t *section = NULL;
   char line[CONFIG_LINE_MAX] = "";
   char *name, *end;
 
+  assert(src != NULL);
+  assert(*src == '[');
+
+  src++;
   strncpy(line, src, sizeof(line));
   line[CONFIG_LINE_MAX] = '\0';
 
@@ -79,20 +93,26 @@ f2b_config_parse_section(const char *src) {
   if ((section = calloc(1, sizeof(f2b_config_section_t))) == NULL)
     return NULL;
 
-  name = "[defaults]";
+  name = "main";
+  if (strncmp(line, name, strlen(name)) == 0) {
+    section->type = t_main;
+    return section;
+  }
+
+  name = "defaults";
   if (strncmp(line, name, strlen(name)) == 0) {
     section->type = t_defaults;
     return section;
   }
 
-  name = "[backend:";
+  name = "backend:";
   if (strncmp(line, name, strlen(name)) == 0) {
     section->type = t_backend;
     strncpy(section->name, line + strlen(name), sizeof(section->name));
     return section;
   }
 
-  name = "[jail:";
+  name = "jail:";
   if (strncmp(line, name, strlen(name)) == 0) {
     section->type = t_jail;
     strncpy(section->name, line + strlen(name), sizeof(section->name));
@@ -104,27 +124,17 @@ f2b_config_parse_section(const char *src) {
 }
 
 f2b_config_section_t *
-f2b_config_find_section(f2b_config_section_t *section, f2b_section_type type, const char *name) {
+f2b_config_section_find(f2b_config_section_t *section, const char *name) {
   for (; section != NULL; section = section->next) {
-    if (section->type == type && strcmp(section->name, name) == 0)
+    if (strcmp(section->name, name) == 0)
       return section;
   }
 
   return NULL;
 }
 
-f2b_config_param_t *
-f2b_config_find_param(f2b_config_param_t *param, const char *name) {
-  for (; param != NULL; param = param->next) {
-    if (strcmp(name, param->name) == 0)
-      return param;
-  }
-
-  return NULL;
-}
-
 f2b_config_section_t *
-f2b_config_append_param(f2b_config_section_t *section, f2b_config_param_t *param) {
+f2b_config_section_append(f2b_config_section_t *section, f2b_config_param_t *param) {
   if (section->param) {
     section->last->next = param;
     section->last = section->last->next;
@@ -135,15 +145,15 @@ f2b_config_append_param(f2b_config_section_t *section, f2b_config_param_t *param
   return section;
 }
 
-f2b_config_section_t *
+f2b_config_t *
 f2b_config_load(const char *path) {
-  f2b_config_section_t *config  = NULL; /* always points to current section */
-  f2b_config_section_t *section = NULL; /* temp pointer */
+  f2b_config_t         *config  = NULL;
+  f2b_config_section_t *section = NULL; /* always points to current section */
   f2b_config_param_t   *param   = NULL; /* temp pointer */
   FILE *f = NULL; /* config file fd */
   char *p; /* temp pointer */
   char line[CONFIG_LINE_MAX] = ""; /* last read line */
-  bool skip_section = false; /* if set - skip parameters unless next section */
+  bool skip_section = true; /* if set - skip parameters unless next section */
   size_t linenum = 0; /* current line number in config */
 
   if ((f = fopen(path, "r")) == NULL) {
@@ -151,14 +161,18 @@ f2b_config_load(const char *path) {
     return NULL;
   }
 
-  if ((config = calloc(1, sizeof(f2b_config_section_t))) == NULL)
+  if ((config = calloc(1, sizeof(f2b_config_t))) == NULL)
     return NULL;
-  config->type = t_main;
 
   while (1) {
     p = fgets(line, sizeof(line), f);
     if (!p && (feof(f) || ferror(f)))
       break;
+    if ((p = strchr(line, '\r')) != NULL)
+      *p = '\0';
+    if ((p = strchr(line, '\n')) != NULL)
+      *p = '\0';
+    p = line;
     while (isblank(*p))
       p++;
     linenum++;
@@ -174,11 +188,10 @@ f2b_config_load(const char *path) {
         break;
       case '[':
         /* section header */
-        section = f2b_config_parse_section(p);
+        section = f2b_config_section_create(p);
         if (section) {
           skip_section = false;
-          section->next = config;
-          config = section;
+          f2b_config_append(config, section);
         } else {
           skip_section = true;
           f2b_log_msg(log_error, "unknown section at line %d: %s", linenum, p);
@@ -190,12 +203,12 @@ f2b_config_load(const char *path) {
           continue;
         }
         /* key/value pair */
-        param = f2b_config_parse_kv_pair(p);
-        if (param) {
-          f2b_config_append_param(config, param);
-        } else {
+        param = f2b_config_param_create(p);
+        if (!param) {
           f2b_log_msg(log_error, "can't parse key/value at line %d: %s", linenum, p);
+          continue;
         }
+        f2b_config_section_append(section, param);
         break;
     } /* switch */
   } /* while */
@@ -204,17 +217,45 @@ f2b_config_load(const char *path) {
   return config;
 }
 
-void
-f2b_config_free(f2b_config_section_t *config) {
-  f2b_config_section_t *next_section = NULL;
-  f2b_config_param_t   *next_param   = NULL;
-
-  for (; config != NULL; config = next_section) {
-    next_section = config->next;
-    for (; config->param != NULL; config->param = next_param) {
-      next_param = config->param->next;
-      FREE(config->param);
-    }
-    FREE(config);
+#define FREE_SECTIONS(SECTION) \
+  for (; SECTION != NULL; SECTION = ns) { \
+    ns = SECTION->next; \
+    for (; SECTION->param != NULL; \
+           SECTION->param = np) { \
+      np = SECTION->param->next; \
+      FREE(SECTION->param); \
+    } \
   }
+
+void
+f2b_config_free(f2b_config_t *config) {
+  f2b_config_section_t *ns = NULL; /* next section */
+  f2b_config_param_t   *np = NULL; /* next param */
+
+  FREE_SECTIONS(config->main);
+  FREE_SECTIONS(config->defaults);
+  FREE_SECTIONS(config->backends);
+  FREE_SECTIONS(config->jails);
+
+  FREE(config);
+}
+
+void
+f2b_config_append(f2b_config_t *config, f2b_config_section_t *section) {
+  f2b_config_section_t **s = NULL;
+  assert(config != NULL);
+  assert(section != NULL);
+
+  switch (section->type) {
+    case t_main:     s = &config->main;     break;
+    case t_defaults: s = &config->defaults; break;
+    case t_backend:  s = &config->backends; break;
+    case t_jail:     s = &config->jails;    break;
+    default:
+      f2b_log_msg(log_error, "unknown section type");
+      abort();
+      break;
+  }
+  section->next = *s;
+  *s = section;
 }

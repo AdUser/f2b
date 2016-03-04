@@ -13,7 +13,7 @@ f2b_backend_create(f2b_config_section_t *config, const char *id) {
   assert(config != NULL);
   assert(config->type == t_backend);
 
-  param = f2b_config_find_param(config->param, BACKEND_LIBRARY_PARAM);
+  param = f2b_config_param_find(config->param, BACKEND_LIBRARY_PARAM);
   if (!param) {
     f2b_log_msg(log_error, "can't find '%s' param in backend config", BACKEND_LIBRARY_PARAM);
     return NULL;

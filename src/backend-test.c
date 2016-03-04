@@ -10,8 +10,8 @@ void usage() {
 
 int main(int argc, char *argv[]) {
   const char *ip = "127.0.0.17";
-  f2b_config_section_t *config  = NULL;
-  f2b_config_section_t *b_conf  = NULL;
+  f2b_config_t         *config  = NULL;
+  f2b_config_section_t *section = NULL;
   f2b_backend_t        *backend = NULL;
 
   if (argc < 3)
@@ -22,12 +22,12 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  if ((b_conf = f2b_config_find_section(config, t_backend, "test")) == NULL) {
+  if ((section = f2b_config_section_find(config->backends, "test")) == NULL) {
     f2b_log_msg(log_error, "can't find config section for backend '%s'", "test");
     return EXIT_FAILURE;
   }
 
-  if ((backend = f2b_backend_create(config, argv[2])) == NULL) {
+  if ((backend = f2b_backend_create(section, argv[2])) == NULL) {
     f2b_log_msg(log_error, "can't create backend");
     return EXIT_FAILURE;
   }

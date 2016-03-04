@@ -28,13 +28,21 @@ typedef struct f2b_config_section_t {
   f2b_config_param_t *last;
 } f2b_config_section_t;
 
-f2b_config_param_t * f2b_config_parse_kv_pair(const char *line);
-f2b_config_param_t * f2b_config_find_param(f2b_config_param_t *param, const char *name);
+typedef struct f2b_config_t {
+  f2b_config_section_t *main;
+  f2b_config_section_t *defaults;
+  f2b_config_section_t *backends;
+  f2b_config_section_t *jails;
+} f2b_config_t;
 
-f2b_config_section_t * f2b_config_parse_section(const char *line);
-f2b_config_section_t * f2b_config_find_section(f2b_config_section_t *section, f2b_section_type type, const char *name);
-f2b_config_section_t * f2b_config_append_param(f2b_config_section_t *section, f2b_config_param_t *param);
+f2b_config_param_t * f2b_config_param_create(const char *line);
+f2b_config_param_t * f2b_config_param_find  (f2b_config_param_t *param, const char *name);
 
-f2b_config_section_t * f2b_config_load(const char *path);
-void                   f2b_config_free(f2b_config_section_t *config);
+f2b_config_section_t * f2b_config_section_create(const char *line);
+f2b_config_section_t * f2b_config_section_find  (f2b_config_section_t *s, const char *name);
+f2b_config_section_t * f2b_config_section_append(f2b_config_section_t *s, f2b_config_param_t *p);
+
+f2b_config_t * f2b_config_load  (const char *path);
+void           f2b_config_free  (f2b_config_t *c);
+void           f2b_config_append(f2b_config_t *c, f2b_config_section_t *s);
 #endif /* CONFIG_H_ */
