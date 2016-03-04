@@ -1,8 +1,6 @@
 #include "common.h"
 #include "log.h"
 
-#define LOGLINE_MAX 1024
-
 static log_msgtype_t minlevel = log_info;
 
 static const char *loglevels[] = {

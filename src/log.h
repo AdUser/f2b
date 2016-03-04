@@ -1,6 +1,8 @@
 #ifndef F2B_LOG_H_
 #define F2B_LOG_H_
 
+#define LOGLINE_MAX 1024
+
 typedef enum {
   log_debug = 0,
   log_info  = 1,
