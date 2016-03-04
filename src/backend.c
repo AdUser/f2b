@@ -86,3 +86,17 @@ f2b_backend_destroy(f2b_backend_t *backend) {
   dlclose(backend->h);
   free(backend);
 }
+
+bool
+f2b_backend_ban(f2b_backend_t *backend, const char *ip) {
+  assert(backend != NULL);
+
+  return backend->ban(backend->cfg, ip);
+}
+
+bool
+f2b_backend_unban(f2b_backend_t *backend, const char *ip) {
+  assert(backend != NULL);
+
+  return backend->unban(backend->cfg, ip);
+}
