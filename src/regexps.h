@@ -1,6 +1,7 @@
 #ifndef F2B_REGEX_H_
 #define F2B_REGEX_H_
 
+#define REGEX_LINE_MAX 256
 #define HOST_TOKEN "<HOST>"
 
 typedef struct _regex f2b_regex_t;
