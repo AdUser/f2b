@@ -2,17 +2,15 @@
 #include "config.h"
 #include "log.h"
 
-#define CONFIGLINE_MAX 256
-
 f2b_config_param_t *
 f2b_config_parse_kv_pair(const char *src) {
   f2b_config_param_t *param = NULL;
-  char line[CONFIGLINE_MAX] = "";
+  char line[CONFIG_LINE_MAX] = "";
   char *p, *key, *value;
   size_t len;
 
   strncpy(line, src, sizeof(line));
-  line[CONFIGLINE_MAX] = '\0';
+  line[CONFIG_LINE_MAX] = '\0';
 
   /* strip spaces before key */
   key = line;
@@ -68,11 +66,11 @@ f2b_config_parse_kv_pair(const char *src) {
 f2b_config_section_t *
 f2b_config_parse_section(const char *src) {
   f2b_config_section_t *section = NULL;
-  char line[CONFIGLINE_MAX] = "";
+  char line[CONFIG_LINE_MAX] = "";
   char *name, *end;
 
   strncpy(line, src, sizeof(line));
-  line[CONFIGLINE_MAX] = '\0';
+  line[CONFIG_LINE_MAX] = '\0';
 
   if ((end = strchr(line, ']')) == NULL)
     return NULL;
@@ -144,7 +142,7 @@ f2b_config_load(const char *path) {
   f2b_config_param_t   *param   = NULL; /* temp pointer */
   FILE *f = NULL; /* config file fd */
   char *p; /* temp pointer */
-  char line[CONFIGLINE_MAX] = ""; /* last read line */
+  char line[CONFIG_LINE_MAX] = ""; /* last read line */
   bool skip_section = false; /* if set - skip parameters unless next section */
   size_t linenum = 0; /* current line number in config */
 

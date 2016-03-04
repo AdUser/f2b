@@ -1,6 +1,8 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
+#define CONFIG_LINE_MAX 256
+
 #define CONFIG_KEY_MAX 32
 #define CONFIG_VAL_MAX 192
 
