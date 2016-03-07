@@ -135,13 +135,27 @@ f2b_config_section_find(f2b_config_section_t *section, const char *name) {
 
 f2b_config_section_t *
 f2b_config_section_append(f2b_config_section_t *section, f2b_config_param_t *param) {
-  if (section->param) {
-    section->last->next = param;
-    section->last = section->last->next;
-  } else {
+  f2b_config_param_t *prev = NULL;
+
+  assert(section != NULL);
+  assert(param != NULL);
+
+  if (!section->param) {
+    /* no parameters yet */
     section->param = param;
     section->last  = param;
+    return section;
   }
+
+  if ((prev = f2b_config_param_find(section->param, param->name)) != NULL) {
+    /* found param with same name */
+    strncpy(prev->value, param->value, sizeof(prev->value));
+    free(param);
+    return section;
+  }
+
+  section->last->next = param;
+  section->last = param;
   return section;
 }
 
