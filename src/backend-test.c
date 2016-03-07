@@ -11,6 +11,7 @@ void usage() {
 int main(int argc, char *argv[]) {
   const char *ip = "127.0.0.17";
   f2b_config_t         *config  = NULL;
+  f2b_config_param_t   *param   = NULL;
   f2b_config_section_t *section = NULL;
   f2b_backend_t        *backend = NULL;
 
@@ -22,13 +23,23 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  if ((section = f2b_config_section_find(config->backends, "test")) == NULL) {
-    f2b_log_msg(log_error, "can't find config section for backend '%s'", "test");
+  if ((section = f2b_config_section_find(config->jails, "test")) == NULL) {
+    f2b_log_msg(log_error, "can't find config section for jail 'test'");
+    return EXIT_FAILURE;
+  }
+
+  if ((param = f2b_config_param_find(section->param, "backend")) == NULL) {
+    f2b_log_msg(log_error, "jail 'test' has not param named 'backend'");
+    return EXIT_FAILURE;
+  }
+
+  if ((section = f2b_config_section_find(config->backends, param->value)) == NULL) {
+    f2b_log_msg(log_error, "can't find config section for backend '%s'", param->value);
     return EXIT_FAILURE;
   }
 
   if ((backend = f2b_backend_create(section, argv[2])) == NULL) {
-    f2b_log_msg(log_error, "can't create backend");
+    f2b_log_msg(log_error, "can't create backend '%s' with id '%s'", param->value, argv[2]);
     return EXIT_FAILURE;
   }
 
