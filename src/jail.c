@@ -1,11 +1,12 @@
 #include "common.h"
 #include "jail.h"
 
+#define DEFAULT_STATE   true
 #define DEFAULT_BANTIME 3600 /* in seconds, 1 hour */
 #define DEFAULT_TRIES   5
 
 static f2b_jail_t defaults = {
-  .enabled  = true,
+  .enabled  = DEFAULT_STATE,
   .bantime  = DEFAULT_BANTIME,
   .tries    = DEFAULT_TRIES,
 };
