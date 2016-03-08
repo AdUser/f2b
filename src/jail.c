@@ -179,3 +179,79 @@ f2b_jail_process(f2b_jail_t *jail) {
 
   return processed;
 }
+
+bool
+f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
+  f2b_config_section_t * b_section = NULL;
+
+  assert(jail   != NULL);
+  assert(config != NULL);
+
+  /* source */
+  if (jail->source_name[0] == '\0') {
+    f2b_log_msg(log_error, "jail '%s': missing 'source' parameter", jail->name);
+    return false;
+  }
+  /* TODO: temp stub */
+  if (strcmp(jail->source_name, "files") != 0) {
+    f2b_log_msg(log_error, "jail '%s': 'source' supports only 'files' for now", jail->name);
+    return false;
+  }
+  if (jail->source_init == '\0') {
+    f2b_log_msg(log_error, "jail '%s': 'source' requires file or files pattern", jail->name);
+    return false;
+  }
+
+  /* filter */
+  if (jail->filter_name[0] == '\0') {
+    f2b_log_msg(log_error, "jail '%s': missing 'filter' parameter", jail->name);
+    return false;
+  }
+  /* TODO: temp stub */
+  if (strcmp(jail->filter_name, "preg") != 0) {
+    f2b_log_msg(log_error, "jail '%s': 'filter' supports only 'preg' for now", jail->name);
+    return false;
+  }
+  if (jail->filter_init == '\0') {
+    f2b_log_msg(log_error, "jail '%s': 'filter' requires path to file with regexps", jail->name);
+    return false;
+  }
+
+  /* backend */
+  if (jail->backend_name[0] == '\0') {
+    f2b_log_msg(log_error, "jail '%s': missing 'backend' parameter", jail->name);
+    return false;
+  }
+  if ((b_section = f2b_config_section_find(config->backends, jail->backend_name)) == NULL) {
+    f2b_log_msg(log_error, "jail '%s': no filter with name '%s'", jail->name, jail->backend_name);
+    return false;
+  }
+
+  /* init all */
+  if ((jail->logfiles = f2b_filelist_from_glob(jail->source_init)) == NULL) {
+    f2b_log_msg(log_error, "jail '%s': no files matching '%s' pattern", jail->name, jail->source_init);
+    goto cleanup;
+  }
+
+  if ((jail->regexps = f2b_regexlist_from_file(jail->filter_init)) == NULL) {
+    f2b_log_msg(log_error, "jail '%s': no regexps loaded from '%s'", jail->name, jail->filter_init);
+    goto cleanup;
+  }
+
+  if ((jail->backend = f2b_backend_create(b_section, jail->backend_init)) == NULL) {
+    f2b_log_msg(log_error, "jail '%s': can't init backend '%s' with %s",
+      jail->name, jail->backend_name, jail->backend_init);
+    goto cleanup;
+  }
+
+  return true;
+
+  cleanup:
+  if (jail->logfiles)
+    f2b_filelist_destroy(jail->logfiles);
+  if (jail->regexps)
+    f2b_regexlist_destroy(jail->regexps);
+  if (jail->backend)
+    f2b_backend_destroy(jail->backend);
+  return false;
+}
