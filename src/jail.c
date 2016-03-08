@@ -68,13 +68,11 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *config) {
 }
 
 void
-f2b_jail_set_defaults(f2b_config_section_t *config) {
-  assert(config != NULL);
-  assert(config->type == t_defaults);
+f2b_jail_set_defaults(f2b_config_section_t *section) {
+  assert(section != NULL);
+  assert(section->type == t_defaults);
 
-  config->type = t_jail;
-  f2b_jail_apply_config(&defaults, config);
-  config->type = t_defaults;
+  f2b_jail_apply_config(&defaults, section);
 
   return;
 }
