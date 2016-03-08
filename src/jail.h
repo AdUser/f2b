@@ -10,6 +10,7 @@
 #include "filelist.h"
 
 typedef struct f2b_jail_t {
+  struct f2b_jail_t *next;
   bool enabled;
   time_t bantime;
   size_t tries;

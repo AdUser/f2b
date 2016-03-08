@@ -40,7 +40,7 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
 
   assert(jail != NULL);
   assert(section != NULL);
-  assert(section->type != t_jail || section->type == t_defaults);
+  assert(section->type == t_jail || section->type == t_defaults);
 
   for (param = section->param; param != NULL; param = param->next) {
     if (strcmp(param->name, "enabled") == 0) {
@@ -127,6 +127,7 @@ f2b_jail_create(f2b_config_section_t *section) {
   f2b_jail_t *jail = NULL;
 
   assert(section != NULL);
+  assert(section->type == t_jail);
 
   if ((jail = calloc(1, sizeof(f2b_jail_t))) == NULL) {
     f2b_log_msg(log_error, "calloc() for new jail failed");
@@ -134,6 +135,7 @@ f2b_jail_create(f2b_config_section_t *section) {
   }
 
   memcpy(jail, &defaults, sizeof(f2b_jail_t));
+  strncpy(jail->name, section->name, sizeof(jail->name));
   f2b_jail_apply_config(jail, section);
 
   return jail;
