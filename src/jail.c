@@ -122,6 +122,23 @@ f2b_jail_unban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
   return false;
 }
 
+f2b_jail_t *
+f2b_jail_create(f2b_config_section_t *section) {
+  f2b_jail_t *jail = NULL;
+
+  assert(section != NULL);
+
+  if ((jail = calloc(1, sizeof(f2b_jail_t))) == NULL) {
+    f2b_log_msg(log_error, "calloc() for new jail failed");
+    return NULL;
+  }
+
+  memcpy(jail, &defaults, sizeof(f2b_jail_t));
+  f2b_jail_apply_config(jail, section);
+
+  return jail;
+}
+
 size_t
 f2b_jail_process(f2b_jail_t *jail) {
   f2b_logfile_t *file = NULL;
