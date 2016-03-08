@@ -61,7 +61,7 @@ f2b_regexlist_from_file(const char *path) {
       default:
         /* TODO: icase */
         if ((regex = f2b_regex_create(p, false)) == NULL) {
-          f2b_log_msg(log_warn, "can't create regex from pattern at %s:%s: %s", path, linenum, p);
+          f2b_log_msg(log_warn, "can't create regex from pattern at %s:%d: %s", path, linenum, p);
           continue;
         }
         list = f2b_regexlist_append(list, regex);
