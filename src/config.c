@@ -112,6 +112,13 @@ f2b_config_section_create(const char *src) {
     return section;
   }
 
+  name = "filter:";
+  if (strncmp(line, name, strlen(name)) == 0) {
+    section->type = t_filter;
+    strncpy(section->name, line + strlen(name), sizeof(section->name));
+    return section;
+  }
+
   name = "jail:";
   if (strncmp(line, name, strlen(name)) == 0) {
     section->type = t_jail;
@@ -248,6 +255,7 @@ f2b_config_free(f2b_config_t *config) {
 
   FREE_SECTIONS(config->main);
   FREE_SECTIONS(config->defaults);
+  FREE_SECTIONS(config->filters);
   FREE_SECTIONS(config->backends);
   FREE_SECTIONS(config->jails);
 
@@ -265,6 +273,7 @@ f2b_config_append(f2b_config_t *config, f2b_config_section_t *section) {
   switch (section->type) {
     case t_main:     s = &config->main;     break;
     case t_defaults: s = &config->defaults; break;
+    case t_filter:   s = &config->filters;  break;
     case t_backend:  s = &config->backends; break;
     case t_jail:     s = &config->jails;    break;
     default:

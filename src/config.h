@@ -10,6 +10,7 @@ typedef enum f2b_section_type {
   t_unknown = 0,
   t_main,
   t_defaults,
+  t_filter,
   t_backend,
   t_jail,
 } f2b_section_type;
@@ -31,6 +32,7 @@ typedef struct f2b_config_section_t {
 typedef struct f2b_config_t {
   f2b_config_section_t *main;
   f2b_config_section_t *defaults;
+  f2b_config_section_t *filters;
   f2b_config_section_t *backends;
   f2b_config_section_t *jails;
 } f2b_config_t;
