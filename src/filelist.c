@@ -39,3 +39,14 @@ f2b_filelist_from_glob(const char *pattern) {
   globfree(&globbuf);
   return files;
 }
+
+void
+f2b_filelist_destroy(f2b_logfile_t *list) {
+  f2b_logfile_t *next = NULL;
+
+  for (; list != NULL; list = next) {
+    next = list->next;
+    f2b_logfile_close(list);
+    free(list);
+  }
+}
