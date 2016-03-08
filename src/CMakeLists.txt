@@ -9,6 +9,9 @@ set(SOURCES "backend-test.c" "log.c" "backend.c" "config.c")
 add_executable("backend-test" ${SOURCES})
 target_link_libraries("backend-test" "dl")
 
+set(SOURCES "filter-test.c" "log.c" "regexps_posix.c")
+add_executable("filter-test" ${SOURCES})
+
 install(TARGETS f2b
         RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
 
