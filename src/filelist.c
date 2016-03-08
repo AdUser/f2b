@@ -14,14 +14,6 @@ f2b_filelist_append(f2b_logfile_t *list, f2b_logfile_t *file) {
   return file;
 }
 
-void
-f2b_filelist_apply(f2b_logfile_t *list, void (*cb)(f2b_logfile_t *, void *), void *arg) {
-  assert(cb != NULL);
-
-  for (; list != NULL; list = list->next)
-    (*cb)(list, arg);
-}
-
 f2b_logfile_t *
 f2b_filelist_from_glob(const char *pattern) {
   f2b_logfile_t *file = NULL;
