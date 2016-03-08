@@ -155,7 +155,7 @@ f2b_jail_process(f2b_jail_t *jail) {
 
   for (file = jail->logfiles; file != NULL; file = file->next) {
     while (f2b_logfile_getline(file, logline, sizeof(logline))) {
-      if (!f2b_regexlist_match(jail->regexps, logline, matchbuf, sizeof(matchbuf)))
+      if (!f2b_filter_match(jail->filter, logline, matchbuf, sizeof(matchbuf)))
         continue;
       /* some regex matches the line */
       addr = f2b_addrlist_lookup(jail->ipaddrs, matchbuf);
@@ -202,6 +202,7 @@ f2b_jail_process(f2b_jail_t *jail) {
 bool
 f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
   f2b_config_section_t * b_section = NULL;
+  f2b_config_section_t * f_section = NULL;
 
   assert(jail   != NULL);
   assert(config != NULL);
@@ -226,13 +227,8 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
     f2b_log_msg(log_error, "jail '%s': missing 'filter' parameter", jail->name);
     return false;
   }
-  /* TODO: temp stub */
-  if (strcmp(jail->filter_name, "preg") != 0) {
-    f2b_log_msg(log_error, "jail '%s': 'filter' supports only 'preg' for now", jail->name);
-    return false;
-  }
-  if (jail->filter_init == '\0') {
-    f2b_log_msg(log_error, "jail '%s': 'filter' requires path to file with regexps", jail->name);
+  if ((f_section = f2b_config_section_find(config->filters, jail->filter_name)) == NULL) {
+    f2b_log_msg(log_error, "jail '%s': no filter with name '%s'", jail->name, jail->filter_name);
     return false;
   }
 
@@ -242,7 +238,7 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
     return false;
   }
   if ((b_section = f2b_config_section_find(config->backends, jail->backend_name)) == NULL) {
-    f2b_log_msg(log_error, "jail '%s': no filter with name '%s'", jail->name, jail->backend_name);
+    f2b_log_msg(log_error, "jail '%s': no backend with name '%s'", jail->name, jail->backend_name);
     return false;
   }
 
@@ -252,7 +248,7 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
     goto cleanup;
   }
 
-  if ((jail->regexps = f2b_regexlist_from_file(jail->filter_init)) == NULL) {
+  if ((jail->filter = f2b_filter_create(f_section, jail->filter_init)) == NULL) {
     f2b_log_msg(log_error, "jail '%s': no regexps loaded from '%s'", jail->name, jail->filter_init);
     goto cleanup;
   }
@@ -268,8 +264,8 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
   cleanup:
   if (jail->logfiles)
     f2b_filelist_destroy(jail->logfiles);
-  if (jail->regexps)
-    f2b_regexlist_destroy(jail->regexps);
+  if (jail->filter)
+    f2b_filter_destroy(jail->filter);
   if (jail->backend)
     f2b_backend_destroy(jail->backend);
   return false;
