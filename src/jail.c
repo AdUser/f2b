@@ -11,6 +11,29 @@ static f2b_jail_t defaults = {
   .tries    = DEFAULT_TRIES,
 };
 
+static void
+f2b_jail_parse_compound_value(const char *value, char *name, char *init) {
+  size_t len = 0;
+  char *p = NULL;
+
+  if ((p = strchr(value, ':')) == NULL) {
+    /* param = name */
+    strncpy(name, value, CONFIG_KEY_MAX);
+    return;
+  }
+
+  /* param = name:init_string */
+  len = p - value;
+  if (len >= CONFIG_KEY_MAX) {
+    f2b_log_msg(log_warn, "'name' part of value exceeds max length %d bytes: %s", CONFIG_KEY_MAX, value);
+    return;
+  }
+
+  strncpy(name, value, len);
+  strncpy(init, (p + 1), CONFIG_VAL_MAX);
+  return;
+}
+
 void
 f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *config) {
   f2b_config_param_t *param = NULL;
