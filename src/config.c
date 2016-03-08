@@ -134,7 +134,7 @@ f2b_config_section_find(f2b_config_section_t *section, const char *name) {
 }
 
 f2b_config_section_t *
-f2b_config_section_append(f2b_config_section_t *section, f2b_config_param_t *param) {
+f2b_config_section_append(f2b_config_section_t *section, f2b_config_param_t *param, bool replace) {
   f2b_config_param_t *prev = NULL;
 
   assert(section != NULL);
@@ -147,7 +147,7 @@ f2b_config_section_append(f2b_config_section_t *section, f2b_config_param_t *par
     return section;
   }
 
-  if ((prev = f2b_config_param_find(section->param, param->name)) != NULL) {
+  if (replace && (prev = f2b_config_param_find(section->param, param->name)) != NULL) {
     /* found param with same name */
     strncpy(prev->value, param->value, sizeof(prev->value));
     free(param);
@@ -222,7 +222,7 @@ f2b_config_load(const char *path) {
           f2b_log_msg(log_error, "can't parse key/value at line %d: %s", linenum, p);
           continue;
         }
-        f2b_config_section_append(section, param);
+        f2b_config_section_append(section, param, false);
         break;
     } /* switch */
   } /* while */
