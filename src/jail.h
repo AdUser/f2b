@@ -14,6 +14,12 @@ typedef struct f2b_jail_t {
   size_t tries;
   char name[CONFIG_KEY_MAX];
   char glob[PATH_MAX];
+  char backend_name[CONFIG_KEY_MAX];
+  char backend_init[CONFIG_VAL_MAX];
+  char filter_name[CONFIG_KEY_MAX];
+  char filter_init[CONFIG_VAL_MAX];
+  char source_name[CONFIG_KEY_MAX];
+  char source_init[CONFIG_VAL_MAX];
   f2b_logfile_t *logfiles;
   f2b_regex_t   *regexps;
   f2b_ipaddr_t  *ipaddrs;

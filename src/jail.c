@@ -35,15 +35,14 @@ f2b_jail_parse_compound_value(const char *value, char *name, char *init) {
 }
 
 void
-f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *config) {
+f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
   f2b_config_param_t *param = NULL;
 
   assert(jail != NULL);
-  assert(config != NULL);
-  assert(config->type != t_jail);
+  assert(section != NULL);
+  assert(section->type != t_jail || section->type == t_defaults);
 
-  param = config->param;
-  for (; param != NULL; param = param->next) {
+  for (param = section->param; param != NULL; param = param->next) {
     if (strcmp(param->name, "enabled") == 0) {
       if (strcmp(param->value, "yes") == 0)
         jail->enabled = true;
@@ -61,7 +60,18 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *config) {
         jail->tries = DEFAULT_TRIES;
       continue;
     }
-    f2b_log_msg(log_warn, "unrecognized param in section [defaults]: %s", param->name);
+    if (strcmp(param->name, "source") == 0) {
+      f2b_jail_parse_compound_value(param->value, jail->source_name, jail->source_init);
+      continue;
+    }
+    if (strcmp(param->name, "filter") == 0) {
+      f2b_jail_parse_compound_value(param->value, jail->filter_name, jail->filter_init);
+      continue;
+    }
+    if (strcmp(param->name, "backend") == 0) {
+      f2b_jail_parse_compound_value(param->value, jail->backend_name, jail->backend_init);
+      continue;
+    }
   }
 
   return;
