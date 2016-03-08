@@ -7,6 +7,7 @@
 #include "config.h"
 #include "regexps.h"
 #include "backend.h"
+#include "filelist.h"
 
 typedef struct f2b_jail_t {
   bool enabled;
@@ -26,4 +27,9 @@ typedef struct f2b_jail_t {
   f2b_backend_t *backend;
 } f2b_jail_t;
 
+f2b_jail_t *f2b_jail_create (f2b_config_section_t *section);
+void   f2b_jail_set_defaults(f2b_config_section_t *section);
+
+size_t f2b_jail_process (f2b_jail_t *jail);
+bool   f2b_jail_init    (f2b_jail_t *jail, f2b_config_t *config);
 #endif /* F2B_JAIL_H_ */
