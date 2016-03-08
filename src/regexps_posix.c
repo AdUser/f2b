@@ -4,7 +4,7 @@
 #include <regex.h>
 
 /* draft */
-#define HOST_REGEX "([12][0-9]{0,2}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})"
+#define HOST_REGEX "([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})"
 
 struct _regex {
   struct _regex *next;
