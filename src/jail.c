@@ -106,7 +106,8 @@ f2b_jail_ban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
     return true;
   }
 
-  f2b_log_msg(log_error, "jail '%s': can't ban ip '%s' - backend failure", jail->name, addr->text);
+  f2b_log_msg(log_error, "jail '%s': can't ban ip '%s' -- %s",
+    jail->name, addr->text, f2b_backend_error(jail->backend));
   return false;
 }
 
@@ -119,11 +120,12 @@ f2b_jail_unban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
   addr->bantime = 0;
 
   if (f2b_backend_unban(jail->backend, addr->text)) {
-    f2b_log_msg(log_info, "released ip in jail '%s': %s", jail->name, addr->text);
+    f2b_log_msg(log_info, "jail '%s': released ip %s", jail->name, addr->text);
     return true;
   }
 
-  f2b_log_msg(log_error, "can't release ip in jail '%s': backend failure for '%s'", jail->name, addr->text);
+  f2b_log_msg(log_error, "jail '%s': can't release ip '%s' -- %s",
+    jail->name, addr->text, f2b_backend_error(jail->backend));
   return false;
 }
 
@@ -261,12 +263,14 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
   }
 
   if ((jail->backend = f2b_backend_create(b_section, jail->backend_init)) == NULL) {
-    f2b_log_msg(log_error, "jail '%s': can't init backend '%s' with %s",
-      jail->name, jail->backend_name, jail->backend_init);
+    f2b_log_msg(log_error, "jail '%s': can't init backend '%s' with %s -- %s",
+      jail->name, jail->backend_name, jail->backend_init, f2b_backend_error(jail->backend));
     goto cleanup;
   }
-  if (!f2b_backend_start(jail->backend))
-    f2b_log_msg(log_warn, "jail '%s': backend action 'start' failed", jail->name);
+  if (!f2b_backend_start(jail->backend)) {
+    f2b_log_msg(log_warn, "jail '%s': backend action 'start' failed -- %s",
+      jail->name, f2b_backend_error(jail->backend));
+  }
 
   return true;
 
