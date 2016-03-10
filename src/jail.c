@@ -153,6 +153,8 @@ f2b_jail_process(f2b_jail_t *jail) {
 
   assert(jail != NULL);
 
+  f2b_backend_ping(jail->backend);
+
   for (file = jail->logfiles; file != NULL; file = file->next) {
     while (f2b_logfile_getline(file, logline, sizeof(logline))) {
       if (!f2b_filter_match(jail->filter, logline, matchbuf, sizeof(matchbuf)))
