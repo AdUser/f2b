@@ -89,24 +89,25 @@ f2b_backend_destroy(f2b_backend_t *backend) {
   free(backend);
 }
 
-#define BACKEND_CMD_ARG0(CMD) \
-bool \
+#define BACKEND_CMD_ARG0(CMD, RETURNS) \
+RETURNS \
 f2b_backend_ ## CMD(f2b_backend_t *backend) { \
   assert(backend != NULL); \
   return backend->CMD(backend->cfg); \
 }
 
-#define BACKEND_CMD_ARG1(CMD) \
-bool \
+#define BACKEND_CMD_ARG1(CMD, RETURNS) \
+RETURNS \
 f2b_backend_ ## CMD(f2b_backend_t *backend, const char *ip) { \
   assert(backend != NULL); \
   return backend->CMD(backend->cfg, ip); \
 }
 
-BACKEND_CMD_ARG0(ping)
-BACKEND_CMD_ARG0(start)
-BACKEND_CMD_ARG0(stop)
+BACKEND_CMD_ARG0(error, const char *)
+BACKEND_CMD_ARG0(start, bool)
+BACKEND_CMD_ARG0(stop,  bool)
+BACKEND_CMD_ARG0(ping,  bool)
 
-BACKEND_CMD_ARG1(check)
-BACKEND_CMD_ARG1(ban)
-BACKEND_CMD_ARG1(unban)
+BACKEND_CMD_ARG1(check, bool)
+BACKEND_CMD_ARG1(ban,   bool)
+BACKEND_CMD_ARG1(unban, bool)

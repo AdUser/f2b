@@ -10,7 +10,7 @@ typedef struct f2b_backend_t {
   void *(*create)  (const char *id);
   bool  (*config)  (void *cfg, const char *key, const char *value);
   bool  (*ready)   (void *cfg);
-  char  (*error)   (void *cfg);
+  char *(*error)   (void *cfg);
   bool  (*start)   (void *cfg);
   bool  (*stop)    (void *cfg);
   bool  (*ping)    (void *cfg);
