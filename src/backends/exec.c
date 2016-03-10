@@ -1,4 +1,6 @@
 #include <assert.h>
+#include <errno.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -18,6 +20,7 @@ typedef struct cmd_t {
 
 struct _config {
   char name[ID_MAX + 1];
+  char error[256];
   time_t timeout;
   cmd_t *start;
   cmd_t *stop;
@@ -98,7 +101,7 @@ cmd_list_destroy(cmd_t *list) {
 }
 
 static bool
-cmd_list_exec(const cfg_t *cfg, cmd_t *list, const char *ip) {
+cmd_list_exec(cfg_t *cfg, cmd_t *list, const char *ip) {
   int status = 0;
   pid_t pid;
 
@@ -118,9 +121,18 @@ cmd_list_exec(const cfg_t *cfg, cmd_t *list, const char *ip) {
       waitpid(pid, &status, 0);
       if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
         continue;
+      if (WIFEXITED(status)) {
+        snprintf(cfg->error, sizeof(cfg->error),
+          "cmd '%s' terminated with code %d",
+          cmd->args, WEXITSTATUS(status));
+      } else if (WIFSIGNALED(status)) {
+        snprintf(cfg->error, sizeof(cfg->error),
+          "cmd '%s' terminated by signal %d", cmd->args, WTERMSIG(status));
+      }
       return false;
     } else {
       /* parent, fork error */
+      snprintf(cfg->error, sizeof(cfg->error), "can't fork(): %s", strerror(errno));
       return false;
     }
   }
