@@ -22,7 +22,12 @@ typedef struct f2b_backend_t {
 f2b_backend_t * f2b_backend_create (f2b_config_section_t *config, const char *id);
 void            f2b_backend_destroy(f2b_backend_t *b);
 
+bool f2b_backend_start (f2b_backend_t *b);
+bool f2b_backend_stop  (f2b_backend_t *b);
+bool f2b_backend_ping  (f2b_backend_t *b);
+
 bool f2b_backend_ban   (f2b_backend_t *b, const char *ip);
+bool f2b_backend_check (f2b_backend_t *b, const char *ip);
 bool f2b_backend_unban (f2b_backend_t *b, const char *ip);
 
 #endif /* BACKEND_H_ */
