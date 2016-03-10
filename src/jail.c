@@ -11,7 +11,7 @@ static f2b_jail_t defaults = {
   .tries    = DEFAULT_TRIES,
 };
 
-static void
+void
 f2b_jail_parse_compound_value(const char *value, char *name, char *init) {
   size_t len = 0;
   char *p = NULL;

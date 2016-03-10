@@ -28,6 +28,8 @@ typedef struct f2b_jail_t {
   f2b_backend_t *backend;
 } f2b_jail_t;
 
+void f2b_jail_parse_compound_value(const char *value, char *name, char *init);
+
 f2b_jail_t *f2b_jail_create (f2b_config_section_t *section);
 void   f2b_jail_set_defaults(f2b_config_section_t *section);
 
