@@ -38,9 +38,9 @@ f2b_backend_create(f2b_config_section_t *config, const char *id) {
     goto cleanup;
   if ((*(void **) (&backend->ban)     = dlsym(backend->h, "ban"))     == NULL)
     goto cleanup;
-  if ((*(void **) (&backend->unban)   = dlsym(backend->h, "unban"))   == NULL)
+  if ((*(void **) (&backend->check)   = dlsym(backend->h, "check"))   == NULL)
     goto cleanup;
-  if ((*(void **) (&backend->exists)  = dlsym(backend->h, "exists"))  == NULL)
+  if ((*(void **) (&backend->unban)   = dlsym(backend->h, "unban"))   == NULL)
     goto cleanup;
   if ((*(void **) (&backend->destroy) = dlsym(backend->h, "destroy")) == NULL)
     goto cleanup;

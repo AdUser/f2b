@@ -24,7 +24,7 @@ struct _config {
   cmd_t *stop;
   cmd_t *ban;
   cmd_t *unban;
-  cmd_t *exists;
+  cmd_t *check;
 };
 
 static cmd_t *
@@ -167,7 +167,7 @@ config(cfg_t *cfg, const char *key, const char *value) {
   CREATE_CMD(stop)
   CREATE_CMD(ban)
   CREATE_CMD(unban)
-  CREATE_CMD(exists)
+  CREATE_CMD(check)
 
   return false;
 }
@@ -217,15 +217,14 @@ unban(cfg_t *cfg, const char *ip) {
 }
 
 bool
-exists(cfg_t *cfg, const char *ip) {
+check(cfg_t *cfg, const char *ip) {
   assert(cfg != NULL && ip != NULL);
 
-  if (!cfg->exists)
-    return true;
+  if (!cfg->check)
+    return false;
 
-  return cmd_list_exec(cfg->exists, ip, cfg->timeout);
+  return cmd_list_exec(cfg->check, ip, cfg->timeout);
 }
-
 
 bool
 ping(cfg_t *cfg) {
@@ -241,6 +240,6 @@ destroy(cfg_t *cfg) {
   cmd_list_destroy(cfg->stop);
   cmd_list_destroy(cfg->ban);
   cmd_list_destroy(cfg->unban);
-  cmd_list_destroy(cfg->exists);
+  cmd_list_destroy(cfg->check);
   free(cfg);
 }

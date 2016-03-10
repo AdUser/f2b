@@ -14,8 +14,8 @@ typedef struct f2b_backend_t {
   bool  (*stop)    (void *cfg);
   bool  (*ping)    (void *cfg);
   bool  (*ban)     (void *cfg, const char *ip);
+  bool  (*check)   (void *cfg, const char *ip);
   bool  (*unban)   (void *cfg, const char *ip);
-  bool  (*exists)  (void *cfg, const char *ip);
   void  (*destroy) (void *cfg);
 } f2b_backend_t;
 

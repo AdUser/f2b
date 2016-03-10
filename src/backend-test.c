@@ -48,8 +48,8 @@ int main(int argc, char *argv[]) {
     goto cleanup;
   }
 
-  if (!backend->exists(backend->cfg, ip)) {
-    f2b_log_msg(log_error, "action 'exists' failed");
+  if (!backend->check(backend->cfg, ip)) {
+    f2b_log_msg(log_error, "action 'check' failed");
     goto cleanup;
   }
 
