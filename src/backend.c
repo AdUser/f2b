@@ -30,6 +30,8 @@ f2b_backend_create(f2b_config_section_t *config, const char *id) {
     goto cleanup;
   if ((*(void **) (&backend->ready)   = dlsym(backend->h, "ready"))   == NULL)
     goto cleanup;
+  if ((*(void **) (&backend->error)   = dlsym(backend->h, "error"))   == NULL)
+    goto cleanup;
   if ((*(void **) (&backend->start)   = dlsym(backend->h, "start"))   == NULL)
     goto cleanup;
   if ((*(void **) (&backend->stop)    = dlsym(backend->h, "stop"))    == NULL)
