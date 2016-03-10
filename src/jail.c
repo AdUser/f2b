@@ -266,7 +266,7 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
     goto cleanup;
   }
   if (!f2b_backend_start(jail->backend))
-    f2b_log_msg(log_warn, "jail '%s': backend action 'start' failed");
+    f2b_log_msg(log_warn, "jail '%s': backend action 'start' failed", jail->name);
 
   return true;
 
