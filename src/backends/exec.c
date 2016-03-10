@@ -7,14 +7,13 @@
 
 #include "backend.h"
 
-#define ID_MAX 32
-
 typedef struct cmd_t {
   struct cmd_t *next;
   char  *args;   /**< stores path of cmd & args, delimited by '\0' */
   char **argv;   /**< stores array of pointers to args + NULL */
   size_t argc;   /**< args count */
-  size_t pos;    /**< index+1 in argv[] where to insert IP address (zero means "no placeholder") */
+  size_t pos_ip; /**< index+1 in argv[] where to insert IP address (zero means "no placeholder") */
+  size_t pos_id; /**< index+1 in argv[] where to insert IP address (zero means "no placeholder") */
 } cmd_t;
 
 struct _config {
@@ -53,8 +52,10 @@ cmd_from_str(const char *str) {
     if ((argv = realloc(cmd->argv, sizeof(cmd->argv) * (cmd->argc + 2))) == NULL)
       goto cleanup;
     cmd->argv = argv;
-    if (strcmp(token, HOST_TOKEN) == 0)
-      cmd->pos = cmd->argc;
+    if (strcmp(token, TOKEN_ID) == 0)
+      cmd->pos_id = cmd->argc;
+    if (strcmp(token, TOKEN_IP) == 0)
+      cmd->pos_ip = cmd->argc;
     cmd->argv[cmd->argc] = token;
     cmd->argc++;
   }
@@ -97,7 +98,7 @@ cmd_list_destroy(cmd_t *list) {
 }
 
 static bool
-cmd_list_exec(cmd_t *list, const char *ip, time_t timeout) {
+cmd_list_exec(const cfg_t *cfg, cmd_t *list, const char *ip) {
   int status = 0;
   pid_t pid;
 
@@ -105,10 +106,12 @@ cmd_list_exec(cmd_t *list, const char *ip, time_t timeout) {
     pid = fork();
     if (pid == 0) {
       /* child */
-      if (ip && cmd->pos)
-        cmd->argv[cmd->pos - 1] = strdup(ip);
-      if (timeout)
-        alarm(timeout);
+      if (cmd->pos_ip && ip)
+        cmd->argv[cmd->pos_ip - 1] = strdup(ip);
+      if (cmd->pos_id)
+        cmd->argv[cmd->pos_ip - 1] = strdup(cfg->name);
+      if (cfg->timeout)
+        alarm(cfg->timeout);
       execv(cmd->args, cmd->argv);
     } else if (pid > 0) {
       /* parent */
@@ -189,7 +192,7 @@ start(cfg_t *cfg) {
   if (!cfg->start)
     return true;
 
-  return cmd_list_exec(cfg->start, NULL, cfg->timeout);
+  return cmd_list_exec(cfg, cfg->start, NULL);
 }
 
 bool
@@ -199,21 +202,21 @@ stop(cfg_t *cfg) {
   if (!cfg->stop)
     return true;
 
-  return cmd_list_exec(cfg->stop, NULL, cfg->timeout);
+  return cmd_list_exec(cfg, cfg->stop, NULL);
 }
 
 bool
 ban(cfg_t *cfg, const char *ip) {
   assert(cfg != NULL && ip != NULL);
 
-  return cmd_list_exec(cfg->ban, ip, cfg->timeout);
+  return cmd_list_exec(cfg, cfg->ban, ip);
 }
 
 bool
 unban(cfg_t *cfg, const char *ip) {
   assert(cfg != NULL && ip != NULL);
 
-  return cmd_list_exec(cfg->unban, ip, cfg->timeout);
+  return cmd_list_exec(cfg, cfg->unban, ip);
 }
 
 bool
@@ -223,7 +226,7 @@ check(cfg_t *cfg, const char *ip) {
   if (!cfg->check)
     return false;
 
-  return cmd_list_exec(cfg->check, ip, cfg->timeout);
+  return cmd_list_exec(cfg, cfg->check, ip);
 }
 
 bool

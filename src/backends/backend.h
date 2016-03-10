@@ -1,6 +1,8 @@
 #include <stdbool.h>
 
-#define HOST_TOKEN "<HOST>"
+#define TOKEN_ID "<ID>"
+#define TOKEN_IP "<IP>"
+#define ID_MAX 32
 
 typedef struct _config cfg_t;
 
