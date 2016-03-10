@@ -96,6 +96,11 @@ f2b_jail_ban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
   addr->banned  = true;
   addr->bantime = addr->lastseen;
 
+  if (f2b_backend_check(jail->backend, addr->text)) {
+    f2b_log_msg(log_warn, "jail '%s': ip '%s' already banned", jail->name, addr->text);
+    return true;
+  }
+
   if (f2b_backend_ban(jail->backend, addr->text)) {
     f2b_log_msg(log_info, "jail '%s': banned ip %s", jail->name, addr->text);
     return true;
