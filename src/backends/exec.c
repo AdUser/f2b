@@ -107,9 +107,9 @@ cmd_list_exec(const cfg_t *cfg, cmd_t *list, const char *ip) {
     if (pid == 0) {
       /* child */
       if (cmd->pos_ip && ip)
-        cmd->argv[cmd->pos_ip - 1] = strdup(ip);
+        cmd->argv[cmd->pos_ip] = strdup(ip);
       if (cmd->pos_id)
-        cmd->argv[cmd->pos_ip - 1] = strdup(cfg->name);
+        cmd->argv[cmd->pos_id] = strdup(cfg->name);
       if (cfg->timeout)
         alarm(cfg->timeout);
       execv(cmd->args, cmd->argv);
