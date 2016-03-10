@@ -97,11 +97,11 @@ f2b_jail_ban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
   addr->bantime = addr->lastseen;
 
   if (f2b_backend_ban(jail->backend, addr->text)) {
-    f2b_log_msg(log_info, "banned ip in jail '%s': %s", jail->name, addr->text);
+    f2b_log_msg(log_info, "jail '%s': banned ip %s", jail->name, addr->text);
     return true;
   }
 
-  f2b_log_msg(log_error, "can't ban ip in jail '%s': backend failure for '%s'", jail->name, addr->text);
+  f2b_log_msg(log_error, "jail '%s': can't ban ip '%s' - backend failure", jail->name, addr->text);
   return false;
 }
 
