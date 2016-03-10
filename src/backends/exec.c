@@ -197,6 +197,13 @@ ready(cfg_t *cfg) {
   return false;
 }
 
+char *
+error(cfg_t *cfg) {
+  assert(cfg != NULL);
+
+  return cfg->error;
+}
+
 bool
 start(cfg_t *cfg) {
   assert(cfg != NULL);
