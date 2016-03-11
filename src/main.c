@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
   if (!config_file)
     usage(EXIT_FAILURE);
   memset(&config, 0x0, sizeof(config));
-  if (f2b_config_load(&config, config_file) != true) {
+  if (f2b_config_load(&config, config_file, true) != true) {
     f2b_log_msg(log_error, "can't load config from '%s'", config_file);
     return EXIT_FAILURE;
   }

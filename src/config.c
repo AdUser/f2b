@@ -2,6 +2,8 @@
 #include "config.h"
 #include "log.h"
 
+#include <glob.h>
+
 f2b_config_param_t *
 f2b_config_param_create(const char *src) {
   f2b_config_param_t *param = NULL;
@@ -164,7 +166,7 @@ f2b_config_section_find(f2b_config_section_t *section, const char *name) {
 }
 
 bool
-f2b_config_load(f2b_config_t *config, const char *path) {
+f2b_config_load(f2b_config_t *config, const char *path, bool recursion) {
   f2b_config_section_t *section = NULL; /* always points to current section */
   f2b_config_param_t   *param   = NULL; /* temp pointer */
   FILE *f = NULL; /* config file fd */
@@ -233,7 +235,20 @@ f2b_config_load(f2b_config_t *config, const char *path) {
   } /* while */
   fclose(f);
 
-  /* TODO: process includes */
+  if (recursion && config->main && (param = f2b_config_param_find(config->main->param, "includes"))) {
+    char pattern[PATH_MAX] = "";
+    glob_t globbuf;
+    snprintf(pattern, sizeof(pattern), "%s/*.conf", param->value);
+    if (glob(pattern, 0, NULL, &globbuf) != 0) {
+      f2b_log_msg(log_error, "glob on 'includes' dir failed");
+      return false;
+    }
+    for (size_t i = 0; i < globbuf.gl_pathc; i++) {
+      f2b_config_load(config, globbuf.gl_pathv[i], false);
+      /* TODO: includes processing are not fatal? hmm... good question */
+    }
+    globfree(&globbuf);
+  }
 
   return true;
 }

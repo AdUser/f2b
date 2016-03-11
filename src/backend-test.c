@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     usage();
 
   memset(&config, 0x0, sizeof(config));
-  if (f2b_config_load(&config, argv[1]) != true) {
+  if (f2b_config_load(&config, argv[1], false) != true) {
     f2b_log_msg(log_error, "can't load config");
     return EXIT_FAILURE;
   }
