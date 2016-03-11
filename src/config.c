@@ -73,6 +73,29 @@ f2b_config_param_find(f2b_config_param_t *param, const char *name) {
   return NULL;
 }
 
+f2b_config_param_t *
+f2b_config_param_append(f2b_config_param_t *list, f2b_config_param_t *param, bool replace) {
+  f2b_config_param_t *p;
+
+  assert(param != NULL);
+
+  if (!list)
+    return param; /* no parameters yet */
+
+  if (replace && (p = f2b_config_param_find(list, param->name)) != NULL) {
+    /* found param with same name */
+    strncpy(p->value, param->value, sizeof(p->value));
+    free(param);
+    return list;
+  }
+
+  for (p = list; p->next != NULL; p = p->next)
+    /* find last element */;
+
+  p->next = param;
+  return list;
+}
+
 f2b_config_section_t *
 f2b_config_section_create(const char *src) {
   f2b_config_section_t *section = NULL;
@@ -140,32 +163,6 @@ f2b_config_section_find(f2b_config_section_t *section, const char *name) {
   return NULL;
 }
 
-f2b_config_section_t *
-f2b_config_section_append(f2b_config_section_t *section, f2b_config_param_t *param, bool replace) {
-  f2b_config_param_t *prev = NULL;
-
-  assert(section != NULL);
-  assert(param != NULL);
-
-  if (!section->param) {
-    /* no parameters yet */
-    section->param = param;
-    section->last  = param;
-    return section;
-  }
-
-  if (replace && (prev = f2b_config_param_find(section->param, param->name)) != NULL) {
-    /* found param with same name */
-    strncpy(prev->value, param->value, sizeof(prev->value));
-    free(param);
-    return section;
-  }
-
-  section->last->next = param;
-  section->last = param;
-  return section;
-}
-
 bool
 f2b_config_load(f2b_config_t *config, const char *path) {
   f2b_config_section_t *section = NULL; /* always points to current section */
@@ -224,9 +221,9 @@ f2b_config_load(f2b_config_t *config, const char *path) {
         /* key/value pair */
         param = f2b_config_param_create(p);
         if (param && (section->type == t_main || section->type == t_defaults)) {
-          f2b_config_section_append(section, param, true);
+          section->param = f2b_config_param_append(section->param, param, true);
         } else if (param) {
-          f2b_config_section_append(section, param, false);
+          section->param = f2b_config_param_append(section->param, param, false);
         } else {
           f2b_log_msg(log_error, "can't parse key/value at line %d: %s", linenum, p);
           continue;
