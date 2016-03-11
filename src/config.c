@@ -207,7 +207,7 @@ f2b_config_load(f2b_config_t *config, const char *path) {
         section = f2b_config_section_create(p);
         if (section) {
           skip_section = false;
-          section = f2b_config_append(config, section);
+          section = f2b_config_section_append(config, section);
         } else {
           skip_section = true;
           f2b_log_msg(log_error, "unknown section at line %d: %s", linenum, p);
@@ -261,7 +261,7 @@ f2b_config_free(f2b_config_t *config) {
 }
 
 f2b_config_section_t *
-f2b_config_append(f2b_config_t *config, f2b_config_section_t *section) {
+f2b_config_section_append(f2b_config_t *config, f2b_config_section_t *section) {
   f2b_config_section_t *prev = NULL;
   f2b_config_section_t **s   = NULL;
 
