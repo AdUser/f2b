@@ -39,16 +39,14 @@ void f2b_log_msg(log_msgtype_t l, const char *fmt, ...) {
   vsnprintf(msg, sizeof(msg), fmt, args);
   va_end(args);
 
-  if (!logfile)
-    logfile = stderr;
-
   switch (dest) {
     case log_syslog:
       syslog(get_facility(l), "%s", msg);
       break;
-    case log_stderr:
-    case log_file:
     default:
+    case log_stderr:
+      logfile = stderr;
+    case log_file:
       fprintf(logfile, "[%s] %s\n", loglevels[l], msg);
       break;
   }
@@ -64,28 +62,23 @@ void f2b_log_set_level(const char *level) {
   if (strcmp(level, "fatal") == 0) { minlevel = log_fatal; return; }
 }
 
-void f2b_log_set_dest(const char *target) {
-  if (strcmp(target, "syslog") == 0) { dest = log_syslog; return; }
-  if (strcmp(target, "stderr") == 0) { dest = log_stderr; return; }
-  if (strcmp(target, "file")   == 0) { dest = log_file;   return; }
-}
-
-void f2b_log_setup(const char *path) {
-  switch (dest) {
-    case log_file:
-      if (logfile)
-        fclose(logfile);
-      if ((logfile = fopen(path, "a")) == NULL)
-        dest = log_stderr, logfile = stderr;
-      f2b_log_msg(log_error, "can't open logfile: %s -- %s", path, strerror(errno));
-      break;
-    case log_syslog:
-      openlog("f2b", LOG_CONS, LOG_DAEMON);
-      break;
-    case log_stderr:
-    default:
-      logfile = stderr;
-      break;
+void f2b_log_setup(const char *target, const char *path) {
+  if (strcmp(target, "syslog") == 0) {
+    dest = log_syslog;
+    openlog("f2b", LOG_CONS, LOG_DAEMON);
+    return;
+  } else
+  if (strcmp(target, "file") == 0 && *path != '\0') {
+    dest = log_file;
+    if (logfile)
+      fclose(logfile);
+    if ((logfile = fopen(path, "a")) == NULL)
+      dest = log_stderr, logfile = stderr;
+    f2b_log_msg(log_error, "can't open logfile: %s -- %s", path, strerror(errno));
+    return;
+  } else {
+    dest = log_stderr;
+    logfile = stderr;
   }
 
   return;
