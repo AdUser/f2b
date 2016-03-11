@@ -1,0 +1,28 @@
+[main]
+modules = /usr/lib/f2b
+includes = /etc/f2b/conf.d
+logdest = stderr
+logfile = /var/log/f2b.log
+loglevel = info
+user = root
+group = root
+daemon = yes
+
+[defaults]
+backend = exec-ipset:banned
+
+[filter:preg]
+load  = libf2b_f_preg.so
+
+[backend:exec-ipset]
+load  = libf2b_b_exec.so
+start = /usr/sbin/ipset create  <ID> hash:ip
+stop  = /usr/sbin/ipset destroy <ID>
+ban   = /usr/sbin/ipset add  <ID> <IP>
+check = /usr/sbin/ipset test <ID> <IP>
+unban = /usr/sbin/ipset del  <ID> <IP>
+timeout = 1
+
+[jail:ssh]
+source  = files:/var/log/*.log
+filter  = preg:filters/preg/ssh
