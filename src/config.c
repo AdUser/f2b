@@ -223,15 +223,20 @@ f2b_config_load(f2b_config_t *config, const char *path) {
         }
         /* key/value pair */
         param = f2b_config_param_create(p);
-        if (!param) {
+        if (param && (section->type == t_main || section->type == t_defaults)) {
+          f2b_config_section_append(section, param, true);
+        } else if (param) {
+          f2b_config_section_append(section, param, false);
+        } else {
           f2b_log_msg(log_error, "can't parse key/value at line %d: %s", linenum, p);
           continue;
         }
-        f2b_config_section_append(section, param, false);
         break;
     } /* switch */
   } /* while */
   fclose(f);
+
+  /* TODO: process includes */
 
   return true;
 }
