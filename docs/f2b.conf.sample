@@ -1,5 +1,4 @@
 [main]
-modules = /usr/lib/f2b
 includes = /etc/f2b/conf.d
 logdest = stderr
 logfile = /var/log/f2b.log
@@ -12,10 +11,10 @@ daemon = yes
 backend = exec-ipset:banned
 
 [filter:preg]
-load  = libf2b_f_preg.so
+load  = libf2b_filter_preg.so
 
 [backend:exec-ipset]
-load  = libf2b_b_exec.so
+load  = libf2b_backend_exec.so
 start = /usr/sbin/ipset create  <ID> hash:ip
 stop  = /usr/sbin/ipset destroy <ID>
 ban   = /usr/sbin/ipset add  <ID> <IP>
