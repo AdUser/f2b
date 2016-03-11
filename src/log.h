@@ -13,5 +13,7 @@ typedef enum {
 
 void f2b_log_msg(log_msgtype_t l, const char *fmt, ...);
 void f2b_log_set_level(const char *level);
+void f2b_log_set_dest (const char *dest);
+void f2b_log_setup    (const char *path);
 
 #endif /* F2B_LOG_H_ */
