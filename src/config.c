@@ -12,7 +12,7 @@ f2b_config_param_create(const char *src) {
   size_t len;
 
   strncpy(line, src, sizeof(line));
-  line[CONFIG_LINE_MAX] = '\0';
+  line[CONFIG_LINE_MAX - 1] = '\0';
 
   /* strip spaces before key */
   key = line;
@@ -47,18 +47,18 @@ f2b_config_param_create(const char *src) {
   p++, *p = '\0';
 
   len = strlen(key);
-  if (len < 1 || len > CONFIG_KEY_MAX)
+  if (len < 1 || len >= CONFIG_KEY_MAX)
     return NULL;
 
   len = strlen(value);
-  if (len < 1 || len > CONFIG_VAL_MAX)
+  if (len < 1 || len >= CONFIG_VAL_MAX)
     return NULL;
 
   if ((param = calloc(1, sizeof(f2b_config_param_t))) != NULL) {
     strncpy(param->name,  key,   sizeof(param->name));
     strncpy(param->value, value, sizeof(param->value));
-    param->name[CONFIG_KEY_MAX] = '\0';
-    param->name[CONFIG_VAL_MAX] = '\0';
+    param->name [CONFIG_KEY_MAX - 1] = '\0';
+    param->value[CONFIG_VAL_MAX - 1] = '\0';
     return param;
   }
 
@@ -109,7 +109,7 @@ f2b_config_section_create(const char *src) {
 
   src++;
   strncpy(line, src, sizeof(line));
-  line[CONFIG_LINE_MAX] = '\0';
+  line[CONFIG_LINE_MAX - 1] = '\0';
 
   if ((end = strchr(line, ']')) == NULL)
     return NULL;

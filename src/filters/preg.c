@@ -29,7 +29,7 @@ create(const char *id) {
   if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
     return NULL;
   strncpy(cfg->id, id, sizeof(cfg->id));
-  cfg->id[sizeof(cfg->id)] = '\0';
+  cfg->id[sizeof(cfg->id) - 1] = '\0';
 
   return cfg;
 }
@@ -113,6 +113,7 @@ match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
     assert(buf_size > match_len);
     strncpy(buf, &line[match[1].rm_so], match_len);
     buf[match_len] = '\0';
+    buf[buf_size]  = '\0';
     return true;
   }
 
