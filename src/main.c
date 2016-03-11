@@ -37,7 +37,7 @@ void usage(int exitcode) {
 
 int main(int argc, char *argv[]) {
   struct sigaction act;
-  f2b_config_t *config  = NULL;
+  f2b_config_t config;
   f2b_config_section_t *section = NULL;
   f2b_jail_t *jails = NULL;
   f2b_jail_t *jail  = NULL;
@@ -63,15 +63,16 @@ int main(int argc, char *argv[]) {
 
   if (!config_file)
     usage(EXIT_FAILURE);
-  if ((config = f2b_config_load(config_file)) == NULL) {
+  memset(&config, 0x0, sizeof(config));
+  if (f2b_config_load(&config, config_file) != true) {
     f2b_log_msg(log_error, "can't load config from '%s'", config_file);
     return EXIT_FAILURE;
   }
 
-  if (config->defaults)
-    f2b_jail_set_defaults(config->defaults);
+  if (config.defaults)
+    f2b_jail_set_defaults(config.defaults);
 
-  for (section = config->jails; section != NULL; section = section->next) {
+  for (section = config.jails; section != NULL; section = section->next) {
     if ((jail = f2b_jail_create(section)) == NULL) {
       f2b_log_msg(log_error, "can't create jail '%s'", section->name);
       continue;
@@ -81,7 +82,7 @@ int main(int argc, char *argv[]) {
       free(jail);
       continue;
     }
-    if (!f2b_jail_init(jail, config)) {
+    if (!f2b_jail_init(jail, &config)) {
       f2b_log_msg(log_error, "can't init jail '%s'", section->name);
       free(jail);
       continue;
@@ -89,10 +90,10 @@ int main(int argc, char *argv[]) {
     jail->next = jails;
     jails = jail;
   }
-  f2b_config_free(config);
+  f2b_config_free(&config);
 
   if (!jails) {
-    f2b_log_msg(log_error, "no jails configured");
+    f2b_log_msg(log_error, "no jails configured, exiting");
     return EXIT_FAILURE;
   }
 

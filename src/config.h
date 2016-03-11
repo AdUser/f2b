@@ -44,7 +44,7 @@ f2b_config_section_t * f2b_config_section_create(const char *line);
 f2b_config_section_t * f2b_config_section_find  (f2b_config_section_t *s, const char *name);
 f2b_config_section_t * f2b_config_section_append(f2b_config_section_t *s, f2b_config_param_t *p, bool replace);
 
-f2b_config_t *         f2b_config_load  (const char *path);
+bool                   f2b_config_load  (f2b_config_t *c, const char *path);
 void                   f2b_config_free  (f2b_config_t *c);
 f2b_config_section_t * f2b_config_append(f2b_config_t *c, f2b_config_section_t *s);
 #endif /* CONFIG_H_ */

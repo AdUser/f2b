@@ -166,9 +166,8 @@ f2b_config_section_append(f2b_config_section_t *section, f2b_config_param_t *par
   return section;
 }
 
-f2b_config_t *
-f2b_config_load(const char *path) {
-  f2b_config_t         *config  = NULL;
+bool
+f2b_config_load(f2b_config_t *config, const char *path) {
   f2b_config_section_t *section = NULL; /* always points to current section */
   f2b_config_param_t   *param   = NULL; /* temp pointer */
   FILE *f = NULL; /* config file fd */
@@ -177,13 +176,12 @@ f2b_config_load(const char *path) {
   bool skip_section = true; /* if set - skip parameters unless next section */
   size_t linenum = 0; /* current line number in config */
 
+  assert(config != NULL);
+
   if ((f = fopen(path, "r")) == NULL) {
     f2b_log_msg(log_error, "can't open config file '%s': %s", path, strerror(errno));
-    return NULL;
+    return false;
   }
-
-  if ((config = calloc(1, sizeof(f2b_config_t))) == NULL)
-    return NULL;
 
   while (1) {
     p = fgets(line, sizeof(line), f);
@@ -235,7 +233,7 @@ f2b_config_load(const char *path) {
   } /* while */
   fclose(f);
 
-  return config;
+  return true;
 }
 
 #define FREE_SECTIONS(SECTION) \
@@ -258,8 +256,6 @@ f2b_config_free(f2b_config_t *config) {
   FREE_SECTIONS(config->filters);
   FREE_SECTIONS(config->backends);
   FREE_SECTIONS(config->jails);
-
-  FREE(config);
 }
 
 f2b_config_section_t *
