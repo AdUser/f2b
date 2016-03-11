@@ -6,6 +6,29 @@
 #include "backend.h"
 
 #include <getopt.h>
+#include <signal.h>
+
+bool run  = true;
+bool rcfg = false;
+
+void sa_term(int signum) {
+  UNUSED(signum);
+  f2b_log_msg(log_info, "got SIGTERM, exiting");
+  run = false;
+}
+void sa_hup(int signum) {
+  UNUSED(signum);
+  f2b_log_msg(log_info, "got SIGHUP, reloading config");
+  rcfg = true;
+}
+
+#define SA_REGISTER(signum, handler) \
+  memset(&act, 0x0, sizeof(act)); \
+  act.sa_handler = handler; \
+  if (sigaction(SIGTERM, &act, NULL) != 0) { \
+    f2b_log_msg(log_error, "can't register handler for " #signum); \
+    return EXIT_FAILURE; \
+  }
 
 void usage(int exitcode) {
   fprintf(stderr, "Usage: f2b -c <config>\n");
@@ -13,13 +36,13 @@ void usage(int exitcode) {
 }
 
 int main(int argc, char *argv[]) {
+  struct sigaction act;
   f2b_config_t *config  = NULL;
   f2b_config_section_t *section = NULL;
   f2b_jail_t *jails = NULL;
   f2b_jail_t *jail  = NULL;
   char *config_file = NULL;
   char opt = '\0';
-  bool run = true;
 
   while ((opt = getopt(argc, argv, "c:h")) != -1) {
     switch (opt) {
@@ -34,6 +57,9 @@ int main(int argc, char *argv[]) {
         break;
     }
   }
+
+  SA_REGISTER(SIGTERM, &sa_term);
+  SA_REGISTER(SIGHUP,  &sa_hup);
 
   if (!config_file)
     usage(EXIT_FAILURE);
