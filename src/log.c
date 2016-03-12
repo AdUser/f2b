@@ -62,24 +62,28 @@ void f2b_log_set_level(const char *level) {
   if (strcmp(level, "fatal") == 0) { minlevel = log_fatal; return; }
 }
 
-void f2b_log_setup(const char *target, const char *path) {
-  if (strcmp(target, "syslog") == 0) {
-    dest = log_syslog;
-    openlog("f2b", LOG_CONS, LOG_DAEMON);
-    return;
-  } else
-  if (strcmp(target, "file") == 0 && *path != '\0') {
-    dest = log_file;
-    if (logfile)
-      fclose(logfile);
-    if ((logfile = fopen(path, "a")) == NULL)
-      dest = log_stderr, logfile = stderr;
-    f2b_log_msg(log_error, "can't open logfile: %s -- %s", path, strerror(errno));
-    return;
-  } else {
-    dest = log_stderr;
-    logfile = stderr;
-  }
+void f2b_log_to_stderr() {
+  if (logfile && logfile != stderr)
+    fclose(logfile);
+  dest = log_stderr;
+  logfile = stderr;
+}
 
-  return;
+void f2b_log_to_file(const char *path) {
+  FILE *new = NULL;
+  if (path == NULL || *path == '\0')
+    return;
+  if ((new = fopen(path, "a")) != NULL) {
+    if (logfile && logfile != stderr)
+      fclose(logfile);
+    dest = log_file;
+    logfile = new;
+  }
+}
+
+void f2b_log_to_syslog() {
+  if (logfile && logfile != stderr)
+    fclose(logfile);
+  dest = log_syslog;
+  openlog("f2b", 0 | LOG_PID, LOG_DAEMON);
 }
