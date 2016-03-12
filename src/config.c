@@ -236,6 +236,16 @@ f2b_config_load(f2b_config_t *config, const char *path, bool recursion) {
   fclose(f);
 
   if (recursion && config->main && (param = f2b_config_param_find(config->main->param, "includes"))) {
+    struct stat st;
+    if (stat(param->value, &st) != 0) {
+      f2b_log_msg(log_warn, "path in 'includes' option not exists, ignored");
+      return true;
+    }
+    if (!S_ISDIR(st.st_mode)) {
+      f2b_log_msg(log_warn, "path in 'includes' option not a directory, ignored");
+      return true;
+    }
+    /* process dir */
     char pattern[PATH_MAX] = "";
     glob_t globbuf;
     snprintf(pattern, sizeof(pattern), "%s/*.conf", param->value);
