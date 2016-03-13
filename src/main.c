@@ -18,7 +18,7 @@ struct {
   char logfile_path[PATH_MAX];
   char pidfile_path[PATH_MAX];
 } opts = {
-  true,
+  false,
   0, 0,
   "/etc/f2b/f2b.conf",
   "/var/log/f2b.log",
