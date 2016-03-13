@@ -9,7 +9,13 @@ group = root
 daemon = yes
 
 [defaults]
-backend = exec-ipset:banned
+enabled  = no
+bantime  = 3600
+findtime = 300
+maxretry = 5
+source   = files:/var/log/messages
+; filter = preg:/etc/f2b/filters/$someservice.preg
+backend  = exec-ipset:banned
 
 [filter:preg]
 load  = libf2b_filter_preg.so
@@ -26,5 +32,5 @@ unban = /sbin/ipset -! del     <ID> <IP>
 timeout = 2
 
 [jail:ssh]
-source  = files:/var/log/*.log
-filter  = preg:filters/ssh.preg
+source  = files:/var/log/auth.log
+filter  = preg:/etc/f2b/filters/ssh.preg
