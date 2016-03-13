@@ -35,7 +35,7 @@ void sa_term(int signum) {
 }
 void sa_hup(int signum) {
   UNUSED(signum);
-  f2b_log_msg(log_info, "got SIGHUP, reloading config");
+  f2b_log_msg(log_note, "got SIGHUP, reloading config");
   rcfg = true;
 }
 
@@ -192,7 +192,7 @@ int main(int argc, char *argv[]) {
   f2b_config_free(&config);
 
   if (!jails) {
-    f2b_log_msg(log_error, "no jails configured, exiting");
+    f2b_log_msg(log_warn, "no jails configured, exiting");
     return EXIT_FAILURE;
   }
 

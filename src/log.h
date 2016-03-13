@@ -6,9 +6,10 @@
 typedef enum {
   log_debug = 0,
   log_info  = 1,
-  log_warn  = 2,
-  log_error = 3,
-  log_fatal = 4
+  log_note  = 2,
+  log_warn  = 3,
+  log_error = 4,
+  log_fatal = 5
 } log_msgtype_t;
 
 void f2b_log_msg(log_msgtype_t l, const char *fmt, ...);

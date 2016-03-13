@@ -10,6 +10,7 @@ static FILE *logfile = NULL;
 static const char *loglevels[] = {
   "debug",
   "info",
+  "notice",
   "warn",
   "error",
   "fatal",
@@ -20,6 +21,7 @@ get_facility(log_msgtype_t l) {
   switch (l) {
     case log_debug: return LOG_DEBUG;
     case log_info:  return LOG_INFO;
+    case log_note:  return LOG_NOTICE;
     case log_warn:  return LOG_WARNING;
     case log_error: return LOG_ERR;
     case log_fatal: return LOG_CRIT;
@@ -57,6 +59,7 @@ void f2b_log_msg(log_msgtype_t l, const char *fmt, ...) {
 void f2b_log_set_level(const char *level) {
   if (strcmp(level, "debug") == 0) { minlevel = log_debug; return; }
   if (strcmp(level, "info")  == 0) { minlevel = log_info;  return; }
+  if (strcmp(level, "notice")== 0) { minlevel = log_note;  return; }
   if (strcmp(level, "warn")  == 0) { minlevel = log_warn;  return; }
   if (strcmp(level, "error") == 0) { minlevel = log_error; return; }
   if (strcmp(level, "fatal") == 0) { minlevel = log_fatal; return; }
