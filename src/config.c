@@ -182,6 +182,8 @@ f2b_config_load(f2b_config_t *config, const char *path, bool recursion) {
     return false;
   }
 
+  f2b_log_msg(log_debug, "processing config file: %s", path);
+
   while (1) {
     p = fgets(line, sizeof(line), f);
     if (!p && (feof(f) || ferror(f)))
@@ -237,6 +239,7 @@ f2b_config_load(f2b_config_t *config, const char *path, bool recursion) {
 
   if (recursion && config->main && (param = f2b_config_param_find(config->main->param, "includes"))) {
     struct stat st;
+    int ret = 0;
     if (stat(param->value, &st) != 0) {
       f2b_log_msg(log_warn, "path in 'includes' option not exists, ignored");
       return true;
@@ -249,6 +252,9 @@ f2b_config_load(f2b_config_t *config, const char *path, bool recursion) {
     char pattern[PATH_MAX] = "";
     glob_t globbuf;
     snprintf(pattern, sizeof(pattern), "%s/*.conf", param->value);
+    ret = glob(pattern, 0, NULL, &globbuf);
+    if (ret == GLOB_NOMATCH)
+      return true;
     if (glob(pattern, 0, NULL, &globbuf) != 0) {
       f2b_log_msg(log_error, "glob on 'includes' dir failed");
       return false;
