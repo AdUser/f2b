@@ -39,11 +39,11 @@ void sa_hup(int signum) {
   rcfg = true;
 }
 
-#define SA_REGISTER(signum, handler) \
+#define SA_REGISTER(SIGNUM, HANDLER) \
   memset(&act, 0x0, sizeof(act)); \
-  act.sa_handler = handler; \
-  if (sigaction(SIGTERM, &act, NULL) != 0) { \
-    f2b_log_msg(log_error, "can't register handler for " #signum); \
+  act.sa_handler = HANDLER; \
+  if (sigaction(SIGNUM, &act, NULL) != 0) { \
+    f2b_log_msg(log_error, "can't register handler for " #SIGNUM); \
     return EXIT_FAILURE; \
   }
 
