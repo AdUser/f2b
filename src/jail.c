@@ -283,3 +283,28 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
     f2b_backend_destroy(jail->backend);
   return false;
 }
+
+bool
+f2b_jail_stop(f2b_jail_t *jail) {
+  bool errors = false;
+
+  f2b_filelist_destroy(jail->logfiles);
+  f2b_filter_destroy(jail->filter);
+
+  for (f2b_ipaddr_t *addr = jail->ipaddrs; addr != NULL; addr = addr->next) {
+    if (!addr->banned)
+      continue;
+    if (f2b_jail_unban(jail, addr))
+      continue;
+    errors = true;
+  }
+  f2b_addrlist_destroy(jail->ipaddrs);
+
+  if (!f2b_backend_stop(jail->backend)) {
+    f2b_log_msg(log_error, "jail '%s': action 'stop' failed: %s",
+      jail->name, f2b_backend_error(jail->backend));
+    errors = true;
+  }
+
+  return errors;
+}

@@ -33,6 +33,7 @@ void f2b_jail_parse_compound_value(const char *value, char *name, char *init);
 f2b_jail_t *f2b_jail_create (f2b_config_section_t *section);
 void   f2b_jail_set_defaults(f2b_config_section_t *section);
 
-size_t f2b_jail_process (f2b_jail_t *jail);
 bool   f2b_jail_init    (f2b_jail_t *jail, f2b_config_t *config);
+size_t f2b_jail_process (f2b_jail_t *jail);
+bool   f2b_jail_stop    (f2b_jail_t *jail);
 #endif /* F2B_JAIL_H_ */
