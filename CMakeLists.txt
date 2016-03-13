@@ -1,12 +1,12 @@
 set(CNAME "f2b")
-set(VERSION 0.07)
+set(VERSION 0.01)
 
 project(${CNAME} C)
 cmake_minimum_required(VERSION 2.6)
 
 include(CTest)
 
-option(HARDENING "Enable nardening options" OFF)
+option(HARDENING "Enable hardening options" OFF)
 
 set(CMAKE_INSTALL_PREFIX "/usr/local")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -pedantic -std=c99")
@@ -30,5 +30,15 @@ add_subdirectory(src)
 add_subdirectory(t)
 set_property(DIRECTORY "t" PROPERTY COMPILE_FLAGS "-g;-ggdb;-Wall;-Wextra;-pedantic;-O0")
 
-install(DIRECTORY "docs" DESTINATION "${CMAKE_INSTALL_PATH}/share/doc/f2b/")
+install(DIRECTORY "docs/" DESTINATION "${CMAKE_INSTALL_PREFIX}/share/doc/f2b/")
 install(FILES "docs/f2b.conf.sample" DESTINATION "${CMAKE_INSTALL_PREFIX}/etc/f2b/" RENAME "f2b.conf")
+
+add_custom_target("dist" COMMAND
+  "git" "archive" "--format=tar.gz"
+  "--output=${CNAME}_${VERSION}.tar.gz"
+  "--prefix=${CNAME}_${VERSION}/" "${VERSION}")
+
+add_custom_target("dist-latest" COMMAND
+  "git" "archive" "--format=tar.gz"
+  "--output=${CNAME}_latest.tar.gz"
+  "--prefix=${CNAME}_latest/" "master")
