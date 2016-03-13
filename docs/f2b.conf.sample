@@ -1,8 +1,9 @@
 [main]
 includes = /etc/f2b/conf.d
-logdest = stderr
-logfile = /var/log/f2b.log
+pidfile = /var/run/f2b.pid
+logdest = syslog
 loglevel = info
+logfile = /var/log/f2b.log
 user = root
 group = root
 daemon = yes
@@ -15,13 +16,15 @@ load  = libf2b_filter_preg.so
 
 [backend:exec-ipset]
 load  = libf2b_backend_exec.so
-start = /usr/sbin/ipset create  <ID> hash:ip
-stop  = /usr/sbin/ipset destroy <ID>
-ban   = /usr/sbin/ipset add  <ID> <IP>
-check = /usr/sbin/ipset test <ID> <IP>
-unban = /usr/sbin/ipset del  <ID> <IP>
-timeout = 1
+start = /sbin/ipset -! create  <ID> hash:ip
+start = /sbin/iptables -I INPUT -m set --match-set <ID> -j DROP
+stop  = /sbin/iptables -D INPUT -m set --match-set <ID> -j DROP
+stop  = /sbin/ipset -! destroy <ID>
+ban   = /sbin/ipset -! add     <ID> <IP>
+check = /sbin/ipset -! test    <ID> <IP>
+unban = /sbin/ipset -! del     <ID> <IP>
+timeout = 2
 
 [jail:ssh]
 source  = files:/var/log/*.log
-filter  = preg:filters/preg/ssh
+filter  = preg:filters/ssh.preg
