@@ -105,7 +105,7 @@ f2b_jail_ban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
   addr->bantime = addr->lastseen;
 
   if (f2b_backend_check(jail->backend, addr->text)) {
-    f2b_log_msg(log_warn, "jail '%s': ip '%s' already banned", jail->name, addr->text);
+    f2b_log_msg(log_warn, "jail '%s': ip %s was already banned", jail->name, addr->text);
     return true;
   }
 
@@ -114,7 +114,7 @@ f2b_jail_ban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
     return true;
   }
 
-  f2b_log_msg(log_error, "jail '%s': can't ban ip '%s' -- %s",
+  f2b_log_msg(log_error, "jail '%s': can't ban ip %s -- %s",
     jail->name, addr->text, f2b_backend_error(jail->backend));
   return false;
 }
@@ -132,7 +132,7 @@ f2b_jail_unban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
     return true;
   }
 
-  f2b_log_msg(log_error, "jail '%s': can't release ip '%s' -- %s",
+  f2b_log_msg(log_error, "jail '%s': can't release ip %s -- %s",
     jail->name, addr->text, f2b_backend_error(jail->backend));
   return false;
 }
@@ -168,6 +168,8 @@ f2b_jail_process(f2b_jail_t *jail) {
 
   assert(jail != NULL);
 
+  f2b_log_msg(log_debug, "jail '%s': processing", jail->name);
+
   f2b_backend_ping(jail->backend);
 
   for (file = jail->logfiles; file != NULL; file = file->next) {
@@ -182,19 +184,19 @@ f2b_jail_process(f2b_jail_t *jail) {
         addr->lastseen = now;
         f2b_matches_append(&addr->matches, now);
         jail->ipaddrs = f2b_addrlist_append(jail->ipaddrs, addr);
-        f2b_log_msg(log_debug, "new ip found by jail '%s': %s", jail->name, matchbuf);
+        f2b_log_msg(log_debug, "jail '%s': new ip found -- %s", jail->name, matchbuf);
         continue;
       }
       /* this ip was seen before */
       addr->lastseen = now;
       if (addr->banned) {
-        f2b_log_msg(log_warn, "found ip that was already banned by jail '%s': %s", jail->name, matchbuf);
+        f2b_log_msg(log_warn, "jail '%s': ip %s was already banned", jail->name, matchbuf);
         continue;
       }
       f2b_matches_expire(&addr->matches, now - jail->findtime);
       f2b_matches_append(&addr->matches, now);
       if (addr->matches.used < jail->maxretry) {
-        f2b_log_msg(log_debug, "new match in jail '%s': %s (%d/%d)", jail->name, matchbuf, addr->matches.used, addr->matches.max);
+        f2b_log_msg(log_debug, "jail '%s': new match %s (%d/%d)", jail->name, matchbuf, addr->matches.used, addr->matches.max);
         continue;
       }
       /* limit reached, ban ip */
@@ -207,7 +209,7 @@ f2b_jail_process(f2b_jail_t *jail) {
       continue;
     release_time = addr->bantime + jail->bantime;
     if (now < release_time) {
-      f2b_log_msg(log_debug, "skipping banned ip in jail '%s': %s (%.1fh remains)", jail->name, addr->text, (now - release_time) / 3600);
+      f2b_log_msg(log_debug, "jail '%s': skipping banned ip %s (%.1fh remains)", jail->name, addr->text, (now - release_time) / 3600);
       continue;
     }
     f2b_jail_unban(jail, addr);
@@ -280,6 +282,8 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
       jail->name, f2b_backend_error(jail->backend));
   }
 
+  f2b_log_msg(log_info, "jail '%s': started", jail->name);
+
   return true;
 
   cleanup:
@@ -295,6 +299,10 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
 bool
 f2b_jail_stop(f2b_jail_t *jail) {
   bool errors = false;
+
+  assert(jail != NULL);
+
+  f2b_log_msg(log_info, "jail '%s': gracefull shutdown", jail->name);
 
   f2b_filelist_destroy(jail->logfiles);
   f2b_filter_destroy(jail->filter);
