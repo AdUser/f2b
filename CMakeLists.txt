@@ -31,3 +31,4 @@ add_subdirectory(t)
 set_property(DIRECTORY "t" PROPERTY COMPILE_FLAGS "-g;-ggdb;-Wall;-Wextra;-pedantic;-O0")
 
 install(DIRECTORY "docs" DESTINATION "${CMAKE_INSTALL_PATH}/share/doc/f2b/")
+install(FILES "docs/f2b.conf.sample" DESTINATION "${CMAKE_INSTALL_PREFIX}/etc/f2b/" RENAME "f2b.conf")
