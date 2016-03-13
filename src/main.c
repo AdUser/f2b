@@ -200,7 +200,14 @@ int main(int argc, char *argv[]) {
       f2b_jail_process(jail);
     }
     sleep(1);
+    if (rcfg) {
+      /* TODO */
+      rcfg = false;
+    }
   }
+
+  for (jail = jails; jail != NULL; jail = jail->next)
+    f2b_jail_stop(jail);
 
   return EXIT_SUCCESS;
 }
