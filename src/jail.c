@@ -1,14 +1,16 @@
 #include "common.h"
 #include "jail.h"
 
-#define DEFAULT_STATE   true
-#define DEFAULT_BANTIME 3600 /* in seconds, 1 hour */
-#define DEFAULT_TRIES   5
+#define DEFAULT_STATE    true
+#define DEFAULT_BANTIME  3600 /* in seconds, 1 hour */
+#define DEFAULT_FINDTIME  300 /* in seconds, 5 min */
+#define DEFAULT_MAXRETRY    5
 
 static f2b_jail_t defaults = {
   .enabled  = DEFAULT_STATE,
   .bantime  = DEFAULT_BANTIME,
-  .tries    = DEFAULT_TRIES,
+  .findtime = DEFAULT_FINDTIME,
+  .maxretry = DEFAULT_MAXRETRY,
 };
 
 void
@@ -54,10 +56,16 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
         jail->bantime = DEFAULT_BANTIME;
       continue;
     }
-    if (strcmp(param->name, "tries") == 0) {
-      jail->bantime = atoi(param->value);
-      if (jail->tries <= 0)
-        jail->tries = DEFAULT_TRIES;
+    if (strcmp(param->name, "findtime") == 0) {
+      jail->findtime = atoi(param->value);
+      if (jail->findtime <= 0)
+        jail->findtime = DEFAULT_FINDTIME;
+      continue;
+    }
+    if (strcmp(param->name, "maxretry") == 0) {
+      jail->maxretry = atoi(param->value);
+      if (jail->maxretry <= 0)
+        jail->maxretry = DEFAULT_MAXRETRY;
       continue;
     }
     if (strcmp(param->name, "source") == 0) {
@@ -170,7 +178,7 @@ f2b_jail_process(f2b_jail_t *jail) {
       addr = f2b_addrlist_lookup(jail->ipaddrs, matchbuf);
       if (!addr) {
         /* new ip */
-        addr = f2b_ipaddr_create(matchbuf, jail->tries);
+        addr = f2b_ipaddr_create(matchbuf, jail->maxretry);
         addr->lastseen = now;
         f2b_matches_append(&addr->matches, now);
         jail->ipaddrs = f2b_addrlist_append(jail->ipaddrs, addr);
@@ -183,9 +191,9 @@ f2b_jail_process(f2b_jail_t *jail) {
         f2b_log_msg(log_warn, "found ip that was already banned by jail '%s': %s", jail->name, matchbuf);
         continue;
       }
-      f2b_matches_expire(&addr->matches, now - jail->bantime);
+      f2b_matches_expire(&addr->matches, now - jail->findtime);
       f2b_matches_append(&addr->matches, now);
-      if (addr->matches.used < jail->tries) {
+      if (addr->matches.used < jail->maxretry) {
         f2b_log_msg(log_debug, "new match in jail '%s': %s (%d/%d)", jail->name, matchbuf, addr->matches.used, addr->matches.max);
         continue;
       }
