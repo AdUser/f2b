@@ -30,7 +30,7 @@ bool rcfg = false;
 
 void sa_term(int signum) {
   UNUSED(signum);
-  f2b_log_msg(log_info, "got SIGTERM, exiting");
+  f2b_log_msg(log_info, "got SIGTERM/SIGINT, exiting");
   run = false;
 }
 void sa_hup(int signum) {
@@ -129,6 +129,7 @@ int main(int argc, char *argv[]) {
   }
 
   SA_REGISTER(SIGTERM, &sa_term);
+  SA_REGISTER(SIGINT,  &sa_term);
   SA_REGISTER(SIGHUP,  &sa_hup);
 
   if (opts.config_path[0] == '\0')
