@@ -22,7 +22,7 @@ struct {
   0, 0,
   "/etc/f2b/f2b.conf",
   "/var/log/f2b.log",
-  "/var/run/f2b.pid",
+  "",
 };
 
 bool run  = true;
@@ -74,6 +74,11 @@ update_opts_from_config(f2b_config_section_t *section) {
   if (opts.daemon == false && (pa = f2b_config_param_find(section->param, "daemon")) != NULL) {
     if (strcmp(pa->value, "yes") == 0)
       opts.daemon = true;
+  }
+
+  if ((pa = f2b_config_param_find(section->param, "pidfile")) != NULL) {
+    strncpy(opts.pidfile_path, pa->value, sizeof(opts.pidfile_path));
+    opts.pidfile_path[sizeof(opts.pidfile_path) - 1] = '\0';
   }
 
   /* setup logging */
@@ -165,6 +170,19 @@ int main(int argc, char *argv[]) {
         freopen("/dev/null", "w", stderr) == NULL) {
       perror("child: freopen() failed");
       exit(EXIT_FAILURE);
+    }
+  }
+
+  if (opts.pidfile_path[0] != '\0') {
+    FILE *pidfile = NULL;
+    if ((pidfile = fopen(opts.pidfile_path, "w")) != NULL) {
+      if (flock(fileno(pidfile), LOCK_EX | LOCK_NB) != 0) {
+        f2b_log_msg(log_error, "can't lock pidfile: %s", strerror(errno));
+        exit(EXIT_FAILURE);
+      }
+      fprintf(pidfile, "%d\n", getpid());
+    } else {
+      f2b_log_msg(log_warn, "can't open pidfile: %s", strerror(errno));
     }
   }
 
