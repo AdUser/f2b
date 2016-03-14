@@ -120,6 +120,7 @@ int main(int argc, char *argv[]) {
     switch (opt) {
       case 'c':
         strncpy(opts.config_path, optarg, sizeof(opts.config_path));
+        opts.config_path[sizeof(opts.config_path) - 1] = '\0';
         break;
       case 'd':
         opts.daemon = true;
