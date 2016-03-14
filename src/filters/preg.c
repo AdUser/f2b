@@ -18,6 +18,7 @@ typedef struct f2b_regex_t {
 
 struct _config {
   char id[32];
+  char error[256];
   bool icase;
   f2b_regex_t *regexps;
 };
@@ -92,6 +93,13 @@ ready(cfg_t *cfg) {
   if (cfg->regexps)
     return true;
   return false;
+}
+
+const char *
+error(cfg_t *cfg) {
+  assert(cfg != NULL);
+
+  return cfg->error;
 }
 
 bool
