@@ -261,7 +261,7 @@ f2b_config_load(f2b_config_t *config, const char *path, bool recursion) {
     ret = glob(pattern, 0, NULL, &globbuf);
     if (ret == GLOB_NOMATCH)
       return true;
-    if (glob(pattern, 0, NULL, &globbuf) != 0) {
+    if (ret != 0) {
       f2b_log_msg(log_error, "glob on 'includes' dir failed");
       return false;
     }
