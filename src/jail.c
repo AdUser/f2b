@@ -195,8 +195,9 @@ f2b_jail_process(f2b_jail_t *jail) {
       }
       /* this ip was seen before */
       addr->lastseen = now;
-      if (addr->banned && addr->bantime != now) {
-        f2b_log_msg(log_warn, "jail '%s': ip %s was already banned", jail->name, matchbuf);
+      if (addr->banned) {
+        if (addr->bantime != now)
+          f2b_log_msg(log_warn, "jail '%s': ip %s was already banned", jail->name, matchbuf);
         continue;
       }
       f2b_matches_expire(&addr->matches, now - jail->findtime);
