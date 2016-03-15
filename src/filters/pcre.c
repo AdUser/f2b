@@ -32,6 +32,17 @@ struct _config {
   f2b_regex_t *regexps;
 };
 
+cfg_t *
+create(const char *id) {
+  cfg_t *cfg = NULL;
+
+  if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
+    return NULL;
+  snprintf(cfg->id, sizeof(cfg->id), "%s", id);
+
+  return cfg;
+}
+
 bool
 config(cfg_t *cfg, const char *key, const char *value) {
   assert(cfg   != NULL);
