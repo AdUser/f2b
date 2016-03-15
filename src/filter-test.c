@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "! (error) : %s\n", error);
     }
   }
-  fprintf(stderr, "%% lines read: %d, matched: %d\n", read, matched);
+  fprintf(stderr, "%% lines read: %zu, matched: %zu\n", read, matched);
 
   return EXIT_SUCCESS;
 }
