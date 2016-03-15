@@ -95,7 +95,7 @@ append(cfg_t *cfg, const char *pattern) {
   if ((regex = calloc(1, sizeof(f2b_regex_t))) == NULL)
     return false;
 
-  if ((regex->regex = pcre_compile(pattern, flags, &errptr, &erroffset, NULL)) == NULL) {
+  if ((regex->regex = pcre_compile(buf, flags, &errptr, &erroffset, NULL)) == NULL) {
     snprintf(cfg->error, sizeof(cfg->error), "regex compilation failed at %d: %s", erroffset, errptr);
     free(regex);
     return false;
@@ -146,7 +146,7 @@ match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
   assert(buf  != NULL);
 
   for (r = cfg->regexps; r != NULL; r = r->next) {
-    rc = pcre_exec(r->regex, r->data, line, strlen(line), 0, flags, &ovector[0], OVECSIZE);
+    rc = pcre_exec(r->regex, r->data, line, strlen(line), 0, flags, ovector, OVECSIZE);
     if (rc < 0 && rc == PCRE_ERROR_NOMATCH)
       continue;
     if (rc < 0) {
@@ -156,7 +156,7 @@ match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
     /* matched */
     r->matches++;
     sc = (rc) ? rc : OVECSIZE / 3;
-    rc = pcre_copy_named_substring(r->regex, line, &ovector[0], sc, "host", buf, buf_size);
+    rc = pcre_copy_named_substring(r->regex, line, ovector, sc, "host", buf, buf_size);
     if (rc < 0) {
       snprintf(cfg->error, sizeof(cfg->error), "can't copy matched string: %d", rc);
       continue;
@@ -175,7 +175,7 @@ destroy(cfg_t *cfg) {
     next = r->next;
     if (cfg->study)
       pcre_free_study(r->data);
-    pcre_free(&r->regex);
+    pcre_free(r->regex);
     free(r);
   }
   free(cfg);
