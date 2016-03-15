@@ -11,7 +11,7 @@
 #include "filter.h"
 
 void usage() {
-  fprintf(stderr, "Usage: filter-test <library.so> <regexps-file.txt>\n");
+  fprintf(stderr, "Usage: filter-test <library.so> <regexps-file.txt> [<file.log>]\n");
   exit(EXIT_FAILURE);
 }
 
@@ -23,6 +23,7 @@ int main(int argc, char *argv[]) {
   char line[LOGLINE_MAX] = "";
   size_t read = 0, matched = 0;
   const char *error;
+  FILE *file = NULL;
 
   if (argc < 3)
     usage();
@@ -33,7 +34,14 @@ int main(int argc, char *argv[]) {
   if ((filter = f2b_filter_create(&config, argv[2])) == false)
     usage();
 
-  while (fgets(line, sizeof(line), stdin) != NULL) {
+  if (argc > 3) {
+    if ((file = fopen(argv[3], "r")) == NULL)
+      usage();
+  } else {
+    file = stdin;
+  }
+
+  while (fgets(line, sizeof(line), file) != NULL) {
     read++;
     if (f2b_filter_match(filter, line, match, sizeof(match))) {
       matched++;
