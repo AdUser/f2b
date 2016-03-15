@@ -154,3 +154,9 @@ f2b_filter_match(f2b_filter_t *filter, const char *line, char *buf, size_t buf_s
 
   return filter->match(filter->cfg, line, buf, buf_size);
 }
+
+const char *
+f2b_filter_error(f2b_filter_t *filter) {
+  assert(filter != NULL);
+  return filter->error(filter->cfg);
+}
