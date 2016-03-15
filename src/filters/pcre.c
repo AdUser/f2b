@@ -14,7 +14,7 @@
 
 #include <pcre.h>
 
-#define HOST_REGEX "([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})"
+#define HOST_REGEX "(?<host>[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})"
 
 typedef struct f2b_regex_t {
   struct f2b_regex_t *next;
@@ -102,7 +102,7 @@ append(cfg_t *cfg, const char *pattern) {
   }
 
   if (cfg->study) {
-    flags = PCRE_STUDY_EXTRA_NEEDED;
+    flags = 0;
     if (cfg->usejit)
       flags |= PCRE_STUDY_JIT_COMPILE;
     if ((regex->data = pcre_study(regex->regex, 0, &errptr)) == NULL) {
@@ -115,7 +115,7 @@ append(cfg_t *cfg, const char *pattern) {
 
   regex->next = cfg->regexps;
   cfg->regexps = regex;
-  return false;
+  return true;
 }
 
 bool
