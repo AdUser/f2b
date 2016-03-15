@@ -57,7 +57,7 @@ config(cfg_t *cfg, const char *key, const char *value) {
     cfg->study = (strcmp(value, "yes") == 0) ? true : false;
     return true;
   }
-  if (strcmp(key, "use_jit") == 0) {
+  if (strcmp(key, "usejit") == 0) {
     cfg->usejit = (strcmp(value, "yes") == 0) ? true : false;
     return true;
   }

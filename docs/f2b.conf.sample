@@ -19,6 +19,13 @@ backend  = exec-ipset:banned
 
 [filter:preg]
 load  = libf2b_filter_preg.so
+icase = no
+
+[filter:pcre]
+load  = libf2b_filter_pcre.so
+icase = no
+study = no
+usejit = no
 
 [backend:exec-ipset]
 load  = libf2b_backend_exec.so
