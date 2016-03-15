@@ -7,43 +7,41 @@
 #include "common.h"
 #include "log.h"
 #include "ipaddr.h"
-#include "regexps.h"
+#include "config.h"
+#include "filter.h"
 
 void usage() {
-  fprintf(stderr, "Usage: filter-test <regexps-file.txt> <logfile.txt>\n");
+  fprintf(stderr, "Usage: filter-test <library.so> <regexps-file.txt>\n");
   exit(EXIT_FAILURE);
 }
 
 int main(int argc, char *argv[]) {
-  FILE *f = NULL;
-  char matchbuf[IPADDR_MAX] = "";
-  char logline[LOGLINE_MAX] = "";
-  f2b_regex_t *list = NULL;
+  f2b_config_param_t  param = { .name = "load", .value = "", .next = 0x0 };
+  f2b_config_section_t config = { .type = t_filter, .param = 0x0, .next = 0x0 };
+  f2b_filter_t *filter = NULL;
+  char match[IPADDR_MAX] = "";
+  char line[LOGLINE_MAX] = "";
   size_t read = 0, matched = 0;
 
   if (argc < 3)
     usage();
 
-  if ((list = f2b_regexlist_from_file(argv[1])) == NULL) {
-    f2b_log_msg(log_error, "can't load regexps list from file '%s'", argv[1]);
-    return EXIT_FAILURE;
-  }
+  config.param = &param;
+  snprintf(param.value, sizeof(param.value), "%s", argv[1]);
 
-  if ((f = fopen(argv[2], "r")) == NULL) {
-    f2b_log_msg(log_error, "can't open logfile '%s'", argv[2]);
-    return EXIT_FAILURE;
-  }
+  if ((filter = f2b_filter_create(&config, argv[2])) == false)
+    usage();
 
-  while (fgets(logline, sizeof(logline), f) != NULL) {
+  while (fgets(line, sizeof(line), stdin) != NULL) {
     read++;
-    if (f2b_regexlist_match(list, logline, matchbuf, sizeof(matchbuf))) {
+    if (f2b_filter_match(filter, line, match, sizeof(match))) {
       matched++;
-      f2b_log_msg(log_info, "match found: %s", matchbuf);
+      fprintf(stderr, "+ %s\n", match);
       continue;
     }
-    f2b_log_msg(log_info, "unmatched line: %s", logline);
+    fprintf(stderr, "- (no-match): %s", line);
   }
-  f2b_log_msg(log_info, "lines read: %d, matched: %d", read, matched);
+  fprintf(stderr, "%% lines read: %d, matched: %d\n", read, matched);
 
   return EXIT_SUCCESS;
 }
