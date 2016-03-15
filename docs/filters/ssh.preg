@@ -2,7 +2,7 @@
 [Aa]uthentication error for .* from <HOST>( via [[:print:]]*)?
 User not known to the underlying authentication module for .* from <HOST>
 refused connect from [[:print:]]+ \(<HOST>\)
-Received disconnect from <HOST>: [0-9]*: [[:print:]]: Auth fail
+Received disconnect from <HOST>: [0-9]*: [[:print:]]+: Auth fail
 Did not receive identification string from <HOST>
 Invalid user [[:print:]]+ from <HOST>
 Connection closed by <HOST> \[preauth\]
