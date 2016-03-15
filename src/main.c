@@ -184,7 +184,10 @@ int main(int argc, char *argv[]) {
     FILE *pidfile = NULL;
     if ((pidfile = fopen(opts.pidfile_path, "w")) != NULL) {
       if (flock(fileno(pidfile), LOCK_EX | LOCK_NB) != 0) {
-        f2b_log_msg(log_error, "can't lock pidfile: %s", strerror(errno));
+        const char *err = (errno == EWOULDBLOCK)
+          ? "another instance already running"
+          : strerror(errno);
+        f2b_log_msg(log_error, "can't lock pidfile: %s", err);
         exit(EXIT_FAILURE);
       }
       fprintf(pidfile, "%d\n", getpid());
