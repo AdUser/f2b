@@ -1,0 +1,4 @@
+SECURITY.* SecurityEvent="FailedACL".*RemoteAddress="IPV[46]/[TU][CD]P/<HOST>/[0-9]+"
+SECURITY.* SecurityEvent="InvalidAccountID".*RemoteAddress="IPV[46]/[TU][CD]P/<HOST>/[0-9+]+"
+SECURITY.* SecurityEvent="ChallengeResponseFailed".*RemoteAddress="IPV[46]/[TU][CD]P/<HOST>/[0-9]+"
+SECURITY.* SecurityEvent="InvalidPassword".*RemoteAddress="IPV[46]/[TU][CD]P/<HOST>/[0-9]+"
