@@ -22,6 +22,7 @@ int main(int argc, char *argv[]) {
   char match[IPADDR_MAX] = "";
   char line[LOGLINE_MAX] = "";
   size_t read = 0, matched = 0;
+  const char *error;
 
   if (argc < 3)
     usage();
@@ -39,7 +40,12 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "+ %s\n", match);
       continue;
     }
-    fprintf(stderr, "- (no-match): %s", line);
+    error = f2b_filter_error(filter);
+    if (*error == '\0') {
+      fprintf(stderr, "- (no-match): %s", line);
+    } else {
+      fprintf(stderr, "! (error) : %s\n", error);
+    }
   }
   fprintf(stderr, "%% lines read: %d, matched: %d\n", read, matched);
 
