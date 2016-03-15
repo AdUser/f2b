@@ -91,6 +91,8 @@ f2b_filter_create(f2b_config_section_t *config, const char *file) {
     goto cleanup;
   if ((*(void **) (&filter->append)  = dlsym(filter->h, "append"))  == NULL)
     goto cleanup;
+  if ((*(void **) (&filter->error)   = dlsym(filter->h, "error"))   == NULL)
+    goto cleanup;
   if ((*(void **) (&filter->ready)   = dlsym(filter->h, "ready"))   == NULL)
     goto cleanup;
   if ((*(void **) (&filter->match)   = dlsym(filter->h, "match"))   == NULL)
