@@ -7,6 +7,7 @@ cmake_minimum_required(VERSION 2.6)
 include(CTest)
 
 option(HARDENING "Enable hardening options" OFF)
+option(WITH_PCRE "Build pcre-compatible filter" ON)
 
 set(CMAKE_INSTALL_PREFIX "/usr/local")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -pedantic -std=c99")
@@ -24,6 +25,7 @@ message(STATUS "Prefix     : ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "Build type : ${CMAKE_BUILD_TYPE}")
 message(STATUS "Options:")
 message(STATUS "- HARDENING: ${HARDENING}")
+message(STATUS "- WITH_PCRE: ${WITH_PCRE}")
 message(STATUS "Components:")
 
 add_subdirectory(src)
