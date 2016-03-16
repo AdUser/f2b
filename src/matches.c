@@ -33,6 +33,8 @@ bool
 f2b_matches_append(f2b_matches_t *m, time_t t) {
   assert(m != NULL);
 
+  m->hits++;
+
   if (m->used >= m->max)
     return false;
 

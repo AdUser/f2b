@@ -8,6 +8,7 @@
 #define F2B_MATCHES_H_
 
 typedef struct {
+  size_t hits;
   size_t max;
   size_t used;
   time_t *times;
