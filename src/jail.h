@@ -18,10 +18,11 @@
 typedef struct f2b_jail_t {
   struct f2b_jail_t *next;
   bool enabled;
-  bool incr_ban;
   time_t bantime;
   time_t findtime;
   size_t maxretry;
+  float incr_bantime;
+  float incr_findtime;
   char name[CONFIG_KEY_MAX];
   char glob[PATH_MAX];
   char backend_name[CONFIG_KEY_MAX];

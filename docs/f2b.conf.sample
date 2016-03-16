@@ -10,9 +10,10 @@ daemon = yes
 
 [defaults]
 enabled  = no
-incr_ban = no
 bantime  = 3600
 findtime = 300
+incr_bantime = 0.0
+incr_findtime = 0.0
 maxretry = 5
 source   = files:/var/log/messages
 ; filter = preg:/etc/f2b/filters/$someservice.preg

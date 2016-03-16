@@ -56,11 +56,6 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
         jail->enabled = true;
       continue;
     }
-    if (strcmp(param->name, "incr_ban") == 0) {
-      if (strcmp(param->value, "yes") == 0)
-        jail->incr_ban = true;
-      continue;
-    }
     if (strcmp(param->name, "bantime") == 0) {
       jail->bantime = atoi(param->value);
       if (jail->bantime <= 0)
@@ -77,6 +72,14 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
       jail->maxretry = atoi(param->value);
       if (jail->maxretry <= 0)
         jail->maxretry = DEFAULT_MAXRETRY;
+      continue;
+    }
+    if (strcmp(param->name, "incr_bantime") == 0) {
+      jail->incr_bantime = atof(param->value);
+      continue;
+    }
+    if (strcmp(param->name, "incr_findtime") == 0) {
+      jail->incr_findtime = atof(param->value);
       continue;
     }
     if (strcmp(param->name, "source") == 0) {
@@ -115,8 +118,12 @@ f2b_jail_ban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
   addr->matches.used = 0;
   addr->banned  = true;
   addr->banned_at = addr->lastseen;
+  if (jail->incr_bantime > 0) {
+    bantime = jail->bantime + (int) (addr->bancount * (jail->bantime * jail->incr_bantime));
+  } else {
+    bantime = jail->bantime;
+  }
   addr->bancount++;
-  bantime = jail->bantime * ((jail->incr_ban) ? addr->bancount : 1);
   addr->release_at = addr->banned_at + bantime;
 
   if (f2b_backend_check(jail->backend, addr->text)) {
@@ -126,7 +133,7 @@ f2b_jail_ban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
 
   if (f2b_backend_ban(jail->backend, addr->text)) {
     f2b_log_msg(log_note, "jail '%s': banned ip %s for %.1fhrs",
-      jail->name, addr->text, bantime / 3600);
+      jail->name, addr->text, (float) bantime / 3600);
     return true;
   }
 
@@ -181,6 +188,7 @@ f2b_jail_process(f2b_jail_t *jail) {
   char logline[LOGLINE_MAX] = "";
   char matchbuf[IPADDR_MAX] = "";
   time_t now  = time(NULL);
+  time_t findtime = 0;
 
   assert(jail != NULL);
 
@@ -210,7 +218,12 @@ f2b_jail_process(f2b_jail_t *jail) {
           f2b_log_msg(log_warn, "jail '%s': ip %s was already banned", jail->name, matchbuf);
         continue;
       }
-      f2b_matches_expire(&addr->matches, now - jail->findtime);
+      if (jail->incr_findtime > 0) {
+        findtime = now - jail->findtime - (int) (addr->bancount * (jail->findtime * jail->incr_findtime));
+      } else {
+        findtime = now - jail->findtime;
+      }
+      f2b_matches_expire(&addr->matches, findtime);
       f2b_matches_append(&addr->matches, now);
       if (addr->matches.used < jail->maxretry) {
         f2b_log_msg(log_info, "jail '%s': new match %s (%d/%d)", jail->name, matchbuf, addr->matches.used, addr->matches.max);
