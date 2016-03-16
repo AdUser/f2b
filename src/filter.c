@@ -50,11 +50,11 @@ f2b_filter_load_file(f2b_filter_t *filter, const char *path) {
         break;
       default:
         if (strstr(p, HOST_TOKEN) == NULL) {
-          f2b_log_msg(log_warn, "pattern at %s:%d don't have '%s' marker, ignored", path, linenum, HOST_TOKEN);
+          f2b_log_msg(log_warn, "pattern at %s:%zu don't have '%s' marker, ignored", path, linenum, HOST_TOKEN);
           continue;
         }
         if (!filter->append(filter->cfg, p)) {
-          f2b_log_msg(log_warn, "can't create regex from pattern at %s:%d: %s", path, linenum, p);
+          f2b_log_msg(log_warn, "can't create regex from pattern at %s:%zu: %s", path, linenum, p);
           continue;
         }
         break;

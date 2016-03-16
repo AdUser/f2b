@@ -220,7 +220,7 @@ f2b_config_load(f2b_config_t *config, const char *path, bool recursion) {
           section = f2b_config_section_append(config, section);
         } else {
           skip_section = true;
-          f2b_log_msg(log_error, "unknown section at line %d: %s", linenum, p);
+          f2b_log_msg(log_error, "unknown section at line %zu: %s", linenum, p);
         }
         break;
       default:
@@ -235,7 +235,7 @@ f2b_config_load(f2b_config_t *config, const char *path, bool recursion) {
         } else if (param) {
           section->param = f2b_config_param_append(section->param, param, false);
         } else {
-          f2b_log_msg(log_error, "can't parse key/value at line %d: %s", linenum, p);
+          f2b_log_msg(log_error, "can't parse key/value at line %zu: %s", linenum, p);
           continue;
         }
         break;
