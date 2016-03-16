@@ -229,7 +229,7 @@ f2b_jail_process(f2b_jail_t *jail) {
       f2b_matches_expire(&addr->matches, findtime);
       f2b_matches_append(&addr->matches, now);
       if (addr->matches.used < jail->maxretry) {
-        f2b_log_msg(log_info, "jail '%s': new match %s (%zu/%zu)",
+        f2b_log_msg(log_info, "jail '%s': new ip match -- %s (%zu/%zu)",
           jail->name, matchbuf, addr->matches.used, addr->matches.max);
         continue;
       }
