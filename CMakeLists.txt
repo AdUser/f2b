@@ -1,5 +1,5 @@
 set(CNAME "f2b")
-set(VERSION 0.01)
+set(VERSION 0.1)
 
 project(${CNAME} C)
 cmake_minimum_required(VERSION 2.6)
@@ -38,8 +38,8 @@ install(FILES "docs/f2b.conf.sample" DESTINATION "${CMAKE_INSTALL_PREFIX}/etc/f2
 
 add_custom_target("dist" COMMAND
   "git" "archive" "--format=tar.gz"
-  "--output=${CNAME}_${VERSION}.tar.gz"
-  "--prefix=${CNAME}_${VERSION}/" "${VERSION}")
+  "--output=${CNAME}_v${VERSION}.tar.gz"
+  "--prefix=${CNAME}_v${VERSION}/" "v${VERSION}")
 
 add_custom_target("dist-latest" COMMAND
   "git" "archive" "--format=tar.gz"
