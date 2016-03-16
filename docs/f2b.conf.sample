@@ -10,6 +10,7 @@ daemon = yes
 
 [defaults]
 enabled  = no
+incr_ban = no
 bantime  = 3600
 findtime = 300
 maxretry = 5

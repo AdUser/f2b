@@ -18,8 +18,10 @@ typedef struct f2b_ipaddr_t {
   int type;
   char text[IPADDR_MAX];
   bool banned;
+  size_t bancount;
   time_t lastseen;
-  time_t bantime;
+  time_t banned_at;
+  time_t release_at;
   union {
     struct in_addr  v4;
     struct in6_addr v6;

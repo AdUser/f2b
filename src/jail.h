@@ -18,6 +18,7 @@
 typedef struct f2b_jail_t {
   struct f2b_jail_t *next;
   bool enabled;
+  bool incr_ban;
   time_t bantime;
   time_t findtime;
   size_t maxretry;

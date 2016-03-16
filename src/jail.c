@@ -56,6 +56,11 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
         jail->enabled = true;
       continue;
     }
+    if (strcmp(param->name, "incr_ban") == 0) {
+      if (strcmp(param->value, "yes") == 0)
+        jail->incr_ban = true;
+      continue;
+    }
     if (strcmp(param->name, "bantime") == 0) {
       jail->bantime = atoi(param->value);
       if (jail->bantime <= 0)
@@ -103,12 +108,16 @@ f2b_jail_set_defaults(f2b_config_section_t *section) {
 
 bool
 f2b_jail_ban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
+  time_t bantime = 0;
   assert(jail != NULL);
   assert(addr != NULL);
 
   addr->matches.used = 0;
   addr->banned  = true;
-  addr->bantime = addr->lastseen;
+  addr->banned_at = addr->lastseen;
+  addr->bancount++;
+  bantime = jail->bantime * ((jail->incr_ban) ? addr->bancount : 1);
+  addr->release_at = addr->banned_at + bantime;
 
   if (f2b_backend_check(jail->backend, addr->text)) {
     f2b_log_msg(log_warn, "jail '%s': ip %s was already banned", jail->name, addr->text);
@@ -116,7 +125,8 @@ f2b_jail_ban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
   }
 
   if (f2b_backend_ban(jail->backend, addr->text)) {
-    f2b_log_msg(log_note, "jail '%s': banned ip %s", jail->name, addr->text);
+    f2b_log_msg(log_note, "jail '%s': banned ip %s for %.1fhrs",
+      jail->name, addr->text, bantime / 3600);
     return true;
   }
 
@@ -131,7 +141,8 @@ f2b_jail_unban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
   assert(addr != NULL);
 
   addr->banned  = false;
-  addr->bantime = 0;
+  addr->banned_at = 0;
+  addr->release_at = 0;
 
   if (f2b_backend_unban(jail->backend, addr->text)) {
     f2b_log_msg(log_note, "jail '%s': released ip %s", jail->name, addr->text);
@@ -170,7 +181,6 @@ f2b_jail_process(f2b_jail_t *jail) {
   char logline[LOGLINE_MAX] = "";
   char matchbuf[IPADDR_MAX] = "";
   time_t now  = time(NULL);
-  time_t release_time = 0;
 
   assert(jail != NULL);
 
@@ -196,7 +206,7 @@ f2b_jail_process(f2b_jail_t *jail) {
       /* this ip was seen before */
       addr->lastseen = now;
       if (addr->banned) {
-        if (addr->bantime != now)
+        if (addr->banned_at != now)
           f2b_log_msg(log_warn, "jail '%s': ip %s was already banned", jail->name, matchbuf);
         continue;
       }
@@ -214,12 +224,8 @@ f2b_jail_process(f2b_jail_t *jail) {
   for (addr = jail->ipaddrs; addr != NULL; addr = addr->next) {
     if (!addr->banned)
       continue;
-    release_time = addr->bantime + jail->bantime;
-    if (now < release_time) {
-      f2b_log_msg(log_debug, "jail '%s': skipping banned ip %s (%.1fh remains)", jail->name, addr->text, (now - release_time) / 3600);
-      continue;
-    }
-    f2b_jail_unban(jail, addr);
+    if (now > addr->release_at)
+      f2b_jail_unban(jail, addr);
   }
 
   return processed;
