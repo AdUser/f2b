@@ -33,8 +33,8 @@ add_subdirectory(t)
 set_property(DIRECTORY "t" PROPERTY COMPILE_FLAGS "-g;-ggdb;-Wall;-Wextra;-pedantic;-O0")
 
 install(DIRECTORY "filters" DESTINATION "${CMAKE_INSTALL_PREFIX}/share/f2b/")
-install(DIRECTORY "docs/"   DESTINATION "${CMAKE_INSTALL_PREFIX}/share/doc/f2b/")
-install(FILES "docs/f2b.conf.sample" DESTINATION "${CMAKE_INSTALL_PREFIX}/etc/f2b/" RENAME "f2b.conf")
+install(DIRECTORY "configs" DESTINATION "${CMAKE_INSTALL_PREFIX}/share/f2b/")
+install(FILES "configs/f2b.conf.sample" DESTINATION "${CMAKE_INSTALL_PREFIX}/etc/f2b/" RENAME "f2b.conf")
 
 add_custom_target("dist" COMMAND
   "git" "archive" "--format=tar.gz"
