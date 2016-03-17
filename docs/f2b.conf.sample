@@ -1,5 +1,5 @@
 [main]
-includes = /etc/f2b/conf.d
+includes = /etc/f2b/conf-enabled
 pidfile = /var/run/f2b.pid
 logdest = syslog
 loglevel = info
@@ -18,27 +18,6 @@ maxretry = 5
 source   = files:/var/log/messages
 ; filter = preg:/etc/f2b/filters/$someservice.preg
 backend  = exec-ipset:banned
-
-[filter:preg]
-load  = libf2b_filter_preg.so
-icase = no
-
-[filter:pcre]
-load  = libf2b_filter_pcre.so
-icase = no
-study = no
-usejit = no
-
-[backend:exec-ipset]
-load  = libf2b_backend_exec.so
-start = /sbin/ipset -! create  <ID> hash:ip
-start = /sbin/iptables -I INPUT -m set --match-set <ID> src -j DROP
-stop  = /sbin/iptables -D INPUT -m set --match-set <ID> src -j DROP
-stop  = /sbin/ipset -! destroy <ID>
-ban   = /sbin/ipset -! add     <ID> <IP>
-check = /sbin/ipset -! test    <ID> <IP>
-unban = /sbin/ipset -! del     <ID> <IP>
-timeout = 2
 
 [jail:ssh]
 source  = files:/var/log/auth.log
