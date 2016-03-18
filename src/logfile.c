@@ -22,7 +22,7 @@ f2b_logfile_open(f2b_logfile_t *file, const char *filename) {
   if (!(S_ISREG(st.st_mode) || S_ISFIFO(st.st_mode)))
     return false;
 
-  strncpy(file->path, filename, sizeof(file->path));
+  strlcpy(file->path, filename, sizeof(file->path));
   memcpy(&file->st, &st, sizeof(st));
 
   if ((file->fd = fopen(filename, "r")) == NULL)

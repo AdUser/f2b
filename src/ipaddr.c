@@ -15,7 +15,7 @@ f2b_ipaddr_create(const char *addr, size_t matches) {
   assert(matches != 0);
 
   if ((a = calloc(1, sizeof(f2b_ipaddr_t))) != NULL) {
-    strncpy(a->text, addr, sizeof(a->text));
+    strlcpy(a->text, addr, sizeof(a->text));
     if (strchr(addr, ':') == NULL) {
       a->type = AF_INET;
       if (inet_pton(a->type, addr, &a->binary.v4) < 1)

@@ -83,7 +83,7 @@ update_opts_from_config(f2b_config_section_t *section) {
   }
 
   if ((pa = f2b_config_param_find(section->param, "pidfile")) != NULL) {
-    strncpy(opts.pidfile_path, pa->value, sizeof(opts.pidfile_path));
+    strlcpy(opts.pidfile_path, pa->value, sizeof(opts.pidfile_path));
     opts.pidfile_path[sizeof(opts.pidfile_path) - 1] = '\0';
   }
 
@@ -98,9 +98,7 @@ update_opts_from_config(f2b_config_section_t *section) {
       f2b_log_to_stderr();
     } else if (strcmp(pa->value, "file") == 0) {
       if (pb && *pb->value != '\0') {
-        size_t len = sizeof(opts.logfile_path);
-        strncpy(opts.logfile_path, pb->value, len - 1);
-        opts.logfile_path[len - 1] = '\0';
+        strlcpy(opts.logfile_path, pb->value, sizeof(opts.logfile_path));
         f2b_log_to_file(opts.logfile_path);
       } else {
         f2b_log_msg(log_warn, "you must set 'logfile' option with 'logdest = file'");
@@ -125,8 +123,7 @@ int main(int argc, char *argv[]) {
   while ((opt = getopt(argc, argv, "c:dh")) != -1) {
     switch (opt) {
       case 'c':
-        strncpy(opts.config_path, optarg, sizeof(opts.config_path));
-        opts.config_path[sizeof(opts.config_path) - 1] = '\0';
+        strlcpy(opts.config_path, optarg, sizeof(opts.config_path));
         break;
       case 'd':
         opts.daemon = true;

@@ -24,6 +24,8 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "strlfuncs.h"
+
 #define UNUSED(x)  (void)(x)
 
 #define FREE(x)   free(x), x = NULL

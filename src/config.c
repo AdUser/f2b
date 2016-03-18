@@ -17,8 +17,7 @@ f2b_config_param_create(const char *src) {
   char *p, *key, *value;
   size_t len;
 
-  strncpy(line, src, sizeof(line));
-  line[CONFIG_LINE_MAX - 1] = '\0';
+  strlcpy(line, src, sizeof(line));
 
   /* strip spaces before key */
   key = line;
@@ -61,10 +60,8 @@ f2b_config_param_create(const char *src) {
     return NULL;
 
   if ((param = calloc(1, sizeof(f2b_config_param_t))) != NULL) {
-    strncpy(param->name,  key,   sizeof(param->name));
-    strncpy(param->value, value, sizeof(param->value));
-    param->name [CONFIG_KEY_MAX - 1] = '\0';
-    param->value[CONFIG_VAL_MAX - 1] = '\0';
+    strlcpy(param->name,  key,   sizeof(param->name));
+    strlcpy(param->value, value, sizeof(param->value));
     return param;
   }
 
@@ -92,7 +89,7 @@ f2b_config_param_append(f2b_config_param_t *list, f2b_config_param_t *param, boo
 
   if (replace && (p = f2b_config_param_find(list, param->name)) != NULL) {
     /* found param with same name */
-    strncpy(p->value, param->value, sizeof(p->value));
+    strlcpy(p->value, param->value, sizeof(p->value));
     free(param);
     return list;
   }
@@ -114,8 +111,7 @@ f2b_config_section_create(const char *src) {
   assert(*src == '[');
 
   src++;
-  strncpy(line, src, sizeof(line));
-  line[CONFIG_LINE_MAX - 1] = '\0';
+  strlcpy(line, src, sizeof(line));
 
   if ((end = strchr(line, ']')) == NULL)
     return NULL;
@@ -139,21 +135,21 @@ f2b_config_section_create(const char *src) {
   name = "backend:";
   if (strncmp(line, name, strlen(name)) == 0) {
     section->type = t_backend;
-    strncpy(section->name, line + strlen(name), sizeof(section->name));
+    strlcpy(section->name, line + strlen(name), sizeof(section->name));
     return section;
   }
 
   name = "filter:";
   if (strncmp(line, name, strlen(name)) == 0) {
     section->type = t_filter;
-    strncpy(section->name, line + strlen(name), sizeof(section->name));
+    strlcpy(section->name, line + strlen(name), sizeof(section->name));
     return section;
   }
 
   name = "jail:";
   if (strncmp(line, name, strlen(name)) == 0) {
     section->type = t_jail;
-    strncpy(section->name, line + strlen(name), sizeof(section->name));
+    strlcpy(section->name, line + strlen(name), sizeof(section->name));
     return section;
   }
 

@@ -26,7 +26,7 @@ f2b_jail_parse_compound_value(const char *value, char *name, char *init) {
 
   if ((p = strchr(value, ':')) == NULL) {
     /* param = name */
-    strncpy(name, value, CONFIG_KEY_MAX);
+    strlcpy(name, value, CONFIG_KEY_MAX);
     return;
   }
 
@@ -37,8 +37,8 @@ f2b_jail_parse_compound_value(const char *value, char *name, char *init) {
     return;
   }
 
-  strncpy(name, value, len);
-  strncpy(init, (p + 1), CONFIG_VAL_MAX);
+  strlcpy(name, value, len);
+  strlcpy(init, (p + 1), CONFIG_VAL_MAX);
   return;
 }
 
@@ -175,7 +175,7 @@ f2b_jail_create(f2b_config_section_t *section) {
   }
 
   memcpy(jail, &defaults, sizeof(f2b_jail_t));
-  strncpy(jail->name, section->name, sizeof(jail->name));
+  strlcpy(jail->name, section->name, sizeof(jail->name));
   f2b_jail_apply_config(jail, section);
 
   return jail;
