@@ -266,7 +266,7 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
     f2b_log_msg(log_error, "jail '%s': 'source' supports only 'files' for now", jail->name);
     return false;
   }
-  if (jail->source_init == '\0') {
+  if (jail->source_init[0] == '\0') {
     f2b_log_msg(log_error, "jail '%s': 'source' requires file or files pattern", jail->name);
     return false;
   }

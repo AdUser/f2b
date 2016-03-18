@@ -24,7 +24,8 @@ void
 f2b_matches_destroy(f2b_matches_t *m) {
   assert(m != NULL);
 
-  FREE(m->times);
+  free(m->times);
+  m->times = NULL;
   m->used = 0;
   m->max  = 0;
 }

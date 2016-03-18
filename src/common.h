@@ -28,6 +28,4 @@
 
 #define UNUSED(x)  (void)(x)
 
-#define FREE(x)   free(x), x = NULL
-
 #endif /* F2B_COMMON_H_ */

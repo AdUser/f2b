@@ -36,7 +36,7 @@ f2b_filelist_from_glob(const char *pattern) {
       continue;
     if (f2b_logfile_open(file, globbuf.gl_pathv[i]) == false) {
       f2b_log_msg(log_error, "can't open file: %s: %s", globbuf.gl_pathv[i], strerror(errno));
-      FREE(file);
+      free(file);
       continue;
     }
     files = f2b_filelist_append(files, file);

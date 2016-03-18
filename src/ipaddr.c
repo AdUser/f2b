@@ -32,7 +32,7 @@ f2b_ipaddr_create(const char *addr, size_t matches) {
   return a;
 
   cleanup:
-  FREE(a);
+  free(a);
   return NULL;
 }
 

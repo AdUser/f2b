@@ -277,7 +277,8 @@ f2b_config_load(f2b_config_t *config, const char *path, bool recursion) {
     for (; SECTION->param != NULL; \
            SECTION->param = np) { \
       np = SECTION->param->next; \
-      FREE(SECTION->param); \
+      free(SECTION->param);  \
+      SECTION->param = NULL; \
     } \
   }
 
