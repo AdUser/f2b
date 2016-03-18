@@ -45,3 +45,5 @@ add_custom_target("dist-latest" COMMAND
   "git" "archive" "--format=tar.gz"
   "--output=${CNAME}_latest.tar.gz"
   "--prefix=${CNAME}_latest/" "master")
+
+add_custom_target("lint" COMMAND "cppcheck" "src/")
