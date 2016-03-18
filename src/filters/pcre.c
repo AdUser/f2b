@@ -88,7 +88,7 @@ append(cfg_t *cfg, const char *pattern) {
     return false;
 
   memset(buf, 0x0, bufsize);
-  strncpy(buf, pattern, token - pattern);
+  memcpy(buf, pattern, token - pattern);
   strcat(buf, HOST_REGEX);
   strcat(buf, token + strlen(HOST_TOKEN));
 

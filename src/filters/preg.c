@@ -76,7 +76,7 @@ append(cfg_t *cfg, const char *pattern) {
     return false;
 
   memset(buf, 0x0, bufsize);
-  strncpy(buf, pattern, token - pattern);
+  memcpy(buf, pattern, token - pattern);
   strcat(buf, HOST_REGEX);
   strcat(buf, token + strlen(HOST_TOKEN));
 
@@ -125,7 +125,7 @@ match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
     r->matches++;
     match_len = match[1].rm_eo - match[1].rm_so;
     assert(buf_size > match_len);
-    strncpy(buf, &line[match[1].rm_so], match_len);
+    memcpy(buf, &line[match[1].rm_so], match_len);
     buf[match_len] = '\0';
     buf[buf_size]  = '\0';
     return true;
