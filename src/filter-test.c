@@ -56,6 +56,7 @@ int main(int argc, char *argv[]) {
     }
   }
   fprintf(stderr, "%% lines read: %zu, matched: %zu\n", read, matched);
+  fclose(file);
 
   return EXIT_SUCCESS;
 }

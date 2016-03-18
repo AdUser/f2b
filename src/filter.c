@@ -60,6 +60,7 @@ f2b_filter_load_file(f2b_filter_t *filter, const char *path) {
         break;
     }
   }
+  fclose(f);
 
   return true;
 }
