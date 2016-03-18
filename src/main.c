@@ -113,6 +113,7 @@ update_opts_from_config(f2b_config_section_t *section) {
 }
 
 int main(int argc, char *argv[]) {
+  bool config_test = true;
   struct sigaction act;
   f2b_config_t config;
   f2b_config_section_t *section = NULL;
@@ -120,7 +121,7 @@ int main(int argc, char *argv[]) {
   f2b_jail_t *jail  = NULL;
   char opt = '\0';
 
-  while ((opt = getopt(argc, argv, "c:dh")) != -1) {
+  while ((opt = getopt(argc, argv, "c:dht")) != -1) {
     switch (opt) {
       case 'c':
         strlcpy(opts.config_path, optarg, sizeof(opts.config_path));
@@ -130,6 +131,8 @@ int main(int argc, char *argv[]) {
         break;
       case 'h':
         usage(EXIT_SUCCESS);
+        break;
+      case 't':
         break;
       default:
         usage(EXIT_FAILURE);
@@ -147,6 +150,10 @@ int main(int argc, char *argv[]) {
   if (f2b_config_load(&config, opts.config_path, true) != true) {
     f2b_log_msg(log_error, "can't load config from '%s'", opts.config_path);
     return EXIT_FAILURE;
+  }
+  if (config_test) {
+    fprintf(stderr, "config test ok");
+    exit(EXIT_SUCCESS);
   }
   update_opts_from_config(config.main);
 
