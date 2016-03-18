@@ -155,8 +155,7 @@ create(const char *id) {
 
   if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
     return NULL;
-  strncpy(cfg->name, id, sizeof(cfg->name));
-  cfg->name[ID_MAX] = '\0';
+  snprintf(cfg->name, sizeof(cfg->name), "%s", id);
 
   return cfg;
 }

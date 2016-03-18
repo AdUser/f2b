@@ -35,8 +35,7 @@ create(const char *id) {
 
   if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
     return NULL;
-  strncpy(cfg->id, id, sizeof(cfg->id));
-  cfg->id[sizeof(cfg->id) - 1] = '\0';
+  snprintf(cfg->id, sizeof(cfg->id), "%s", id);
 
   return cfg;
 }
