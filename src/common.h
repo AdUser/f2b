@@ -24,7 +24,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "strlfuncs.h"
+#include "strlcpy.h"
 
 #define UNUSED(x)  (void)(x)
 
