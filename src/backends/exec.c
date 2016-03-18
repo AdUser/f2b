@@ -24,16 +24,67 @@ typedef struct cmd_t {
   size_t pos_id; /**< index+1 in argv[] where to insert IP address (zero means "no placeholder") */
 } cmd_t;
 
+typedef struct cfg_id_t {
+  struct cfg_id_t *next;
+  char name[ID_MAX + 1];
+  size_t count;
+} cfg_id_t;
+
 struct _config {
   char name[ID_MAX + 1];
   char error[256];
   time_t timeout;
+  bool  shared;
   cmd_t *start;
   cmd_t *stop;
   cmd_t *ban;
   cmd_t *unban;
   cmd_t *check;
 };
+
+/* this list needed for tracking backend usage with `shared = yes` */
+cfg_id_t *ids_usage = NULL;
+
+static size_t
+usage_inc(const char *id) {
+  cfg_id_t *e = NULL;
+
+  assert(id != NULL);
+
+  for (e = ids_usage; e != NULL; e = e->next) {
+    if (strcmp(e->name, id) != 0)
+      continue;
+    /* found */
+    e->count++;
+    return e->count;
+  }
+  /* not found or list is empty */
+  e = calloc(1, sizeof(cfg_id_t));
+  snprintf(e->name, sizeof(e->name), "%s", id);
+  e->count++;
+  e->next = ids_usage;
+  ids_usage = e;
+  return e->count;
+}
+
+static size_t
+usage_dec(const char *id) {
+  cfg_id_t *e = NULL;
+
+  assert(id != NULL);
+
+  for (e = ids_usage; e != NULL; e = e->next) {
+    if (strcmp(e->name, id) != 0)
+      continue;
+    /* found */
+    if (e->count > 0)
+      e->count--;
+    return e->count;
+  }
+
+  /* not found or list is empty */
+  return 0;
+}
 
 static cmd_t *
 cmd_from_str(const char *str) {
@@ -182,6 +233,10 @@ config(cfg_t *cfg, const char *key, const char *value) {
     cfg->timeout = atoi(value);
     return true;
   }
+  if (strcmp(key, "shared") == 0) {
+    cfg->shared = (strcmp(value, "yes") ? true : false);
+    return true;
+  }
 
   CREATE_CMD(start)
   CREATE_CMD(stop)
@@ -216,6 +271,9 @@ start(cfg_t *cfg) {
   if (!cfg->start)
     return true;
 
+  if (cfg->shared && usage_inc(cfg->name) > 1)
+    return true;
+
   return cmd_list_exec(cfg, cfg->start, NULL);
 }
 
@@ -224,6 +282,9 @@ stop(cfg_t *cfg) {
   assert(cfg != NULL);
 
   if (!cfg->stop)
+    return true;
+
+  if (cfg->shared && usage_dec(cfg->name) > 0)
     return true;
 
   return cmd_list_exec(cfg, cfg->stop, NULL);
