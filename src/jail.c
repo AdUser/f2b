@@ -7,7 +7,7 @@
 #include "common.h"
 #include "jail.h"
 
-#define DEFAULT_STATE    true
+#define DEFAULT_STATE    false
 #define DEFAULT_BANTIME  3600 /* in seconds, 1 hour */
 #define DEFAULT_FINDTIME  300 /* in seconds, 5 min */
 #define DEFAULT_MAXRETRY    5
