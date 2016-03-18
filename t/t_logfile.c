@@ -5,32 +5,50 @@ int main() {
   f2b_logfile_t file;
   char filename[] = "/tmp/f2b-test.XXXXXX";
   int fd = 0;
+  int ret;
+  bool res;
   FILE *wfd = NULL;
   char buf[2048];
 
-  assert((fd = mkstemp(filename)) > 0);
-  assert((wfd = fdopen(fd, "a")) != NULL);
-  assert(fputs("test1\n", wfd) > 0);
-  assert(fflush(wfd) == 0);
+  UNUSED(res);
+  UNUSED(ret);
 
-  assert(f2b_logfile_open(&file, filename) == true);
-  assert(f2b_logfile_getline(&file, buf, sizeof(buf)) == false);
+  fd = mkstemp(filename);
+  assert(fd > 0);
+  wfd = fdopen(fd, "a");
+  assert(wfd != NULL);
+  ret = fputs("test1\n", wfd);
+  assert(ret > 0);
+  ret = fflush(wfd);
+  assert(ret == 0);
 
-  assert(fputs("test2\n", wfd) > 0);
-  assert(fflush(wfd) == 0);
+  res = f2b_logfile_open(&file, filename);
+  assert(res == true);
+  res = f2b_logfile_getline(&file, buf, sizeof(buf));
+  assert(res == false);
 
-  assert(f2b_logfile_getline(&file, buf, sizeof(buf)) == true);
-  assert(strncmp(buf, "test2\n", sizeof(buf)) == 0);
+  ret = fputs("test2\n", wfd);
+  assert(ret > 0);
+  ret = fflush(wfd);
+  assert(ret == 0);
 
-  assert(f2b_logfile_getline(&file, buf, sizeof(buf)) == false);
+  res = f2b_logfile_getline(&file, buf, sizeof(buf));
+  assert(res == true);
+  ret = strncmp(buf, "test2\n", sizeof(buf));
+  assert(ret == 0);
+
+  res = f2b_logfile_getline(&file, buf, sizeof(buf));
+  assert(res == false);
 
   fclose(wfd);
   close(fd);
   unlink(filename);
 
-  assert((wfd = fopen(filename, "a")) != 0);
+  wfd = fopen(filename, "a");
+  assert(wfd != NULL);
 
-  assert(f2b_logfile_rotated(&file) == true);
+  res = f2b_logfile_rotated(&file);
+  assert(res == true);
 
   f2b_logfile_close(&file);
   fclose(wfd);

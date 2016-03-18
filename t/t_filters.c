@@ -8,6 +8,8 @@ int main() {
   char matchbuf[IPADDR_MAX] = "";
   bool result = false;
 
+  UNUSED(result);
+
   filter = create("test");
   assert(filter != NULL);
 
