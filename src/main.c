@@ -31,18 +31,17 @@ struct {
   "",
 };
 
-bool run  = true;
-bool rcfg = false;
+enum { stop = 0, run, reconfig } state = run;
 
 void sa_term(int signum) {
   UNUSED(signum);
   f2b_log_msg(log_info, "got SIGTERM/SIGINT, exiting");
-  run = false;
+  state = stop;
 }
 void sa_hup(int signum) {
   UNUSED(signum);
   f2b_log_msg(log_note, "got SIGHUP, reloading config");
-  rcfg = true;
+  state = reconfig;
 }
 
 #define SA_REGISTER(SIGNUM, HANDLER) \
@@ -228,14 +227,14 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  while (run) {
+  while (state) {
     for (jail = jails; jail != NULL; jail = jail->next) {
       f2b_jail_process(jail);
     }
     sleep(1);
-    if (rcfg) {
+    if (state == reconfig) {
       /* TODO */
-      rcfg = false;
+      state = run;
     }
   }
 
