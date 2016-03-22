@@ -12,6 +12,7 @@ daemon = yes
 enabled  = no
 bantime  = 3600
 findtime = 300
+expiretime = 14400
 incr_bantime = 0.0
 incr_findtime = 0.0
 maxretry = 5

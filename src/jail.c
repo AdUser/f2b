@@ -10,6 +10,7 @@
 #define DEFAULT_STATE    false
 #define DEFAULT_BANTIME  3600 /* in seconds, 1 hour */
 #define DEFAULT_FINDTIME  300 /* in seconds, 5 min */
+#define DEFAULT_EXPIRETIME 14400 /* in seconds, 4 hours */
 #define DEFAULT_MAXRETRY    5
 
 static f2b_jail_t defaults = {
@@ -66,6 +67,12 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
       jail->findtime = atoi(param->value);
       if (jail->findtime <= 0)
         jail->findtime = DEFAULT_FINDTIME;
+      continue;
+    }
+    if (strcmp(param->name, "expiretime") == 0) {
+      jail->expiretime = atoi(param->value);
+      if (jail->expiretime <= 0)
+        jail->expiretime = DEFAULT_EXPIRETIME;
       continue;
     }
     if (strcmp(param->name, "maxretry") == 0) {
@@ -184,12 +191,15 @@ f2b_jail_create(f2b_config_section_t *section) {
 size_t
 f2b_jail_process(f2b_jail_t *jail) {
   f2b_logfile_t *file = NULL;
+  f2b_ipaddr_t  *prev = NULL;
   f2b_ipaddr_t  *addr = NULL;
   size_t processed = 0;
   char logline[LOGLINE_MAX] = "";
   char matchbuf[IPADDR_MAX] = "";
   time_t now  = time(NULL);
   time_t findtime = 0;
+  time_t expiretime = 0;
+  bool remove = false;
 
   assert(jail != NULL);
 
@@ -238,11 +248,38 @@ f2b_jail_process(f2b_jail_t *jail) {
      } /* while(lines) */
   } /* for(files) */
 
-  for (addr = jail->ipaddrs; addr != NULL; addr = addr->next) {
-    if (!addr->banned)
-      continue;
-    if (now > addr->release_at)
+  for (addr = jail->ipaddrs, prev = NULL; addr != NULL; ) {
+    remove = false;
+    /* check release time */
+    if (addr->banned && now > addr->release_at)
       f2b_jail_unban(jail, addr);
+    /* check expiration */
+    expiretime = (addr->lastseen >= addr->release_at)
+      ? addr->lastseen
+      : addr->release_at;
+    expiretime += jail->expiretime;
+    if (now > expiretime) {
+      f2b_log_msg(log_info, "jail '%s': expired ip -- %s",
+        jail->name, addr->text);
+      remove = true;
+    }
+    /* list cleanup */
+    if (!remove) {
+      prev = addr, addr = addr->next;
+      continue;
+    }
+    /* remove from list */
+    if (prev == NULL) {
+      /* first item in list */
+      jail->ipaddrs = addr->next;
+      f2b_ipaddr_destroy(addr);
+      addr = jail->ipaddrs;
+    } else {
+      /* somewhere in list */
+      prev->next = addr->next;
+      f2b_ipaddr_destroy(addr);
+      addr = prev->next;
+    }
   }
 
   return processed;

@@ -20,6 +20,7 @@ typedef struct f2b_jail_t {
   bool enabled;
   time_t bantime;
   time_t findtime;
+  time_t expiretime;
   size_t maxretry;
   float incr_bantime;
   float incr_findtime;
