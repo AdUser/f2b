@@ -209,6 +209,14 @@ f2b_jail_process(f2b_jail_t *jail) {
   f2b_backend_ping(jail->backend);
 
   for (file = jail->logfiles; file != NULL; file = file->next) {
+    if (f2b_logfile_rotated(file)) {
+      f2b_log_msg(log_info, "jail '%s': file changed -- %s", jail->name, file->path);
+      f2b_logfile_close(file);
+    }
+    if (!file->opened && !f2b_logfile_open(file, NULL)) {
+      f2b_log_msg(log_error, "jail '%s': can't open file -- %s", jail->name, file->path);
+      continue;
+    }
     while (f2b_logfile_getline(file, logline, sizeof(logline))) {
       if (!f2b_filter_match(jail->filter, logline, matchbuf, sizeof(matchbuf)))
         continue;
