@@ -33,6 +33,7 @@ f2b_logfile_open(f2b_logfile_t *file, const char *path) {
 
   memcpy(&file->st, &st, sizeof(st));
   strlcpy(file->path, buf, sizeof(file->path));
+  file->opened = true;
 
   return true;
 }
@@ -41,6 +42,7 @@ void
 f2b_logfile_close(const f2b_logfile_t *file) {
   assert(file != NULL);
   fclose(file->fd);
+  file->opened = false;
 }
 
 bool

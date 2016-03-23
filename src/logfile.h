@@ -9,6 +9,7 @@
 
 typedef struct f2b_logfile_t {
   struct f2b_logfile_t *next;
+  bool opened;
   char path[PATH_MAX];
   FILE *fd;
   struct stat st;
