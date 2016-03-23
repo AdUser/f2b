@@ -8,28 +8,31 @@
 #include "logfile.h"
 
 bool
-f2b_logfile_open(f2b_logfile_t *file, const char *filename) {
+f2b_logfile_open(f2b_logfile_t *file, const char *path) {
   struct stat st;
+  char buf[PATH_MAX] = "";
 
   assert(file != NULL);
-  assert(filename != NULL);
+  assert(path != NULL || file->path[0] != '\0');
+
+  strlcpy(buf, path ? path : file->path, sizeof(buf));
 
   memset(file, 0x0, sizeof(f2b_logfile_t));
 
-  if (stat(filename, &st) != 0)
+  if (stat(buf, &st) != 0)
     return false;
 
   if (!(S_ISREG(st.st_mode) || S_ISFIFO(st.st_mode)))
     return false;
 
-  strlcpy(file->path, filename, sizeof(file->path));
-  memcpy(&file->st, &st, sizeof(st));
-
-  if ((file->fd = fopen(filename, "r")) == NULL)
+  if ((file->fd = fopen(buf, "r")) == NULL)
     return false;
 
   if (S_ISREG(st.st_mode) && fseek(file->fd, 0, SEEK_END) < 0)
     return false;
+
+  memcpy(&file->st, &st, sizeof(st));
+  strlcpy(file->path, buf, sizeof(file->path));
 
   return true;
 }
