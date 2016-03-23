@@ -31,7 +31,7 @@ struct {
   "",
 };
 
-enum { stop = 0, run, reconfig } state = run;
+enum { stop = 0, run, reconfig, test } state = run;
 
 void sa_term(int signum) {
   UNUSED(signum);
@@ -112,7 +112,6 @@ update_opts_from_config(f2b_config_section_t *section) {
 }
 
 int main(int argc, char *argv[]) {
-  bool config_test = true;
   struct sigaction act;
   f2b_config_t config;
   f2b_config_section_t *section = NULL;
@@ -132,6 +131,7 @@ int main(int argc, char *argv[]) {
         usage(EXIT_SUCCESS);
         break;
       case 't':
+        state = test;
         break;
       default:
         usage(EXIT_FAILURE);
@@ -150,8 +150,8 @@ int main(int argc, char *argv[]) {
     f2b_log_msg(log_error, "can't load config from '%s'", opts.config_path);
     return EXIT_FAILURE;
   }
-  if (config_test) {
-    fprintf(stderr, "config test ok");
+  if (state == test) {
+    fprintf(stderr, "config test ok\n");
     exit(EXIT_SUCCESS);
   }
   update_opts_from_config(config.main);
