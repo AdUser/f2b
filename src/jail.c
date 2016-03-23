@@ -133,6 +133,7 @@ f2b_jail_ban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
   }
   addr->bancount++;
   addr->release_at = addr->banned_at + bantime;
+  jail->bancount++;
 
   if (f2b_backend_check(jail->backend, addr->text)) {
     f2b_log_msg(log_warn, "jail '%s': ip %s was already banned", jail->name, addr->text);
@@ -212,6 +213,7 @@ f2b_jail_process(f2b_jail_t *jail) {
       if (!f2b_filter_match(jail->filter, logline, matchbuf, sizeof(matchbuf)))
         continue;
       /* some regex matches the line */
+      jail->matchcount++;
       addr = f2b_addrlist_lookup(jail->ipaddrs, matchbuf);
       if (!addr) {
         /* new ip */

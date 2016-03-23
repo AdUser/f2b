@@ -22,6 +22,8 @@ typedef struct f2b_jail_t {
   time_t findtime;
   time_t expiretime;
   size_t maxretry;
+  size_t bancount;
+  size_t matchcount;
   float incr_bantime;
   float incr_findtime;
   char name[CONFIG_KEY_MAX];
