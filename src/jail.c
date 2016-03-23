@@ -38,7 +38,7 @@ f2b_jail_parse_compound_value(const char *value, char *name, char *init) {
     return;
   }
 
-  strlcpy(name, value, len);
+  strlcpy(name, value, len + 1); /* ':' acts as '\0' */
   strlcpy(init, (p + 1), CONFIG_VAL_MAX);
   return;
 }
