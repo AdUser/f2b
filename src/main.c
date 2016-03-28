@@ -33,15 +33,20 @@ struct {
 
 enum { stop = 0, run, reconfig, test } state = run;
 
-void sa_term(int signum) {
-  UNUSED(signum);
-  f2b_log_msg(log_info, "got SIGTERM/SIGINT, exiting");
-  state = stop;
-}
-void sa_hup(int signum) {
-  UNUSED(signum);
-  f2b_log_msg(log_note, "got SIGHUP, reloading config");
-  state = reconfig;
+void signal_handler(int signum) {
+  switch (signum) {
+    case SIGTERM:
+    case SIGINT:
+      f2b_log_msg(log_info, "got SIGTERM/SIGINT, exiting");
+      state = stop;
+      break;
+    case SIGHUP:
+      f2b_log_msg(log_note, "got SIGHUP, reloading config");
+      state = reconfig;
+      break;
+    default:
+      break;
+  }
 }
 
 #define SA_REGISTER(SIGNUM, HANDLER) \
@@ -139,9 +144,9 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  SA_REGISTER(SIGTERM, &sa_term);
-  SA_REGISTER(SIGINT,  &sa_term);
-  SA_REGISTER(SIGHUP,  &sa_hup);
+  SA_REGISTER(SIGTERM, &signal_handler);
+  SA_REGISTER(SIGINT,  &signal_handler);
+  SA_REGISTER(SIGHUP,  &signal_handler);
 
   if (opts.config_path[0] == '\0')
     usage(EXIT_FAILURE);
