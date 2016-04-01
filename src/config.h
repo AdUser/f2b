@@ -4,8 +4,8 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
-#ifndef CONFIG_H_
-#define CONFIG_H_
+#ifndef F2B_CONFIG_H_
+#define F2B_CONFIG_H_
 
 #define CONFIG_LINE_MAX 256
 
@@ -53,4 +53,4 @@ f2b_config_section_t * f2b_config_section_append(f2b_config_t *c, f2b_config_sec
 
 bool f2b_config_load(f2b_config_t *c, const char *path, bool recursion);
 void f2b_config_free(f2b_config_t *c);
-#endif /* CONFIG_H_ */
+#endif /* F2B_CONFIG_H_ */

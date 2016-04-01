@@ -4,8 +4,8 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
-#ifndef BACKEND_H_
-#define BACKEND_H_
+#ifndef F2B_BACKEND_H_
+#define F2B_BACKEND_H_
 
 #include "config.h"
 #include "log.h"
@@ -39,4 +39,4 @@ bool f2b_backend_ban   (f2b_backend_t *b, const char *ip);
 bool f2b_backend_check (f2b_backend_t *b, const char *ip);
 bool f2b_backend_unban (f2b_backend_t *b, const char *ip);
 
-#endif /* BACKEND_H_ */
+#endif /* F2B_BACKEND_H_ */
