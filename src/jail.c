@@ -189,6 +189,17 @@ f2b_jail_create(f2b_config_section_t *section) {
   return jail;
 }
 
+f2b_jail_t *
+f2b_jail_find(f2b_jail_t *list, const char *name) {
+  assert(name != NULL);
+
+  for (; list != NULL; list = list->next)
+    if (strcmp(list->name, name) == 0)
+      return list;
+
+  return NULL;
+}
+
 size_t
 f2b_jail_process(f2b_jail_t *jail) {
   f2b_logfile_t *file = NULL;

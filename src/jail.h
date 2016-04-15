@@ -43,6 +43,7 @@ typedef struct f2b_jail_t {
 void f2b_jail_parse_compound_value(const char *value, char *name, char *init);
 
 f2b_jail_t *f2b_jail_create (f2b_config_section_t *section);
+f2b_jail_t *f2b_jail_find   (f2b_jail_t *list, const char *name);
 void   f2b_jail_set_defaults(f2b_config_section_t *section);
 
 bool   f2b_jail_init    (f2b_jail_t *jail, f2b_config_t *config);
