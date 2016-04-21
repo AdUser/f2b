@@ -10,9 +10,12 @@ endif ()
 add_executable("f2b" ${SOURCES})
 target_link_libraries(f2b "dl")
 
+install(TARGETS "f2b" RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/sbin")
+
 if (WITH_CLIENT)
   set(SOURCES "strlcpy.c" "log.c" "client.c" "cmsg.c" "commands.c" "csocket.c")
   add_executable("f2bc" ${SOURCES})
+  install(TARGETS "f2bc" RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
 endif ()
 
 set(SOURCES "strlcpy.c" "backend-test.c" "log.c" "config.c" "backend.c")
@@ -22,9 +25,6 @@ target_link_libraries("backend-test" "dl")
 set(SOURCES "strlcpy.c" "filter-test.c" "log.c" "config.c" "filter.c")
 add_executable("filter-test" ${SOURCES})
 target_link_libraries("filter-test" "dl")
-
-install(TARGETS f2b
-        RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
 
 add_subdirectory("backends")
 add_subdirectory("filters")
