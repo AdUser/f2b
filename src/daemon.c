@@ -10,28 +10,36 @@
 #include "config.h"
 #include "jail.h"
 #include "backend.h"
+#include "cmsg.h"
+#include "csocket.h"
 
 #include <getopt.h>
 #include <signal.h>
 #include <pwd.h>
 #include <grp.h>
 
+/** global variables */
 struct {
   bool daemon;
   uid_t uid;
   gid_t gid;
+  int csock;
   char config_path[PATH_MAX];
   char logfile_path[PATH_MAX];
+  char csocket_path[PATH_MAX];
   char pidfile_path[PATH_MAX];
 } opts = {
   false,
   0, 0,
+  -1,
   "/etc/f2b/f2b.conf",
   "/var/log/f2b.log",
-  "",
+  DEFAULT_CSOCKET_PATH,
+  DEFAULT_PIDFILE_PATH,
 };
 
 enum { stop = 0, run, reconfig, test } state = run;
+f2b_jail_t *jails = NULL;
 
 void signal_handler(int signum) {
   switch (signum) {
@@ -49,18 +57,122 @@ void signal_handler(int signum) {
   }
 }
 
-#define SA_REGISTER(SIGNUM, HANDLER) \
-  memset(&act, 0x0, sizeof(act)); \
-  act.sa_handler = HANDLER; \
-  if (sigaction(SIGNUM, &act, NULL) != 0) { \
-    f2b_log_msg(log_error, "can't register handler for " #SIGNUM); \
-    return EXIT_FAILURE; \
-  }
-
 void usage(int exitcode) {
   fprintf(stderr, "Usage: f2b [-c <config>] [-d] [-h]\n");
   exit(exitcode);
 }
+
+#ifndef WITH_CSOCKET
+/* add stubs to reduce #ifdef count */
+int f2b_csocket_create (const char *path) {
+  UNUSED(path);
+  f2b_log_msg(log_warn, "control socket support was disabled at compile-time");
+  return -1;
+}
+void f2b_csocket_destroy(int csock, const char *path) {
+  UNUSED(csock); UNUSED(path); return;
+}
+int f2b_csocket_poll(int csock, void (*cb)(const f2b_cmsg_t *msg, char *res, size_t ressize)) {
+  UNUSED(csock); UNUSED(cb); return 0;
+}
+void
+f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
+  UNUSED(msg); UNUSED(res); UNUSED(ressize); return;
+}
+#else /* WITH_CSOCKET */
+void
+f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
+  const char *args[DATA_ARGS_MAX];
+  const char *fmt;
+  f2b_jail_t *jail = NULL;
+  f2b_ipaddr_t *addr = NULL;
+  char line[LINE_MAX];
+
+  assert(msg != NULL);
+  assert(res != NULL);
+  assert(msg->type < CMD_MAX_NUMBER);
+
+  memset(args, 0x0, sizeof(args));
+  f2b_cmsg_extract_args(msg, args);
+
+  if (msg->type >= CMD_JAIL_STATUS || msg->type <= CMD_JAIL_IP_RELEASE) {
+    if (args[0] == NULL) {
+      strlcpy(res, "can't find jail: no args\n", ressize);
+      return;
+    }
+    if ((jail = f2b_jail_find(jails, args[0])) == NULL) {
+      snprintf(res, ressize, "can't find jail '%s'\n", args[0]);
+      return;
+    }
+  }
+
+  if (jail && (msg->type >= CMD_JAIL_IP_SHOW || msg->type <= CMD_JAIL_IP_RELEASE)) {
+    if (args[1] == NULL) {
+      strlcpy(res, "can't find ip: no args", ressize);
+      return;
+    }
+    if ((addr = f2b_addrlist_lookup(jail->ipaddrs, args[1])) == NULL) {
+      snprintf(res, ressize, "can't find ip '%s' in jail '%s'\n", args[1], args[0]);
+      return;
+    }
+  }
+
+  if (msg->type == CMD_PING) {
+    strlcpy(res, "ok", ressize);
+  } else if (msg->type == CMD_RELOAD) {
+    state = reconfig;
+    strlcpy(res, "ok", ressize);
+  } else if (msg->type == CMD_SHUTDOWN) {
+    state = stop;
+    strlcpy(res, "ok", ressize);
+  } else if (msg->type == CMD_STATUS) {
+    snprintf(line, sizeof(line), "pid: %u\npidfile: %s\ncsocket: %s\njails:\n",
+      getpid(), opts.pidfile_path, opts.csocket_path);
+    strlcpy(res, line, ressize);
+    for (jail = jails; jail != NULL; jail = jail->next) {
+      snprintf(line, sizeof(line), "- %s\n", jail->name);
+      strlcat(res, line, ressize);
+    }
+  } else if (msg->type == CMD_JAIL_STATUS) {
+    fmt = "name: %s\n"
+          "enabled: %s\n"
+          "maxretry: %d\n"
+          "times:\n"
+          "  bantime: %d\n"
+          "  findtime: %d\n"
+          "  expiretime: %d\n"
+          "incr:\n"
+          "  bantime: %.1f\n"
+          "  findtime: %.1f\n"
+          "stats:\n"
+          "  banned: %d\n"
+          "  matched: %d\n";
+    snprintf(res, ressize, fmt, jail->name, jail->enabled ? "yes" : "no", jail->maxretry,
+      jail->bantime, jail->findtime, jail->expiretime,
+      jail->incr_bantime, jail->incr_findtime,
+      jail->bancount, jail->matchcount);
+  } else if (msg->type == CMD_JAIL_IP_SHOW) {
+    fmt = "ipaddr: %s\n"
+          "banned: %s\n"
+          "bancount: %d\n"
+          "lastseen: %d\n"
+          "banned_at: %d\n"
+          "release_at: %d\n";
+    snprintf(res, ressize, fmt, addr->text, addr->banned ? "yes" : "no",
+      addr->bancount, addr->lastseen, addr->banned_at, addr->release_at);
+  } else if (msg->type == CMD_JAIL_IP_BAN) {
+    f2b_jail_ban(jail, addr);
+    strlcpy(res, "ok", ressize);
+  } else if (msg->type == CMD_JAIL_IP_RELEASE) {
+    f2b_jail_unban(jail, addr);
+    strlcpy(res, "ok", ressize);
+  } else {
+    strlcpy(res, "error: unsupported command type", ressize);
+  }
+
+  return;
+}
+#endif /* WITH_CSOCKET */
 
 void
 update_opts_from_config(f2b_config_section_t *section) {
@@ -86,10 +198,11 @@ update_opts_from_config(f2b_config_section_t *section) {
       opts.daemon = true;
   }
 
-  if ((pa = f2b_config_param_find(section->param, "pidfile")) != NULL) {
+  if ((pa = f2b_config_param_find(section->param, "pidfile")) != NULL)
     strlcpy(opts.pidfile_path, pa->value, sizeof(opts.pidfile_path));
-    opts.pidfile_path[sizeof(opts.pidfile_path) - 1] = '\0';
-  }
+
+  if ((pa = f2b_config_param_find(section->param, "csocket")) != NULL)
+    strlcpy(opts.csocket_path, pa->value, sizeof(opts.csocket_path));
 
   /* setup logging */
   if ((pa = f2b_config_param_find(section->param, "loglevel")) != NULL)
@@ -120,7 +233,6 @@ int main(int argc, char *argv[]) {
   struct sigaction act;
   f2b_config_t config;
   f2b_config_section_t *section = NULL;
-  f2b_jail_t *jails = NULL;
   f2b_jail_t *jail  = NULL;
   char opt = '\0';
 
@@ -204,6 +316,9 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  if (opts.csocket_path[0] != '\0')
+    opts.csock = f2b_csocket_create(opts.csocket_path);
+
   if (config.defaults)
     f2b_jail_set_defaults(config.defaults);
 
@@ -236,12 +351,15 @@ int main(int argc, char *argv[]) {
     for (jail = jails; jail != NULL; jail = jail->next) {
       f2b_jail_process(jail);
     }
+    f2b_csocket_poll(opts.csock, f2b_cmsg_process);
     sleep(1);
     if (state == reconfig) {
       /* TODO */
       state = run;
     }
   }
+
+  f2b_csocket_destroy(opts.csock, opts.csocket_path);
 
   for (jail = jails; jail != NULL; jail = jail->next)
     f2b_jail_stop(jail);
