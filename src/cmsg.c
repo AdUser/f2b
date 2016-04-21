@@ -24,6 +24,6 @@ f2b_cmsg_extract_args(const f2b_cmsg_t *msg, const char **argv) {
       argv[argc] = &msg->data[i], argc++;
     if (argc >= DATA_ARGS_MAX)
       break;
-    /* next */
+    prev = msg->data[i];
   }
 }
