@@ -27,6 +27,18 @@
 
 #include "strlcpy.h"
 
+#define DEFAULT_PIDFILE_PATH "/var/run/f2b.pid"
+#define DEFAULT_CSOCKET_PATH "/var/run/f2b.sock"
+#define DEFAULT_CSOCKET_CPATH "/tmp/f2bc-sock-XXXXXX"
+
 #define UNUSED(x)  (void)(x)
+
+#define SA_REGISTER(SIGNUM, HANDLER) \
+  memset(&act, 0x0, sizeof(act)); \
+  act.sa_handler = HANDLER; \
+  if (sigaction(SIGNUM, &act, NULL) != 0) { \
+    f2b_log_msg(log_error, "can't register handler for " #SIGNUM); \
+    return EXIT_FAILURE; \
+  }
 
 #endif /* F2B_COMMON_H_ */
