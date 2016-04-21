@@ -1,9 +1,19 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set(SOURCES "main.c" "strlcpy.c" "logfile.c" "log.c" "matches.c" "ipaddr.c" "filelist.c" "filter.c" "config.c" "jail.c" "backend.c")
+set(SOURCES "daemon.c" "strlcpy.c" "logfile.c" "log.c" "matches.c" "ipaddr.c" "filelist.c" "filter.c" "config.c" "jail.c" "backend.c")
+
+if (WITH_CSOCKET)
+  list(APPEND SOURCES "csocket.c" "cmsg.c")
+  add_definitions("-DWITH_CSOCKET")
+endif ()
 
 add_executable("f2b" ${SOURCES})
 target_link_libraries(f2b "dl")
+
+if (WITH_CLIENT)
+  set(SOURCES "strlcpy.c" "log.c" "client.c" "cmsg.c" "commands.c" "csocket.c")
+  add_executable("f2bc" ${SOURCES})
+endif ()
 
 set(SOURCES "strlcpy.c" "backend-test.c" "log.c" "config.c" "backend.c")
 add_executable("backend-test" ${SOURCES})
