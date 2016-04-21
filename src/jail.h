@@ -46,6 +46,9 @@ f2b_jail_t *f2b_jail_create (f2b_config_section_t *section);
 f2b_jail_t *f2b_jail_find   (f2b_jail_t *list, const char *name);
 void   f2b_jail_set_defaults(f2b_config_section_t *section);
 
+bool f2b_jail_ban   (f2b_jail_t *jail, f2b_ipaddr_t *addr);
+bool f2b_jail_unban (f2b_jail_t *jail, f2b_ipaddr_t *addr);
+
 bool   f2b_jail_init    (f2b_jail_t *jail, f2b_config_t *config);
 size_t f2b_jail_process (f2b_jail_t *jail);
 bool   f2b_jail_stop    (f2b_jail_t *jail);
