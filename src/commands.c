@@ -105,7 +105,7 @@ f2b_cmd_parse(const char *src, char *buf, size_t buflen) {
     src++;
   /* strip trailing spaces, newlines, etc */
   strlcpy(line, src, sizeof(line));
-  for (size_t l = strlen(line); l > 0 && isspace(line[l]); l--)
+  for (size_t l = strlen(line); l >= 1 && isspace(line[l - 1]); l--)
     line[l - 1] = '\0';
 
   if (line[0] == '\0')
