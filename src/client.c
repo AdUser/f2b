@@ -129,8 +129,10 @@ int main(int argc, char *argv[]) {
   while (1) {
     fputs("f2b >> ", stdout);
     fgets(line, sizeof(line) - 1, stdin);
-    if (feof(stdin))
+    if (feof(stdin)) {
+      fputc('\n', stdout);
       break;
+    }
     handle_cmd(line);
   }
 
