@@ -11,7 +11,15 @@ option(WITH_CSOCKET   "Unix control socket support for daemon" ON)
 option(WITH_HARDENING "Enable hardening options" OFF)
 option(WITH_PCRE      "Build pcre-compatible filter" ON)
 
-set(CMAKE_INSTALL_PREFIX "/usr/local")
+if (NOT DEFINED CMAKE_INSTALL_PREFIX)
+  set(CMAKE_INSTALL_PREFIX "/usr")
+endif ()
+# HACK: cmake >= 3.4 fixes this
+if (CMAKE_INSTALL_PREFIX MATCHES "^/usr/?$")
+  set(CMAKE_INSTALL_SYSCONFDIR "/etc")
+endif ()
+include(GNUInstallDirs)
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -pedantic -std=c99")
 add_definitions("-D_XOPEN_SOURCE=600")
 
@@ -23,7 +31,12 @@ endif ()
 
 message(STATUS "Compiler   : ${CMAKE_C_COMPILER} (${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION})")
 message(STATUS "- CFLAGS   : ${CMAKE_C_FLAGS}")
-message(STATUS "Prefix     : ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "Paths:")
+message(STATUS "- prefix   : ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "- configs  : ${CMAKE_INSTALL_FULL_SYSCONFDIR}")
+message(STATUS "- binary   : ${CMAKE_INSTALL_FULL_BINDIR}")
+message(STATUS "- binary   : ${CMAKE_INSTALL_FULL_SBINDIR}")
+message(STATUS "- data     : ${CMAKE_INSTALL_FULL_DATAROOTDIR}")
 message(STATUS "Build type : ${CMAKE_BUILD_TYPE}")
 message(STATUS "Options:")
 message(STATUS "- WITH_CLIENT    : ${WITH_CLIENT}")
@@ -36,9 +49,9 @@ add_subdirectory(src)
 add_subdirectory(t)
 set_property(DIRECTORY "t" PROPERTY COMPILE_FLAGS "-g;-ggdb;-Wall;-Wextra;-pedantic;-O0")
 
-install(DIRECTORY "filters" DESTINATION "${CMAKE_INSTALL_PREFIX}/share/f2b/")
-install(DIRECTORY "configs" DESTINATION "${CMAKE_INSTALL_PREFIX}/share/f2b/")
-install(FILES "configs/f2b.conf.sample" DESTINATION "${CMAKE_INSTALL_PREFIX}/etc/f2b/" RENAME "f2b.conf")
+install(DIRECTORY "filters"  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/f2b")
+install(DIRECTORY "configs/" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/f2b")
+install(FILES "configs/f2b.conf.sample" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/f2b/" RENAME "f2b.conf")
 
 add_custom_target("dist" COMMAND
   "git" "archive" "--format=tar.gz"
