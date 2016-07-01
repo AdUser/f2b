@@ -292,9 +292,9 @@ int main(int argc, char *argv[]) {
       exit(EXIT_FAILURE);
     }
     if (chdir("/") != 0 ||
-        freopen("/dev/null", "r", stdin)  == NULL ||
-        freopen("/dev/null", "w", stdout) == NULL ||
-        freopen("/dev/null", "w", stderr) == NULL) {
+        (stdin  = freopen("/dev/null", "r", stdin))  == NULL ||
+        (stdout = freopen("/dev/null", "w", stdout)) == NULL ||
+        (stderr = freopen("/dev/null", "w", stderr)) == NULL) {
       perror("child: freopen() failed");
       exit(EXIT_FAILURE);
     }
