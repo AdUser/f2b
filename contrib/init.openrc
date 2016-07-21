@@ -1,0 +1,17 @@
+#!/sbin/openrc-run
+
+name="f2b"
+command="/usr/sbin/f2b"
+command_args="-d"
+description="lightweight blocker of network attacks"
+pidfile="/var/run/f2b.pid"
+
+required_dirs="/var/run"
+required_files="/etc/f2b/f2b.conf"
+
+depend() {
+  need mountall
+  use net
+  after bootmisc
+  config "/etc/f2b/f2b.conf"
+}
