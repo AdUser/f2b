@@ -2,7 +2,7 @@ Source: f2b
 Section: net
 Priority: optional
 Maintainer: Alex 'AdUser' Z <ad_user@runbox.com>
-Build-Depends: debhelper (>= 9), cmake
+Build-Depends: debhelper (>= 9), cmake, libpcre3-dev
 Standards-Version: 3.9.5
 Homepage: https://github.com/AdUser/f2b
 Vcs-Git: https://github.com/AdUser/f2b.git
