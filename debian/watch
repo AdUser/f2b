@@ -1,0 +1,3 @@
+version=3
+opts=filenamemangle=s/.+\/v?(\d\S*)\.tar\.gz/f2b-$1\.tar\.gz/ \
+  https://github.com/AdUser/f2b/releases .*/v?(\d\S*)\.tar\.gz
