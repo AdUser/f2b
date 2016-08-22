@@ -235,11 +235,43 @@ update_opts_from_config(f2b_config_section_t *section) {
   /* TODO: */
 }
 
+void
+jails_start(f2b_config_t *config) {
+  f2b_jail_t *jail = NULL;
+  f2b_config_section_t *jail_config = NULL;
+
+  assert(config != NULL);
+
+  for (jail_config = config->jails; jail_config != NULL; jail_config = jail_config->next) {
+    if ((jail = f2b_jail_create(jail_config)) == NULL) {
+      f2b_log_msg(log_error, "can't create jail '%s'", jail_config->name);
+      continue;
+    }
+    if (!jail->enabled) {
+      f2b_log_msg(log_debug, "ignoring disabled jail '%s'", jail->name);
+      free(jail);
+      continue;
+    }
+    if (!f2b_jail_init(jail, config)) {
+      f2b_log_msg(log_error, "can't init jail '%s'", jail_config->name);
+      free(jail);
+      continue;
+    }
+    jail->next = jails;
+    jails = jail;
+  }
+}
+
+void
+jails_stop(f2b_jail_t *jails) {
+  for (f2b_jail_t *jail = jails; jail != NULL; jail = jail->next)
+    f2b_jail_stop(jail);
+  jails = NULL;
+}
+
 int main(int argc, char *argv[]) {
   struct sigaction act;
   f2b_config_t config;
-  f2b_config_section_t *section = NULL;
-  f2b_jail_t *jail  = NULL;
   char opt = '\0';
 
   while ((opt = getopt(argc, argv, "c:dht")) != -1) {
