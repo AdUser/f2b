@@ -24,6 +24,7 @@ struct {
   uid_t uid;
   gid_t gid;
   int csock;
+  char logdest[CONFIG_KEY_MAX];
   char config_path[PATH_MAX];
   char logfile_path[PATH_MAX];
   char csocket_path[PATH_MAX];
@@ -32,13 +33,14 @@ struct {
   false,
   0, 0,
   -1,
+  "file",
   "/etc/f2b/f2b.conf",
   "/var/log/f2b.log",
   DEFAULT_CSOCKET_PATH,
   DEFAULT_PIDFILE_PATH,
 };
 
-enum { stop = 0, run, reconfig, test } state = run;
+enum { stop = 0, run, reconfig, logrotate, test } state = run;
 f2b_jail_t *jails = NULL;
 
 void signal_handler(int signum) {
@@ -121,6 +123,9 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
     strlcpy(res, "ok", ressize);
   } else if (msg->type == CMD_RELOAD) {
     state = reconfig;
+    strlcpy(res, "ok", ressize);
+  } else if (msg->type == CMD_ROTATE) {
+    state = logrotate;
     strlcpy(res, "ok", ressize);
   } else if (msg->type == CMD_SHUTDOWN) {
     state = stop;
@@ -211,6 +216,7 @@ update_opts_from_config(f2b_config_section_t *section) {
   pa = f2b_config_param_find(section->param, "logdest");
   pb = f2b_config_param_find(section->param, "logfile");
   if (pa) {
+    strlcpy(opts.logdest, pa->value, sizeof(opts.logdest));
     if (!opts.daemon && strcmp(pa->value, "stderr") == 0) {
       f2b_log_to_stderr();
     } else if (strcmp(pa->value, "file") == 0) {
@@ -353,10 +359,13 @@ int main(int argc, char *argv[]) {
     }
     f2b_csocket_poll(opts.csock, f2b_cmsg_process);
     sleep(1);
+    if (state == logrotate && strcmp(opts.logdest, "file") == 0) {
+      f2b_log_to_file(opts.logfile_path);
+    }
     if (state == reconfig) {
       /* TODO */
-      state = run;
     }
+    state = run;
   }
 
   f2b_csocket_destroy(opts.csock, opts.csocket_path);
