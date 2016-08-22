@@ -316,7 +316,8 @@ check(cfg_t *cfg, const char *ip) {
 
 bool
 ping(cfg_t *cfg) {
-  return cfg != NULL;
+  assert(cfg != NULL);
+  return true;
 }
 
 void
