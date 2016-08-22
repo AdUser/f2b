@@ -360,24 +360,7 @@ int main(int argc, char *argv[]) {
   if (config.defaults)
     f2b_jail_set_defaults(config.defaults);
 
-  for (section = config.jails; section != NULL; section = section->next) {
-    if ((jail = f2b_jail_create(section)) == NULL) {
-      f2b_log_msg(log_error, "can't create jail '%s'", section->name);
-      continue;
-    }
-    if (!jail->enabled) {
-      f2b_log_msg(log_debug, "ignoring disabled jail '%s'", jail->name);
-      free(jail);
-      continue;
-    }
-    if (!f2b_jail_init(jail, &config)) {
-      f2b_log_msg(log_error, "can't init jail '%s'", section->name);
-      free(jail);
-      continue;
-    }
-    jail->next = jails;
-    jails = jail;
-  }
+  jails_start(&config);
   f2b_config_free(&config);
 
   if (!jails) {
@@ -386,7 +369,7 @@ int main(int argc, char *argv[]) {
   }
 
   while (state) {
-    for (jail = jails; jail != NULL; jail = jail->next) {
+    for (f2b_jail_t *jail = jails; jail != NULL; jail = jail->next) {
       f2b_jail_process(jail);
     }
     f2b_csocket_poll(opts.csock, f2b_cmsg_process);
@@ -402,8 +385,7 @@ int main(int argc, char *argv[]) {
 
   f2b_csocket_destroy(opts.csock, opts.csocket_path);
 
-  for (jail = jails; jail != NULL; jail = jail->next)
-    f2b_jail_stop(jail);
+  jails_stop(jails);
 
   return EXIT_SUCCESS;
 }
