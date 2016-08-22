@@ -378,7 +378,15 @@ int main(int argc, char *argv[]) {
       f2b_log_to_file(opts.logfile_path);
     }
     if (state == reconfig) {
-      /* TODO */
+      if (f2b_config_load(&config, opts.config_path, true)) {
+        jails_stop(jails);
+        if (config.defaults)
+          f2b_jail_set_defaults(config.defaults);
+        jails_start(&config);
+      } else {
+        f2b_log_msg(log_error, "can't load config from '%s'", opts.config_path);
+      }
+      f2b_config_free(&config);
     }
     state = run;
   }
