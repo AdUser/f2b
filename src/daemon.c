@@ -375,9 +375,11 @@ int main(int argc, char *argv[]) {
     f2b_csocket_poll(opts.csock, f2b_cmsg_process);
     sleep(1);
     if (state == logrotate && strcmp(opts.logdest, "file") == 0) {
+      state = run;
       f2b_log_to_file(opts.logfile_path);
     }
     if (state == reconfig) {
+      state = run;
       if (f2b_config_load(&config, opts.config_path, true)) {
         jails_stop(jails);
         if (config.defaults)
@@ -388,7 +390,6 @@ int main(int argc, char *argv[]) {
       }
       f2b_config_free(&config);
     }
-    state = run;
   }
 
   f2b_csocket_destroy(opts.csock, opts.csocket_path);
