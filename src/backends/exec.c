@@ -14,6 +14,7 @@
 #include <unistd.h>
 
 #include "backend.h"
+#include "shared.c"
 
 typedef struct cmd_t {
   struct cmd_t *next;
@@ -23,12 +24,6 @@ typedef struct cmd_t {
   size_t pos_ip; /**< index+1 in argv[] where to insert IP address (zero means "no placeholder") */
   size_t pos_id; /**< index+1 in argv[] where to insert IP address (zero means "no placeholder") */
 } cmd_t;
-
-typedef struct cfg_id_t {
-  struct cfg_id_t *next;
-  char name[ID_MAX + 1];
-  size_t count;
-} cfg_id_t;
 
 struct _config {
   char name[ID_MAX + 1];
@@ -41,50 +36,6 @@ struct _config {
   cmd_t *unban;
   cmd_t *check;
 };
-
-/* this list needed for tracking backend usage with `shared = yes` */
-cfg_id_t *ids_usage = NULL;
-
-static size_t
-usage_inc(const char *id) {
-  cfg_id_t *e = NULL;
-
-  assert(id != NULL);
-
-  for (e = ids_usage; e != NULL; e = e->next) {
-    if (strcmp(e->name, id) != 0)
-      continue;
-    /* found */
-    e->count++;
-    return e->count;
-  }
-  /* not found or list is empty */
-  e = calloc(1, sizeof(cfg_id_t));
-  snprintf(e->name, sizeof(e->name), "%s", id);
-  e->count++;
-  e->next = ids_usage;
-  ids_usage = e;
-  return e->count;
-}
-
-static size_t
-usage_dec(const char *id) {
-  cfg_id_t *e = NULL;
-
-  assert(id != NULL);
-
-  for (e = ids_usage; e != NULL; e = e->next) {
-    if (strcmp(e->name, id) != 0)
-      continue;
-    /* found */
-    if (e->count > 0)
-      e->count--;
-    return e->count;
-  }
-
-  /* not found or list is empty */
-  return 0;
-}
 
 static cmd_t *
 cmd_from_str(const char *str) {
