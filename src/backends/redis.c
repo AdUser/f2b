@@ -9,23 +9,26 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include <hiredis.h>
+#include <hiredis/hiredis.h>
 
 #include "backend.h"
+#include "shared.c"
 
 struct _config {
   char name[ID_MAX + 1];
   char error[256];
   bool shared;
-  struct timeval timeout;
+  time_t timeout;
   uint8_t database;
-  char    server[32];
+  char password[32];
+  char host[32];
   uint16_t port;
   redisContext *conn;
 };
@@ -33,47 +36,157 @@ struct _config {
 /* handlers */
 cfg_t *
 create(const char *id) {
+  cfg_t *cfg = NULL;
+
+  assert(id != NULL);
+
+  if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
+    return NULL;
+  snprintf(cfg->name, sizeof(cfg->name), "%s", id);
+
+  return cfg;
+}
+
+bool
+config(cfg_t *cfg, const char *key, const char *value) {
+  assert(cfg != NULL);
+  assert(key != NULL);
+  assert(value != NULL);
+
+  if (strcmp(key, "timeout") == 0) {
+    cfg->timeout = atoi(value);
+    return true;
+  }
+  if (strcmp(key, "shared") == 0) {
+    cfg->shared = (strcmp(value, "yes") ? true : false);
+    return true;
+  }
+  if (strcmp(key, "host") == 0) {
+    snprintf(cfg->host, sizeof(cfg->host), "%s", value);
+    return true;
+  }
+  if (strcmp(key, "port") == 0) {
+    cfg->port = atoi(value);
+    return true;
+  }
+  if (strcmp(key, "database") == 0) {
+    cfg->database = atoi(value);
+    return true;
+  }
+  if (strcmp(key, "password") == 0) {
+    snprintf(cfg->password, sizeof(cfg->password), "%s", value);
+    return true;
+  }
+
+  return false;
 }
 
 bool
 ready(cfg_t *cfg) {
+  assert(cfg != NULL);
+
+  if (cfg->host)
+    return true;
+
+  return false;
 }
 
 char *
 error(cfg_t *cfg) {
+  assert(cfg != NULL);
+
+  return cfg->error;
 }
 
 bool
 start(cfg_t *cfg) {
+  assert(cfg != NULL);
+
+  struct timeval timeout = { cfg->timeout, 0 };
+  redisReply *reply;
+  do {
+    cfg->conn = redisConnectWithTimeout(cfg->host, cfg->port, timeout);
+    if (cfg->conn->err) {
+      snprintf(cfg->error, sizeof(cfg->error), "Connection error: %s", cfg->conn->errstr);
+      break;
+    }
+    if (cfg->password[0]) {
+      reply = redisCommand(cfg->conn, "AUTH %s", cfg->password);
+      if (reply->type == REDIS_REPLY_ERROR) {
+        snprintf(cfg->error, sizeof(cfg->error), "auth error: %s", reply->str);
+        freeReplyObject(reply);
+        break;
+      }
+      freeReplyObject(reply);
+    }
+    if (cfg->database) {
+      reply = redisCommand(cfg->conn, "SELECT %d", cfg->database);
+      if (reply->type == REDIS_REPLY_ERROR) {
+        snprintf(cfg->error, sizeof(cfg->error), "auth error: %s", reply->str);
+        freeReplyObject(reply);
+        break;
+      }
+      freeReplyObject(reply);
+    }
+    usage_inc(cfg->name);
+    return true;
+  } while (0);
+
+  redisFree(cfg->conn);
+  cfg->conn = NULL;
+  return false;
 }
 
 bool
 stop(cfg_t *cfg) {
+  assert(cfg != NULL);
+
+  if (cfg->shared && usage_dec(cfg->name) > 0)
+    return true;
+
+  redisFree(cfg->conn);
+  cfg->conn = NULL;
+  return true;
 }
 
 bool
 ban(cfg_t *cfg, const char *ip) {
+  assert(cfg != NULL);
+  /* TODO */
+  return true;
 }
 
 bool
 unban(cfg_t *cfg, const char *ip) {
+  assert(cfg != NULL);
+  /* TODO */
+  return true;
 }
 
 bool
 check(cfg_t *cfg, const char *ip) {
+  assert(cfg != NULL);
+  /* TODO */
+  return false;
 }
 
 bool
 ping(cfg_t *cfg) {
   assert(cfg != NULL);
   redisReply *reply = redisCommand(cfg->conn, "PING");
-  if (reply) {
+  if (!reply)
+    return false;
+  if (reply && reply->type == REDIS_REPLY_ERROR) {
+    snprintf(cfg->error, sizeof(cfg->error), "%s", reply->str);
     freeReplyObject(reply);
-    return true;
+    return false;
   }
-  return false;
+  return true;
 }
 
 void
 destroy(cfg_t *cfg) {
+  assert(cfg != NULL);
+
+  free(cfg);
 }
