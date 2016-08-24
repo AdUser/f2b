@@ -156,38 +156,10 @@ bool
 start(cfg_t *cfg) {
   assert(cfg != NULL);
 
-  struct timeval timeout = { cfg->timeout, 0 };
-  redisReply *reply;
-  do {
-    cfg->conn = redisConnectWithTimeout(cfg->host, cfg->port, timeout);
-    if (cfg->conn->err) {
-      snprintf(cfg->error, sizeof(cfg->error), "Connection error: %s", cfg->conn->errstr);
-      break;
-    }
-    if (cfg->password[0]) {
-      reply = redisCommand(cfg->conn, "AUTH %s", cfg->password);
-      if (reply->type == REDIS_REPLY_ERROR) {
-        snprintf(cfg->error, sizeof(cfg->error), "auth error: %s", reply->str);
-        freeReplyObject(reply);
-        break;
-      }
-      freeReplyObject(reply);
-    }
-    if (cfg->database) {
-      reply = redisCommand(cfg->conn, "SELECT %d", cfg->database);
-      if (reply->type == REDIS_REPLY_ERROR) {
-        snprintf(cfg->error, sizeof(cfg->error), "auth error: %s", reply->str);
-        freeReplyObject(reply);
-        break;
-      }
-      freeReplyObject(reply);
-    }
-    usage_inc(cfg->name);
+  if (cfg->shared && usage_inc(cfg->name) > 1)
     return true;
-  } while (0);
 
-  redisFree(cfg->conn);
-  cfg->conn = NULL;
+  redis_connect(cfg);
   return false;
 }
 
@@ -198,29 +170,65 @@ stop(cfg_t *cfg) {
   if (cfg->shared && usage_dec(cfg->name) > 0)
     return true;
 
-  redisFree(cfg->conn);
-  cfg->conn = NULL;
+  redis_disconnect(cfg);
   return true;
 }
 
 bool
 ban(cfg_t *cfg, const char *ip) {
   assert(cfg != NULL);
-  /* TODO */
-  return true;
+
+  redisReply *reply;
+  do {
+    reply = redisCommand(cfg->conn, "HINCRBY %s %s %d", cfg->hash, ip, 1);
+    if (reply && reply->type == REDIS_REPLY_ERROR) {
+      snprintf(cfg->error, sizeof(cfg->error), "HINCRBY: %s", reply->str);
+      break;
+    }
+    freeReplyObject(reply);
+    reply = redisCommand(cfg->conn, "PUBLISH %s %s",    cfg->hash, ip);
+    if (reply && reply->type == REDIS_REPLY_ERROR) {
+      snprintf(cfg->error, sizeof(cfg->error), "PUBLISH: %s", reply->str);
+      break;
+    }
+    freeReplyObject(reply);
+    return true;
+  } while (0);
+
+  if (reply)
+    freeReplyObject(reply);
+
+  return false;
 }
 
 bool
 unban(cfg_t *cfg, const char *ip) {
   assert(cfg != NULL);
-  /* TODO */
+  (void)(ip); /* suppress warning for unused variable 'ip' */
   return true;
 }
 
 bool
 check(cfg_t *cfg, const char *ip) {
   assert(cfg != NULL);
-  /* TODO */
+
+  bool exists;
+  redisReply *reply;
+  do {
+    reply = redisCommand(cfg->conn, "HEXISTS %s %s", cfg->hash, ip);
+    if (reply && reply->type == REDIS_REPLY_ERROR) {
+      snprintf(cfg->error, sizeof(cfg->error), "PUBLISH: %s", reply->str);
+      break;
+    }
+    if (reply && reply->integer == REDIS_REPLY_INTEGER)
+      exists = reply->integer ? true : false;
+    freeReplyObject(reply);
+    return exists;
+  } while (0);
+
+  if (reply)
+    freeReplyObject(reply);
+
   return false;
 }
 
@@ -228,11 +236,16 @@ bool
 ping(cfg_t *cfg) {
   assert(cfg != NULL);
   redisReply *reply = redisCommand(cfg->conn, "PING");
-  if (!reply)
-    return false;
+  if (cfg->conn->err) {
+    snprintf(cfg->error, sizeof(cfg->error), "connection error: %s", cfg->conn->errstr);
+    redis_reconnect(cfg);
+    return cfg->conn->err ? false : true;
+  }
   if (reply && reply->type == REDIS_REPLY_ERROR) {
     snprintf(cfg->error, sizeof(cfg->error), "%s", reply->str);
     freeReplyObject(reply);
+    return false;
+  } else {
     return false;
   }
   return true;
