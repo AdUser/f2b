@@ -33,6 +33,59 @@ struct _config {
   redisContext *conn;
 };
 
+static bool
+redis_connect(cfg_t *cfg) {
+  assert(cfg != NULL);
+
+  redisReply *reply;
+  struct timeval timeout = { cfg->timeout, 0 };
+  do {
+    cfg->conn = redisConnectWithTimeout(cfg->host, cfg->port, timeout);
+    if (cfg->conn->err) {
+      snprintf(cfg->error, sizeof(cfg->error), "Connection error: %s", cfg->conn->errstr);
+      return false;
+    }
+    if (cfg->password[0]) {
+      reply = redisCommand(cfg->conn, "AUTH %s", cfg->password);
+      if (reply->type == REDIS_REPLY_ERROR) {
+        snprintf(cfg->error, sizeof(cfg->error), "auth error: %s", reply->str);
+        freeReplyObject(reply);
+        break;
+      }
+      freeReplyObject(reply);
+    }
+    if (cfg->database) {
+      reply = redisCommand(cfg->conn, "SELECT %d", cfg->database);
+      if (reply->type == REDIS_REPLY_ERROR) {
+        snprintf(cfg->error, sizeof(cfg->error), "auth error: %s", reply->str);
+        freeReplyObject(reply);
+        break;
+      }
+      freeReplyObject(reply);
+    }
+    return true;
+  } while (0);
+
+  redisFree(cfg->conn);
+  cfg->conn = NULL;
+  return false;
+}
+
+static bool
+redis_disconnect(cfg_t *cfg) {
+  assert(cfg != NULL);
+
+  redisFree(cfg->conn);
+  cfg->conn = NULL;
+  return true;
+}
+
+static bool
+redis_reconnect(cfg_t *cfg) {
+  redis_disconnect(cfg);
+  return redis_connect(cfg);
+}
+
 /* handlers */
 cfg_t *
 create(const char *id) {
