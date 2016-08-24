@@ -4,7 +4,6 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
-
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
@@ -23,6 +22,7 @@
 
 struct _config {
   char name[ID_MAX + 1];
+  char hash[ID_MAX * 2];
   char error[256];
   bool shared;
   time_t timeout;
@@ -43,6 +43,7 @@ create(const char *id) {
   if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
     return NULL;
   snprintf(cfg->name, sizeof(cfg->name), "%s", id);
+  snprintf(cfg->hash, sizeof(cfg->hash), "f2b-banned-%s", id);
 
   return cfg;
 }
