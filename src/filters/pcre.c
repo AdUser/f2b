@@ -18,6 +18,7 @@
 
 typedef struct f2b_regex_t {
   struct f2b_regex_t *next;
+  char pattern[PATTERN_MAX];
   int matches;
   pcre *regex;
   pcre_extra *data;
@@ -30,6 +31,7 @@ struct _config {
   bool study;
   bool usejit;
   f2b_regex_t *regexps;
+  f2b_regex_t *statp;
 };
 
 cfg_t *
@@ -115,6 +117,7 @@ append(cfg_t *cfg, const char *pattern) {
 
   regex->next = cfg->regexps;
   cfg->regexps = regex;
+  snprintf(regex->pattern, sizeof(regex->pattern), "%s", pattern);
   return true;
 }
 
@@ -123,6 +126,23 @@ ready(cfg_t *cfg) {
   assert(cfg != NULL);
   if (cfg->regexps)
     return true;
+  return false;
+}
+
+bool
+stats(cfg_t *cfg, int *matches, char **pattern, bool reset) {
+  assert(cfg != NULL);
+
+  if (reset)
+    cfg->statp = cfg->regexps;
+
+  if (cfg->statp) {
+    *matches   = cfg->statp->matches;
+    *pattern   = cfg->statp->pattern;
+    cfg->statp = cfg->statp->next;
+    return true;
+  }
+
   return false;
 }
 
