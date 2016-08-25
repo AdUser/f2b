@@ -44,6 +44,7 @@ message(STATUS "- WITH_CLIENT    : ${WITH_CLIENT}")
 message(STATUS "- WITH_CSOCKET   : ${WITH_CSOCKET}")
 message(STATUS "- WITH_HARDENING : ${WITH_HARDENING}")
 message(STATUS "- WITH_PCRE      : ${WITH_PCRE}")
+message(STATUS "- WITH_REDIS     : ${WITH_REDIS}")
 message(STATUS "Components:")
 
 add_subdirectory(src)
