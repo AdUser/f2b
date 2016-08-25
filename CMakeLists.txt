@@ -10,6 +10,7 @@ option(WITH_CLIENT    "Simple client for configuring daemon" ON)
 option(WITH_CSOCKET   "Unix control socket support for daemon" ON)
 option(WITH_HARDENING "Enable hardening options" OFF)
 option(WITH_PCRE      "Build pcre-compatible filter" ON)
+option(WITH_REDIS     "Build redis backend" ON)
 
 if (NOT DEFINED CMAKE_INSTALL_PREFIX)
   set(CMAKE_INSTALL_PREFIX "/usr")
