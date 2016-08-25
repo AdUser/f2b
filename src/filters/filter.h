@@ -6,6 +6,8 @@
  */
 #include <stdbool.h>
 
+#define ID_MAX 32
+#define PATTERN_MAX 256
 #define HOST_TOKEN "<HOST>"
 
 typedef struct _config cfg_t;

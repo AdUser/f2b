@@ -24,7 +24,7 @@ typedef struct f2b_regex_t {
 } f2b_regex_t;
 
 struct _config {
-  char id[32];
+  char id[ID_MAX];
   char error[256];
   bool icase;
   f2b_regex_t *regexps;
