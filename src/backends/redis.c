@@ -37,19 +37,24 @@ static bool
 redis_connect(cfg_t *cfg) {
   assert(cfg != NULL);
 
-  redisReply *reply;
-  struct timeval timeout = { cfg->timeout, 0 };
+  if (cfg->conn && !cfg->conn->err)
+    return true; /* connected */
+
+  redisContext *conn = NULL;
+  redisReply *reply = NULL;
   do {
-    cfg->conn = redisConnectWithTimeout(cfg->host, cfg->port, timeout);
-    if (cfg->conn->err) {
+    struct timeval timeout = { cfg->timeout, 0 };
+    conn = redisConnectWithTimeout(cfg->host, cfg->port, timeout);
+    if (!conn)
+      break;
+    if (conn->err) {
       snprintf(cfg->error, sizeof(cfg->error), "Connection error: %s", cfg->conn->errstr);
-      return false;
+      break;
     }
     if (cfg->password[0]) {
       reply = redisCommand(cfg->conn, "AUTH %s", cfg->password);
       if (reply->type == REDIS_REPLY_ERROR) {
         snprintf(cfg->error, sizeof(cfg->error), "auth error: %s", reply->str);
-        freeReplyObject(reply);
         break;
       }
       freeReplyObject(reply);
@@ -58,16 +63,21 @@ redis_connect(cfg_t *cfg) {
       reply = redisCommand(cfg->conn, "SELECT %d", cfg->database);
       if (reply->type == REDIS_REPLY_ERROR) {
         snprintf(cfg->error, sizeof(cfg->error), "auth error: %s", reply->str);
-        freeReplyObject(reply);
         break;
       }
       freeReplyObject(reply);
     }
+    if (cfg->conn)
+      redisFree(cfg->conn);
+    cfg->conn = conn;
     return true;
   } while (0);
 
-  redisFree(cfg->conn);
-  cfg->conn = NULL;
+  if (conn)
+    redisFree(conn);
+  if (reply)
+    freeReplyObject(reply);
+
   return false;
 }
 
@@ -80,13 +90,6 @@ redis_disconnect(cfg_t *cfg) {
   return true;
 }
 
-static bool
-redis_reconnect(cfg_t *cfg) {
-  redis_disconnect(cfg);
-  return redis_connect(cfg);
-}
-
-/* handlers */
 cfg_t *
 create(const char *id) {
   cfg_t *cfg = NULL;
@@ -159,8 +162,7 @@ start(cfg_t *cfg) {
   if (cfg->shared && usage_inc(cfg->name) > 1)
     return true;
 
-  redis_connect(cfg);
-  return false;
+  return redis_connect(cfg);
 }
 
 bool
@@ -170,13 +172,15 @@ stop(cfg_t *cfg) {
   if (cfg->shared && usage_dec(cfg->name) > 0)
     return true;
 
-  redis_disconnect(cfg);
-  return true;
+  return redis_disconnect(cfg);
 }
 
 bool
 ban(cfg_t *cfg, const char *ip) {
   assert(cfg != NULL);
+
+  if (!redis_connect(cfg))
+    return false;
 
   redisReply *reply;
   do {
@@ -204,6 +208,7 @@ ban(cfg_t *cfg, const char *ip) {
 bool
 unban(cfg_t *cfg, const char *ip) {
   assert(cfg != NULL);
+
   (void)(ip); /* suppress warning for unused variable 'ip' */
   return true;
 }
@@ -212,43 +217,36 @@ bool
 check(cfg_t *cfg, const char *ip) {
   assert(cfg != NULL);
 
-  bool exists;
-  redisReply *reply;
-  do {
-    reply = redisCommand(cfg->conn, "HEXISTS %s %s", cfg->hash, ip);
-    if (reply && reply->type == REDIS_REPLY_ERROR) {
-      snprintf(cfg->error, sizeof(cfg->error), "PUBLISH: %s", reply->str);
-      break;
-    }
-    if (reply && reply->integer == REDIS_REPLY_INTEGER)
-      exists = reply->integer ? true : false;
-    freeReplyObject(reply);
-    return exists;
-  } while (0);
-
-  if (reply)
-    freeReplyObject(reply);
-
+  (void)(ip); /* suppress warning for unused variable 'ip' */
   return false;
 }
 
 bool
 ping(cfg_t *cfg) {
   assert(cfg != NULL);
-  redisReply *reply = redisCommand(cfg->conn, "PING");
+
+  if (!cfg->conn || cfg->conn->err)
+    redis_connect(cfg);
+  if (!cfg->conn)
+    return false; /* reconnect failure */
+
   if (cfg->conn->err) {
     snprintf(cfg->error, sizeof(cfg->error), "connection error: %s", cfg->conn->errstr);
-    redis_reconnect(cfg);
-    return cfg->conn->err ? false : true;
+    return false;
   }
-  if (reply && reply->type == REDIS_REPLY_ERROR) {
-    snprintf(cfg->error, sizeof(cfg->error), "%s", reply->str);
+
+  redisReply *reply = redisCommand(cfg->conn, "PING");
+  if (reply) {
+    bool result = true;
+    if (reply->type == REDIS_REPLY_ERROR) {
+      snprintf(cfg->error, sizeof(cfg->error), "%s", reply->str);
+      result = false;
+    }
     freeReplyObject(reply);
-    return false;
-  } else {
-    return false;
+    return result;
   }
-  return true;
+
+  return false;
 }
 
 void
