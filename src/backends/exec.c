@@ -268,6 +268,7 @@ check(cfg_t *cfg, const char *ip) {
 bool
 ping(cfg_t *cfg) {
   assert(cfg != NULL);
+  (void)(cfg); /* suppress warning about unused variable */
   return true;
 }
 
