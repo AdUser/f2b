@@ -183,6 +183,7 @@ f2b_filter_stats(f2b_filter_t *filter, char *res, size_t ressize) {
   const char *fmt =
     "- pattern: %s\n"
     "  matches: %d\n";
+  res[0] = '\0';
   while (filter->stats(filter->cfg, &matches, &pattern, reset)) {
     snprintf(buf, sizeof(buf), fmt, pattern, matches);
     strlcat(res, buf, ressize);
