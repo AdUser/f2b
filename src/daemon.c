@@ -110,7 +110,7 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
     }
   }
 
-  if (jail && (msg->type >= CMD_JAIL_IP_SHOW && msg->type <= CMD_JAIL_IP_RELEASE)) {
+  if (jail && (msg->type >= CMD_JAIL_IP_STATUS && msg->type <= CMD_JAIL_IP_RELEASE)) {
     if (args[1] == NULL) {
       strlcpy(res, "can't find ip: no args", ressize);
       return;
@@ -142,7 +142,7 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
     }
   } else if (msg->type == CMD_JAIL_STATUS) {
     f2b_jail_get_status(jail, res, ressize);
-  } else if (msg->type == CMD_JAIL_IP_SHOW) {
+  } else if (msg->type == CMD_JAIL_IP_STATUS) {
     f2b_ipaddr_status(addr, res, ressize);
   } else if (msg->type == CMD_JAIL_IP_BAN) {
     f2b_jail_ban(jail, addr);

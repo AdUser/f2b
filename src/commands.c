@@ -53,8 +53,8 @@ struct f2b_cmd_t {
     .tokens = { "jail", "<jailname>", "set", "<param>", "<value>", NULL },
     .help = "Set parameter of given jail",
   },
-  [CMD_JAIL_IP_SHOW] = {
-    .tokens = { "jail", "<jailname>", "show", "<ip>", NULL },
+  [CMD_JAIL_IP_STATUS] = {
+    .tokens = { "jail", "<jailname>", "status", "<ip>", NULL },
     .help = "Show ip status in given jail",
   },
   [CMD_JAIL_IP_BAN] = {
@@ -143,10 +143,10 @@ f2b_cmd_parse(const char *src, char *buf, size_t buflen) {
       strlcat(buf, "\n", buflen);
       return CMD_JAIL_SET;
     }
-    if (tokenc == 4 && strcmp(tokens[2], "show") == 0) {
+    if (tokenc == 4 && strcmp(tokens[2], "status") == 0) {
       strlcat(buf, tokens[3], buflen);
       strlcat(buf, "\n", buflen);
-      return CMD_JAIL_IP_SHOW;
+      return CMD_JAIL_IP_STATUS;
     }
     if (tokenc == 4 && strcmp(tokens[2], "ban") == 0) {
       strlcat(buf, tokens[3], buflen);
