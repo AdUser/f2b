@@ -150,6 +150,14 @@ f2b_filter_destroy(f2b_filter_t *filter) {
 }
 
 bool
+f2b_filter_append(f2b_filter_t *filter, const char *pattern) {
+  assert(filter  != NULL);
+  assert(pattern != NULL);
+
+  return filter->append(filter->cfg, pattern);
+}
+
+bool
 f2b_filter_match(f2b_filter_t *filter, const char *line, char *buf, size_t buf_size) {
   assert(filter != NULL);
   assert(line   != NULL);
