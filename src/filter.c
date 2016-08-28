@@ -171,3 +171,21 @@ f2b_filter_error(f2b_filter_t *filter) {
   assert(filter != NULL);
   return filter->error(filter->cfg);
 }
+
+void
+f2b_filter_stats(f2b_filter_t *filter, char *res, size_t ressize) {
+  assert(filter != NULL);
+  assert(res    != NULL);
+  bool reset = true;
+  char *pattern;
+  int matches;
+  char buf[256];
+  const char *fmt =
+    "- pattern: %s\n"
+    "  matches: %d\n";
+  while (filter->stats(filter->cfg, &matches, &pattern, reset)) {
+    snprintf(buf, sizeof(buf), fmt, pattern, matches);
+    strlcat(res, buf, ressize);
+    reset = false;
+  }
+}
