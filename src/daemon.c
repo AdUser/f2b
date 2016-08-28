@@ -115,10 +115,6 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
       strlcpy(res, "can't find ip: no args", ressize);
       return;
     }
-    if ((addr = f2b_addrlist_lookup(jail->ipaddrs, args[1])) == NULL) {
-      snprintf(res, ressize, "can't find ip '%s' in jail '%s'\n", args[1], args[0]);
-      return;
-    }
   }
 
   if (msg->type == CMD_PING) {
@@ -143,12 +139,32 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
   } else if (msg->type == CMD_JAIL_STATUS) {
     f2b_jail_get_status(jail, res, ressize);
   } else if (msg->type == CMD_JAIL_IP_SHOW) {
-    f2b_ipaddr_status(addr, res, ressize);
+    if ((addr = f2b_addrlist_lookup(jail->ipaddrs, args[1])) != NULL) {
+      f2b_ipaddr_status(addr, res, ressize);
+    } else {
+      snprintf(res, ressize, "can't find ip '%s' in jail '%s'\n", args[1], args[0]);
+    }
   } else if (msg->type == CMD_JAIL_IP_BAN) {
+    if ((addr = f2b_addrlist_lookup(jail->ipaddrs, args[1])) == NULL) {
+      /* TODO: this is copy-paste from f2b_jail_process */
+      time_t now = time(NULL);
+      addr = f2b_ipaddr_create(args[1], jail->maxretry);
+      if (!addr) {
+        snprintf(res, ressize, "cat't parse ip address: %s", args[1]);
+        return;
+      }
+      addr->lastseen = now;
+      f2b_matches_append(&addr->matches, now);
+      jail->ipaddrs = f2b_addrlist_append(jail->ipaddrs, addr);
+    }
     f2b_jail_ban(jail, addr);
     strlcpy(res, "ok", ressize);
   } else if (msg->type == CMD_JAIL_IP_RELEASE) {
-    f2b_jail_unban(jail, addr);
+    if ((addr = f2b_addrlist_lookup(jail->ipaddrs, args[1])) != NULL) {
+      f2b_jail_unban(jail, addr);
+    } else {
+      snprintf(res, ressize, "can't find ip '%s' in jail '%s'\n", args[1], args[0]);
+    }
     strlcpy(res, "ok", ressize);
   } else if (msg->type == CMD_JAIL_REGEX_STATS) {
     f2b_filter_stats(jail->filter, res, ressize);
