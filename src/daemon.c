@@ -85,7 +85,6 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
 void
 f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
   const char *args[DATA_ARGS_MAX];
-  const char *fmt;
   f2b_jail_t *jail = NULL;
   f2b_ipaddr_t *addr = NULL;
   char line[LINE_MAX];
@@ -139,23 +138,7 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
       strlcat(res, line, ressize);
     }
   } else if (msg->type == CMD_JAIL_STATUS) {
-    fmt = "name: %s\n"
-          "enabled: %s\n"
-          "maxretry: %d\n"
-          "times:\n"
-          "  bantime: %d\n"
-          "  findtime: %d\n"
-          "  expiretime: %d\n"
-          "incr:\n"
-          "  bantime: %.1f\n"
-          "  findtime: %.1f\n"
-          "stats:\n"
-          "  banned: %d\n"
-          "  matched: %d\n";
-    snprintf(res, ressize, fmt, jail->name, jail->enabled ? "yes" : "no", jail->maxretry,
-      jail->bantime, jail->findtime, jail->expiretime,
-      jail->incr_bantime, jail->incr_findtime,
-      jail->bancount, jail->matchcount);
+    f2b_jail_get_status(jail, res, ressize);
   } else if (msg->type == CMD_JAIL_IP_SHOW) {
     f2b_ipaddr_status(addr, res, ressize);
   } else if (msg->type == CMD_JAIL_IP_BAN) {
