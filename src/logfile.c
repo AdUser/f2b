@@ -55,6 +55,9 @@ f2b_logfile_rotated(const f2b_logfile_t *file) {
 
   assert(file != NULL);
 
+  if (!file->opened)
+    return true;
+
   if (stat(file->path, &st) != 0)
     return true;
 
