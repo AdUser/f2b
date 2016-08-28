@@ -157,14 +157,7 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
       jail->incr_bantime, jail->incr_findtime,
       jail->bancount, jail->matchcount);
   } else if (msg->type == CMD_JAIL_IP_SHOW) {
-    fmt = "ipaddr: %s\n"
-          "banned: %s\n"
-          "bancount: %d\n"
-          "lastseen: %d\n"
-          "banned_at: %d\n"
-          "release_at: %d\n";
-    snprintf(res, ressize, fmt, addr->text, addr->banned ? "yes" : "no",
-      addr->bancount, addr->lastseen, addr->banned_at, addr->release_at);
+    f2b_ipaddr_status(addr, res, ressize);
   } else if (msg->type == CMD_JAIL_IP_BAN) {
     f2b_jail_ban(jail, addr);
     strlcpy(res, "ok", ressize);
