@@ -93,6 +93,9 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
   assert(res != NULL);
   assert(msg->type < CMD_MAX_NUMBER);
 
+  if (msg->type == CMD_NONE)
+    return;
+
   memset(args, 0x0, sizeof(args));
   f2b_cmsg_extract_args(msg, args);
 
