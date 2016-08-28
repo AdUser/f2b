@@ -99,7 +99,7 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
   memset(args, 0x0, sizeof(args));
   f2b_cmsg_extract_args(msg, args);
 
-  if (msg->type >= CMD_JAIL_STATUS && msg->type <= CMD_JAIL_IP_RELEASE) {
+  if (msg->type >= CMD_JAIL_STATUS && msg->type <= CMD_MAX_NUMBER) {
     if (args[0] == NULL) {
       strlcpy(res, "can't find jail: no args\n", ressize);
       return;
@@ -150,6 +150,18 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
   } else if (msg->type == CMD_JAIL_IP_RELEASE) {
     f2b_jail_unban(jail, addr);
     strlcpy(res, "ok", ressize);
+  } else if (msg->type == CMD_JAIL_REGEX_STATS) {
+    f2b_filter_stats(jail->filter, res, ressize);
+  } else if (msg->type == CMD_JAIL_REGEX_ADD) {
+    if (args[1] == NULL) {
+      strlcpy(res, "can't find regex: no args", ressize);
+      return;
+    }
+    if (f2b_filter_append(jail->filter, args[1])) {
+      strlcpy(res, "ok", ressize);
+    } else {
+      strlcpy(res, f2b_filter_error(jail->filter), ressize);
+    }
   } else {
     strlcpy(res, "error: unsupported command type", ressize);
   }
