@@ -7,11 +7,11 @@
 #ifndef F2B_COMMON_H_
 #define F2B_COMMON_H_
 
-#include <alloca.h>
 #include <assert.h>
 #include <ctype.h>
 #include <dlfcn.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <limits.h>
 #include <stdarg.h>
 #include <stdbool.h>
