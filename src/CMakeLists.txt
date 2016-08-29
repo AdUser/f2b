@@ -8,7 +8,6 @@ if (WITH_CSOCKET)
 endif ()
 
 add_executable("f2b" ${SOURCES})
-target_link_libraries(f2b "dl")
 
 install(TARGETS "f2b" RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR})
 
@@ -20,11 +19,15 @@ endif ()
 
 set(SOURCES "strlcpy.c" "backend-test.c" "log.c" "config.c" "backend.c")
 add_executable("backend-test" ${SOURCES})
-target_link_libraries("backend-test" "dl")
 
 set(SOURCES "strlcpy.c" "filter-test.c" "log.c" "config.c" "filter.c")
 add_executable("filter-test" ${SOURCES})
-target_link_libraries("filter-test" "dl")
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  target_link_libraries(f2b "dl")
+  target_link_libraries("backend-test" "dl")
+  target_link_libraries("filter-test" "dl")
+endif ()
 
 add_subdirectory("backends")
 add_subdirectory("filters")

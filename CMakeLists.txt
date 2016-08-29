@@ -22,7 +22,12 @@ endif ()
 include(GNUInstallDirs)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -pedantic -std=c99")
-add_definitions("-D_XOPEN_SOURCE=600")
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  add_definitions("-D_XOPEN_SOURCE=600")
+else ()
+  include_directories(AFTER SYSTEM "/usr/local/include")
+  link_directories("/usr/local/lib")
+endif ()
 
 if (WITH_HARDENING)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat -Wformat-security -Werror=format-security" )
