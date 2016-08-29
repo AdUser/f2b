@@ -4,7 +4,14 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
+#if defined(__linux__)
+#include <alloca.h>
+#endif
+#include <assert.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define ID_MAX 32
 #define PATTERN_MAX 256
