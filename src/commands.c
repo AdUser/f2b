@@ -12,7 +12,7 @@ struct f2b_cmd_t {
   const char *help;
   const char *tokens[CMD_TOKENS_MAX];
   char *data;
-} commands[] = {
+} commands[CMD_MAX_NUMBER] = {
   [CMD_NONE] = {
     .tokens = { NULL },
     .help = "Unspecified command"

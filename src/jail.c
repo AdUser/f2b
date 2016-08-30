@@ -77,7 +77,7 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
     }
     if (strcmp(param->name, "maxretry") == 0) {
       jail->maxretry = atoi(param->value);
-      if (jail->maxretry <= 0)
+      if (jail->maxretry == 0)
         jail->maxretry = DEFAULT_MAXRETRY;
       continue;
     }
