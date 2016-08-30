@@ -387,6 +387,7 @@ int main(int argc, char *argv[]) {
     }
     if (state == reconfig) {
       state = run;
+      memset(&config, 0x0, sizeof(config));
       if (f2b_config_load(&config, opts.config_path, true)) {
         jails_stop(jails);
         if (config.defaults)
