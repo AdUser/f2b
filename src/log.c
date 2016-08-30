@@ -39,6 +39,8 @@ get_facility(log_msgtype_t l) {
 void f2b_log_msg(log_msgtype_t l, const char *fmt, ...) {
   va_list args;
   char msg[LOGLINE_MAX]  = "";
+  char when[64] = "";
+  time_t now = time(NULL);
 
   if (l < minlevel)
     return;
@@ -55,7 +57,8 @@ void f2b_log_msg(log_msgtype_t l, const char *fmt, ...) {
     case log_stderr:
       logfile = stderr;
     case log_file:
-      fprintf(logfile, "[%s] %s\n", loglevels[l], msg);
+      strftime(when, sizeof(when), "%F %H:%M:%S", localtime(&now));
+      fprintf(logfile, "%s [%s] %s\n", when, loglevels[l], msg);
       break;
   }
 
