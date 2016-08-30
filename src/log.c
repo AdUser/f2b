@@ -83,6 +83,7 @@ void f2b_log_to_file(const char *path) {
   if (path == NULL || *path == '\0')
     return;
   if ((new = fopen(path, "a")) != NULL) {
+    setvbuf(new, NULL , _IONBF, 0);
     if (logfile && logfile != stderr)
       fclose(logfile);
     dest = log_file;
