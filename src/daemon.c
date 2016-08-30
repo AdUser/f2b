@@ -271,9 +271,14 @@ jails_start(f2b_config_t *config) {
 
 void
 jails_stop(f2b_jail_t *jails) {
-  for (f2b_jail_t *jail = jails; jail != NULL; jail = jail->next)
+  f2b_jail_t *jail = jails;
+  f2b_jail_t *next = NULL;
+  for (; jail != NULL; ) {
+    next = jail->next;
     f2b_jail_stop(jail);
-  jails = NULL;
+    free(jail);
+    jail = next;
+  }
 }
 
 int main(int argc, char *argv[]) {
@@ -390,6 +395,7 @@ int main(int argc, char *argv[]) {
       memset(&config, 0x0, sizeof(config));
       if (f2b_config_load(&config, opts.config_path, true)) {
         jails_stop(jails);
+        jails = NULL;
         if (config.defaults)
           f2b_jail_set_defaults(config.defaults);
         jails_start(&config);
@@ -403,6 +409,7 @@ int main(int argc, char *argv[]) {
   f2b_csocket_destroy(opts.csock, opts.csocket_path);
 
   jails_stop(jails);
+  jails = NULL;
 
   return EXIT_SUCCESS;
 }
