@@ -34,7 +34,7 @@ create(const char *id) {
 
   if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
     return NULL;
-  snprintf(cfg->id, sizeof(cfg->id), "%s", id);
+  strlcpy(cfg->id, id, sizeof(cfg->id));
 
   return cfg;
 }
@@ -85,8 +85,8 @@ append(cfg_t *cfg, const char *pattern) {
 
   memset(buf, 0x0, bufsize);
   memcpy(buf, pattern, token - pattern);
-  strcat(buf, HOST_REGEX);
-  strcat(buf, token + strlen(HOST_TOKEN));
+  strlcat(buf, HOST_REGEX, bufsize);
+  strlcat(buf, token + strlen(HOST_TOKEN), bufsize);
 
   if ((regex = calloc(1, sizeof(f2b_regex_t))) == NULL)
     return false;
@@ -111,7 +111,7 @@ append(cfg_t *cfg, const char *pattern) {
 
   regex->next = cfg->regexps;
   cfg->regexps = regex;
-  snprintf(regex->pattern, sizeof(regex->pattern), "%s", pattern);
+  strlcpy(regex->pattern, pattern, sizeof(regex->pattern));
   return true;
 }
 

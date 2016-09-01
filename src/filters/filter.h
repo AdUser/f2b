@@ -13,6 +13,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../strlcpy.h"
+
 #define ID_MAX 32
 #define PATTERN_MAX 256
 #define HOST_TOKEN "<HOST>"

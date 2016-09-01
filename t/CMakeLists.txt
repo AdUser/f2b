@@ -14,11 +14,11 @@ add_test("tests/f2b_matches_*" "t_matches")
 add_test("tests/f2b_ipaddr_*"  "t_ipaddr")
 add_test("tests/f2b_config_param*" "t_config_param")
 
-add_executable("t_filter_preg" "t_filters.c" "${SRC_DIR}/filters/preg.c")
+add_executable("t_filter_preg" "t_filters.c" "${SRC_DIR}/filters/preg.c" "${SRC_DIR}/strlcpy.c")
 add_test("tests/filter/preg"   "t_filter_preg")
 
 if (WITH_PCRE)
 add_test("tests/filter/pcre"   "t_filter_pcre")
-add_executable("t_filter_pcre" "t_filters.c" "${SRC_DIR}/filters/pcre.c")
+add_executable("t_filter_pcre" "t_filters.c" "${SRC_DIR}/filters/pcre.c" "${SRC_DIR}/strlcpy.c")
 target_link_libraries("t_filter_pcre" "pcre")
 endif ()
