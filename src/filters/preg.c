@@ -141,7 +141,7 @@ match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
     assert(buf_size > match_len);
     memcpy(buf, &line[match[1].rm_so], match_len);
     buf[match_len] = '\0';
-    buf[buf_size]  = '\0';
+    buf[buf_size - 1]  = '\0';
     return true;
   }
 
