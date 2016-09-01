@@ -13,6 +13,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "../strlcpy.h"
+
 #include "backend.h"
 #include "shared.c"
 
@@ -157,7 +159,7 @@ create(const char *id) {
 
   if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
     return NULL;
-  snprintf(cfg->name, sizeof(cfg->name), "%s", id);
+  strlcpy(cfg->name, id, sizeof(cfg->name));
 
   return cfg;
 }

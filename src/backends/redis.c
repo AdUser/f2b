@@ -17,6 +17,8 @@
 
 #include <hiredis/hiredis.h>
 
+#include "../strlcpy.h"
+
 #include "backend.h"
 #include "shared.c"
 
@@ -98,8 +100,9 @@ create(const char *id) {
 
   if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
     return NULL;
-  snprintf(cfg->name, sizeof(cfg->name), "%s", id);
-  snprintf(cfg->hash, sizeof(cfg->hash), "f2b-banned-%s", id);
+  strlcpy(cfg->name, id, sizeof(cfg->name));
+  strlcpy(cfg->hash, "f2b-banned-", sizeof(cfg->hash));
+  strlcat(cfg->hash, id, sizeof(cfg->hash));
 
   return cfg;
 }
@@ -119,7 +122,7 @@ config(cfg_t *cfg, const char *key, const char *value) {
     return true;
   }
   if (strcmp(key, "host") == 0) {
-    snprintf(cfg->host, sizeof(cfg->host), "%s", value);
+    strlcpy(cfg->host, value, sizeof(cfg->host));
     return true;
   }
   if (strcmp(key, "port") == 0) {
@@ -131,7 +134,7 @@ config(cfg_t *cfg, const char *key, const char *value) {
     return true;
   }
   if (strcmp(key, "password") == 0) {
-    snprintf(cfg->password, sizeof(cfg->password), "%s", value);
+    strlcpy(cfg->password, value, sizeof(cfg->password));
     return true;
   }
 
@@ -239,7 +242,7 @@ ping(cfg_t *cfg) {
   if (reply) {
     bool result = true;
     if (reply->type == REDIS_REPLY_ERROR) {
-      snprintf(cfg->error, sizeof(cfg->error), "%s", reply->str);
+      strlcpy(cfg->error, reply->str, sizeof(cfg->error));
       result = false;
     }
     freeReplyObject(reply);
