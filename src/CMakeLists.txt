@@ -18,16 +18,18 @@ if (WITH_CLIENT)
 endif ()
 
 set(SOURCES "strlcpy.c" "backend-test.c" "log.c" "config.c" "backend.c")
-add_executable("backend-test" ${SOURCES})
+add_executable("f2b-backend-test" ${SOURCES})
 
 set(SOURCES "strlcpy.c" "filter-test.c" "log.c" "config.c" "filter.c")
-add_executable("filter-test" ${SOURCES})
+add_executable("f2b-filter-test" ${SOURCES})
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   target_link_libraries(f2b "dl")
-  target_link_libraries("backend-test" "dl")
-  target_link_libraries("filter-test" "dl")
+  target_link_libraries("f2b-backend-test" "dl")
+  target_link_libraries("f2b-filter-test" "dl")
 endif ()
+
+install(TARGETS "f2b-filter-test" "f2b-backend-test" RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 add_subdirectory("backends")
 add_subdirectory("filters")
