@@ -6,6 +6,7 @@ Received disconnect from <HOST>: [0-9]*: [[:print:]]+: Auth fail
 Did not receive identification string from <HOST>
 Invalid user [[:print:]]+ from <HOST>
 Connection closed by <HOST> \[preauth\]
+Postponed keyboard-interactive for invalid user [[:print:]]+ from <HOST> port [0-9]+
 User [[:print:]]+ from <HOST> not allowed because not listed in AllowUsers
 User [[:print:]]+ from <HOST> not allowed because listed in DenyUsers
 User [[:print:]]+ from <HOST> not allowed because not in any group
