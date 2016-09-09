@@ -71,6 +71,12 @@ f2b_logfile_rotated(const f2b_logfile_t *file) {
 
 bool
 f2b_logfile_getline(const f2b_logfile_t *file, char *buf, size_t bufsize) {
+  assert(file != NULL);
+  assert(buf != NULL);
+
+  if (feof(file->fd))
+    clearerr(file->fd);
+  /* fread()+EOF set is implementation defined */
   if (fgets(buf, bufsize, file->fd) != NULL)
     return true;
 
