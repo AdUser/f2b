@@ -57,8 +57,15 @@ add_subdirectory(t)
 set_property(DIRECTORY "t" PROPERTY COMPILE_FLAGS "-g;-ggdb;-Wall;-Wextra;-pedantic;-O0")
 
 install(DIRECTORY "filters"  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/f2b")
-install(DIRECTORY "configs/" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/f2b")
-install(FILES "configs/f2b.conf.sample" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/f2b/" RENAME "f2b.conf")
+file(GLOB_RECURSE CONFIGS "*.conf.in")
+foreach(CONFIG ${CONFIGS})
+  string(REPLACE ".conf.in" ".conf" GENERATED ${CONFIG})
+  configure_file(${CONFIG} ${GENERATED})
+endforeach()
+install(DIRECTORY "configs/" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/f2b"
+  FILES_MATCHING PATTERN "*.conf")
+install(FILES "configs/f2b.conf" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/f2b"
+  RENAME "f2b.conf.sample")
 
 add_custom_target("dist" COMMAND
   "git" "archive" "--format=tar.gz"
