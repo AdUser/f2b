@@ -62,9 +62,9 @@ foreach(CONFIG ${CONFIGS})
   string(REPLACE ".conf.in" ".conf" GENERATED ${CONFIG})
   configure_file(${CONFIG} ${GENERATED})
 endforeach()
-install(DIRECTORY "configs/" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/f2b"
+install(DIRECTORY "configs/" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/f2b"
   FILES_MATCHING PATTERN "*.conf")
-install(FILES "configs/f2b.conf" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/f2b"
+install(FILES "configs/f2b.conf" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/f2b"
   RENAME "f2b.conf.sample")
 file(MAKE_DIRECTORY "${CMAKE_INSTALL_SYSCONFDIR}/f2b/conf-enabled")
 
