@@ -169,8 +169,17 @@ f2b_cmd_parse(const char *src, char *buf, size_t buflen) {
     if (tokenc == 4 && strcmp(tokens[2], "regex") == 0 && strcmp(tokens[3], "stats") == 0) {
       return CMD_JAIL_REGEX_STATS;
     }
-    if (tokenc == 5 && strcmp(tokens[2], "regex") == 0 && strcmp(tokens[3], "add") == 0) {
-      strlcat(buf, tokens[4], buflen);
+    if (tokenc >= 5 && strcmp(tokens[2], "regex") == 0 && strcmp(tokens[3], "add") == 0) {
+      /* TODO: rewrite, this version is very error-prone */
+      char *regex = strstr(src, "add");
+      regex += strlen("add");
+      while (isblank(*regex))
+        regex++;
+      if (*regex == '\0') {
+        /* empty regex */
+        return CMD_NONE;
+      }
+      strlcat(buf, regex, buflen);
       strlcat(buf, "\n", buflen);
       return CMD_JAIL_REGEX_ADD;
     }
