@@ -393,7 +393,13 @@ f2b_jail_stop(f2b_jail_t *jail) {
 
   f2b_log_msg(log_info, "jail '%s': gracefull shutdown", jail->name);
 
-  f2b_filelist_destroy(jail->logfiles);
+  if (!f2b_source_stop(jail->source)) {
+    f2b_log_msg(log_error, "jail '%s': action 'stop' for source failed: %s",
+      jail->name, f2b_source_error(jail->source));
+    errors = true;
+  }
+
+  f2b_source_destroy(jail->source);
   f2b_filter_destroy(jail->filter);
 
   for (f2b_ipaddr_t *addr = jail->ipaddrs; addr != NULL; addr = addr->next) {
@@ -406,7 +412,7 @@ f2b_jail_stop(f2b_jail_t *jail) {
   f2b_addrlist_destroy(jail->ipaddrs);
 
   if (!f2b_backend_stop(jail->backend)) {
-    f2b_log_msg(log_error, "jail '%s': action 'stop' failed: %s",
+    f2b_log_msg(log_error, "jail '%s': action 'stop' for backend failed: %s",
       jail->name, f2b_backend_error(jail->backend));
     errors = true;
   }
