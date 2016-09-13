@@ -196,7 +196,26 @@ stop(cfg_t *cfg) {
 bool
 next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
   assert(cfg != NULL);
-  /* TODO */
+  assert(buf != NULL);
+  assert(bufsize > 0);
+
+  if (reset || cfg->current == NULL)
+    cfg->current = cfg->files;
+
+  for (f2b_file_t *file = cfg->current; file != NULL; file = file->next) {
+    if (file_rotated(file))
+      file_close(file);
+    if (!file->opened && !file_open(file, NULL)) {
+      if (cfg->errcb) {
+        snprintf(cfg->error, sizeof(cfg->error), "can't open file -- %s", file->path);
+        cfg->errcb(cfg->error);
+      }
+      continue;
+    }
+    if (file_getline(file, buf, bufsize))
+      return true;
+  }
+
   return false;
 }
 
