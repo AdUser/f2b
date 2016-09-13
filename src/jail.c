@@ -202,16 +202,16 @@ f2b_jail_find(f2b_jail_t *list, const char *name) {
 
 size_t
 f2b_jail_process(f2b_jail_t *jail) {
-  f2b_logfile_t *file = NULL;
   f2b_ipaddr_t  *prev = NULL;
   f2b_ipaddr_t  *addr = NULL;
   size_t processed = 0;
-  char logline[LOGLINE_MAX] = "";
+  char line[LOGLINE_MAX] = "";
   char matchbuf[IPADDR_MAX] = "";
   time_t now  = time(NULL);
   time_t findtime = 0;
   time_t expiretime = 0;
   bool remove = false;
+  bool reset = true; /* source reset */
 
   assert(jail != NULL);
 
@@ -219,55 +219,46 @@ f2b_jail_process(f2b_jail_t *jail) {
 
   f2b_backend_ping(jail->backend);
 
-  for (file = jail->logfiles; file != NULL; file = file->next) {
-    if (f2b_logfile_rotated(file)) {
-      f2b_log_msg(log_info, "jail '%s': file changed -- %s", jail->name, file->path);
-      f2b_logfile_close(file);
-    }
-    if (!file->opened && !f2b_logfile_open(file, NULL)) {
-      f2b_log_msg(log_error, "jail '%s': can't open file -- %s", jail->name, file->path);
+  while (f2b_source_next(jail->source, line, sizeof(line), reset)) {
+    reset = false;
+    if (!f2b_filter_match(jail->filter, line, matchbuf, sizeof(matchbuf)))
+      continue;
+    /* some regex matches the line */
+    jail->matchcount++;
+    addr = f2b_addrlist_lookup(jail->ipaddrs, matchbuf);
+    if (!addr) {
+      /* new ip */
+      addr = f2b_ipaddr_create(matchbuf, jail->maxretry);
+      addr->lastseen = now;
+      f2b_matches_append(&addr->matches, now);
+      jail->ipaddrs = f2b_addrlist_append(jail->ipaddrs, addr);
+      f2b_log_msg(log_info, "jail '%s': new ip found -- %s", jail->name, matchbuf);
       continue;
     }
-    while (f2b_logfile_getline(file, logline, sizeof(logline))) {
-      if (!f2b_filter_match(jail->filter, logline, matchbuf, sizeof(matchbuf)))
-        continue;
-      /* some regex matches the line */
-      jail->matchcount++;
-      addr = f2b_addrlist_lookup(jail->ipaddrs, matchbuf);
-      if (!addr) {
-        /* new ip */
-        addr = f2b_ipaddr_create(matchbuf, jail->maxretry);
-        addr->lastseen = now;
-        f2b_matches_append(&addr->matches, now);
-        jail->ipaddrs = f2b_addrlist_append(jail->ipaddrs, addr);
-        f2b_log_msg(log_info, "jail '%s': new ip found -- %s", jail->name, matchbuf);
-        continue;
-      }
-      /* this ip was seen before */
-      addr->lastseen = now;
-      if (addr->banned) {
-        if (addr->banned_at != now)
-          f2b_log_msg(log_warn, "jail '%s': ip %s was already banned", jail->name, matchbuf);
-        continue;
-      }
-      if (jail->incr_findtime > 0 && addr->matches.hits > jail->maxretry) {
-        findtime = now - jail->findtime;
-        findtime -= (int) ((addr->matches.hits - jail->maxretry) *
-                           (jail->findtime * jail->incr_findtime));
-      } else {
-        findtime = now - jail->findtime;
-      }
-      f2b_matches_expire(&addr->matches, findtime);
-      f2b_matches_append(&addr->matches, now);
-      if (addr->matches.used < jail->maxretry) {
-        f2b_log_msg(log_info, "jail '%s': new ip match -- %s (%zu/%zu)",
-          jail->name, matchbuf, addr->matches.used, addr->matches.max);
-        continue;
-      }
-      /* limit reached, ban ip */
-      f2b_jail_ban(jail, addr);
-     } /* while(lines) */
-  } /* for(files) */
+    /* this ip was seen before */
+    addr->lastseen = now;
+    if (addr->banned) {
+      if (addr->banned_at != now)
+        f2b_log_msg(log_warn, "jail '%s': ip %s was already banned", jail->name, matchbuf);
+      continue;
+    }
+    if (jail->incr_findtime > 0 && addr->matches.hits > jail->maxretry) {
+      findtime = now - jail->findtime;
+      findtime -= (int) ((addr->matches.hits - jail->maxretry) *
+                         (jail->findtime * jail->incr_findtime));
+    } else {
+      findtime = now - jail->findtime;
+    }
+    f2b_matches_expire(&addr->matches, findtime);
+    f2b_matches_append(&addr->matches, now);
+    if (addr->matches.used < jail->maxretry) {
+      f2b_log_msg(log_info, "jail '%s': new ip match -- %s (%zu/%zu)",
+        jail->name, matchbuf, addr->matches.used, addr->matches.max);
+      continue;
+    }
+    /* limit reached, ban ip */
+    f2b_jail_ban(jail, addr);
+  }  /* while(1) */
 
   for (addr = jail->ipaddrs, prev = NULL; addr != NULL; ) {
     remove = false;
