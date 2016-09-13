@@ -1,5 +1,5 @@
 set(CNAME "f2b")
-set(VERSION 0.2)
+set(VERSION 0.3)
 
 project(${CNAME} C)
 cmake_minimum_required(VERSION 2.6)
