@@ -308,6 +308,7 @@ f2b_jail_process(f2b_jail_t *jail) {
 
 bool
 f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
+  f2b_config_section_t * s_section = NULL;
   f2b_config_section_t * b_section = NULL;
   f2b_config_section_t * f_section = NULL;
 
@@ -319,13 +320,8 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
     f2b_log_msg(log_error, "jail '%s': missing 'source' parameter", jail->name);
     return false;
   }
-  /* TODO: temp stub */
-  if (strcmp(jail->source_name, "files") != 0) {
-    f2b_log_msg(log_error, "jail '%s': 'source' supports only 'files' for now", jail->name);
-    return false;
-  }
-  if (jail->source_init[0] == '\0') {
-    f2b_log_msg(log_error, "jail '%s': 'source' requires file or files pattern", jail->name);
+  if ((s_section = f2b_config_section_find(config->sources, jail->source_name)) == NULL) {
+    f2b_log_msg(log_error, "jail '%s': no source with name '%s'", jail->name, jail->source_name);
     return false;
   }
 
@@ -350,8 +346,13 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
   }
 
   /* init all */
-  if ((jail->logfiles = f2b_filelist_from_glob(jail->source_init)) == NULL) {
-    f2b_log_msg(log_error, "jail '%s': no files matching '%s' pattern", jail->name, jail->source_init);
+  if ((jail->source = f2b_source_create(s_section, jail->source_init, f2b_log_error_cb)) == NULL) {
+    f2b_log_msg(log_error, "jail '%s': no regexps loaded from '%s'", jail->name, jail->source_init);
+    goto cleanup;
+  }
+  if (!f2b_source_start(jail->source)) {
+    f2b_log_msg(log_warn, "jail '%s': source action 'start' failed -- %s",
+      jail->name, f2b_source_error(jail->source));
     goto cleanup;
   }
 
@@ -375,8 +376,8 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
   return true;
 
   cleanup:
-  if (jail->logfiles)
-    f2b_filelist_destroy(jail->logfiles);
+  if (jail->source)
+    f2b_source_destroy(jail->source);
   if (jail->filter)
     f2b_filter_destroy(jail->filter);
   if (jail->backend)
