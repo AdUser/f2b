@@ -33,3 +33,4 @@ install(TARGETS "f2b-filter-test" "f2b-backend-test" RUNTIME DESTINATION ${CMAKE
 
 add_subdirectory("backends")
 add_subdirectory("filters")
+add_subdirectory("sources")
