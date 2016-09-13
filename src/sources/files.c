@@ -21,8 +21,9 @@ typedef struct f2b_file_t {
 } f2b_file_t;
 
 struct _config {
-  char glob[256];
+  char path[256];
   char error[256];
+  void (*errcb)(char *errstr);
   f2b_file_t *files;
   f2b_file_t *current;
 };
@@ -103,35 +104,80 @@ file_getline(const f2b_file_t *file, char *buf, size_t bufsize) {
   return false;
 }
 
-static f2b_file_t *
-list_from_glob(const char *pattern) {
+cfg_t *
+create(const char *init) {
+  cfg_t *cfg = NULL;
+  assert(init != NULL);
+  if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
+    return NULL;
+  strlcpy(cfg->path, init, sizeof(cfg->path));
+  return cfg;
+}
+
+bool
+config(cfg_t *cfg, const char *key, const char *value) {
+  assert(cfg != NULL);
+  assert(key   != NULL);
+  assert(value != NULL);
+  /* no options */
+  return false;
+}
+
+bool
+ready(cfg_t *cfg) {
+  assert(cfg != NULL);
+  if (cfg->files)
+    return true;
+  return false;
+}
+
+char *
+error(cfg_t *cfg) {
+  assert(cfg != NULL);
+
+  return cfg->error;
+}
+
+void
+errorcb(cfg_t *cfg, void (*cb)(char *errstr)) {
+  assert(cfg != NULL);
+  assert(cb  != NULL);
+
+  cfg->errcb = cb;
+}
+
+bool
+start(cfg_t *cfg) {
   f2b_file_t *file = NULL;
-  f2b_file_t *files = NULL;
   glob_t globbuf;
 
-  assert(pattern != NULL);
+  assert(cfg != NULL);
 
-  if (glob(pattern, GLOB_MARK | GLOB_NOESCAPE, NULL, &globbuf) != 0)
+  if (glob(cfg->path, GLOB_MARK | GLOB_NOESCAPE, NULL, &globbuf) != 0)
     return NULL;
 
   for (size_t i = 0; i < globbuf.gl_pathc; i++) {
     if ((file = calloc(1, sizeof(f2b_file_t))) == NULL)
       continue;
     if (file_open(file, globbuf.gl_pathv[i]) == false) {
-      /* f2b_log_msg(log_error, "can't open file: %s: %s", globbuf.gl_pathv[i], strerror(errno)); */
+      if (cfg->errcb) {
+        snprintf(cfg->error, sizeof(cfg->error), "can't open file: %s -- %s",
+          globbuf.gl_pathv[i], strerror(errno));
+        cfg->errcb(cfg->error);
+      }
       free(file);
       continue;
     }
-    if (files != NULL) {
-      file->next = files;
-      files = file;
+    if (cfg->files == NULL) {
+      cfg->files = file;
     } else {
-      files = file;
+      file->next = cfg->files;
+      cfg->files = file;
     }
   }
 
   globfree(&globbuf);
-  return files;
+  return true;
 }
 
 bool
@@ -145,4 +191,18 @@ stop(cfg_t *cfg) {
   }
 
   return true;
+}
+
+bool
+next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
+  assert(cfg != NULL);
+  /* TODO */
+  return false;
+}
+
+void
+destroy(cfg_t *cfg) {
+  assert(cfg != NULL);
+
+  free(cfg);
 }
