@@ -1,5 +1,5 @@
 [main]
-includes = /etc/f2b/conf-enabled
+includes = ${CMAKE_INSTALL_FULL_SYSCONFDIR}/f2b/conf-enabled
 pidfile = /var/run/f2b.pid
 logdest = syslog
 loglevel = info
@@ -17,9 +17,8 @@ incr_bantime = 0.0
 incr_findtime = 0.0
 maxretry = 5
 source   = files:/var/log/messages
-; filter = preg:/etc/f2b/filters/$someservice.preg
 backend  = exec-ipset:banned
 
 [jail:ssh]
 source  = files:/var/log/auth.log
-filter  = preg:/etc/f2b/filters/ssh.preg
+filter  = preg:${CMAKE_INSTALL_FULL_DATAROOTDIR}/f2b/filters/ssh.preg

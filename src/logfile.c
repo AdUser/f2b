@@ -41,8 +41,12 @@ f2b_logfile_open(f2b_logfile_t *file, const char *path) {
 void
 f2b_logfile_close(f2b_logfile_t *file) {
   assert(file != NULL);
-  fclose(file->fd);
+
+  if (file->fd)
+    fclose(file->fd);
+
   file->opened = false;
+  file->fd = NULL;
 }
 
 bool
@@ -50,6 +54,9 @@ f2b_logfile_rotated(const f2b_logfile_t *file) {
   struct stat st;
 
   assert(file != NULL);
+
+  if (!file->opened)
+    return true;
 
   if (stat(file->path, &st) != 0)
     return true;
@@ -64,6 +71,12 @@ f2b_logfile_rotated(const f2b_logfile_t *file) {
 
 bool
 f2b_logfile_getline(const f2b_logfile_t *file, char *buf, size_t bufsize) {
+  assert(file != NULL);
+  assert(buf != NULL);
+
+  if (feof(file->fd))
+    clearerr(file->fd);
+  /* fread()+EOF set is implementation defined */
   if (fgets(buf, bufsize, file->fd) != NULL)
     return true;
 

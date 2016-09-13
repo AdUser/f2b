@@ -77,7 +77,7 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
     }
     if (strcmp(param->name, "maxretry") == 0) {
       jail->maxretry = atoi(param->value);
-      if (jail->maxretry <= 0)
+      if (jail->maxretry == 0)
         jail->maxretry = DEFAULT_MAXRETRY;
       continue;
     }
@@ -411,4 +411,28 @@ f2b_jail_stop(f2b_jail_t *jail) {
   }
 
   return errors;
+}
+
+void
+f2b_jail_get_status(f2b_jail_t *jail, char *res, size_t ressize) {
+  assert(jail != NULL);
+  assert(res != NULL);
+  const char *fmt =
+    "name: %s\n"
+    "enabled: %s\n"
+    "maxretry: %d\n"
+    "times:\n"
+    "  bantime: %d\n"
+    "  findtime: %d\n"
+    "  expiretime: %d\n"
+    "incr:\n"
+    "  bantime: %.1f\n"
+    "  findtime: %.1f\n"
+    "stats:\n"
+    "  banned: %d\n"
+    "  matched: %d\n";
+  snprintf(res, ressize, fmt, jail->name, jail->enabled ? "yes" : "no", jail->maxretry,
+    jail->bantime, jail->findtime, jail->expiretime,
+    jail->incr_bantime, jail->incr_findtime,
+    jail->bancount, jail->matchcount);
 }

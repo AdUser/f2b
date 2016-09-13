@@ -4,12 +4,6 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
-#include <alloca.h>
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "filter.h"
 
 #include <pcre.h>
@@ -18,18 +12,20 @@
 
 typedef struct f2b_regex_t {
   struct f2b_regex_t *next;
+  char pattern[PATTERN_MAX];
   int matches;
   pcre *regex;
   pcre_extra *data;
 } f2b_regex_t;
 
 struct _config {
-  char id[32];
+  char id[ID_MAX];
   char error[256];
   bool icase;
   bool study;
   bool usejit;
   f2b_regex_t *regexps;
+  f2b_regex_t *statp;
 };
 
 cfg_t *
@@ -38,7 +34,7 @@ create(const char *id) {
 
   if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
     return NULL;
-  snprintf(cfg->id, sizeof(cfg->id), "%s", id);
+  strlcpy(cfg->id, id, sizeof(cfg->id));
 
   return cfg;
 }
@@ -89,8 +85,8 @@ append(cfg_t *cfg, const char *pattern) {
 
   memset(buf, 0x0, bufsize);
   memcpy(buf, pattern, token - pattern);
-  strcat(buf, HOST_REGEX);
-  strcat(buf, token + strlen(HOST_TOKEN));
+  strlcat(buf, HOST_REGEX, bufsize);
+  strlcat(buf, token + strlen(HOST_TOKEN), bufsize);
 
   if ((regex = calloc(1, sizeof(f2b_regex_t))) == NULL)
     return false;
@@ -115,6 +111,7 @@ append(cfg_t *cfg, const char *pattern) {
 
   regex->next = cfg->regexps;
   cfg->regexps = regex;
+  strlcpy(regex->pattern, pattern, sizeof(regex->pattern));
   return true;
 }
 
@@ -123,6 +120,23 @@ ready(cfg_t *cfg) {
   assert(cfg != NULL);
   if (cfg->regexps)
     return true;
+  return false;
+}
+
+bool
+stats(cfg_t *cfg, int *matches, char **pattern, bool reset) {
+  assert(cfg != NULL);
+
+  if (reset)
+    cfg->statp = cfg->regexps;
+
+  if (cfg->statp) {
+    *matches   = cfg->statp->matches;
+    *pattern   = cfg->statp->pattern;
+    cfg->statp = cfg->statp->next;
+    return true;
+  }
+
   return false;
 }
 

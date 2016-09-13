@@ -85,7 +85,6 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
 void
 f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
   const char *args[DATA_ARGS_MAX];
-  const char *fmt;
   f2b_jail_t *jail = NULL;
   f2b_ipaddr_t *addr = NULL;
   char line[LINE_MAX];
@@ -94,10 +93,13 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
   assert(res != NULL);
   assert(msg->type < CMD_MAX_NUMBER);
 
+  if (msg->type == CMD_NONE)
+    return;
+
   memset(args, 0x0, sizeof(args));
   f2b_cmsg_extract_args(msg, args);
 
-  if (msg->type >= CMD_JAIL_STATUS && msg->type <= CMD_JAIL_IP_RELEASE) {
+  if (msg->type >= CMD_JAIL_STATUS && msg->type <= CMD_MAX_NUMBER) {
     if (args[0] == NULL) {
       strlcpy(res, "can't find jail: no args\n", ressize);
       return;
@@ -111,10 +113,6 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
   if (jail && (msg->type >= CMD_JAIL_IP_SHOW && msg->type <= CMD_JAIL_IP_RELEASE)) {
     if (args[1] == NULL) {
       strlcpy(res, "can't find ip: no args", ressize);
-      return;
-    }
-    if ((addr = f2b_addrlist_lookup(jail->ipaddrs, args[1])) == NULL) {
-      snprintf(res, ressize, "can't find ip '%s' in jail '%s'\n", args[1], args[0]);
       return;
     }
   }
@@ -139,38 +137,47 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
       strlcat(res, line, ressize);
     }
   } else if (msg->type == CMD_JAIL_STATUS) {
-    fmt = "name: %s\n"
-          "enabled: %s\n"
-          "maxretry: %d\n"
-          "times:\n"
-          "  bantime: %d\n"
-          "  findtime: %d\n"
-          "  expiretime: %d\n"
-          "incr:\n"
-          "  bantime: %.1f\n"
-          "  findtime: %.1f\n"
-          "stats:\n"
-          "  banned: %d\n"
-          "  matched: %d\n";
-    snprintf(res, ressize, fmt, jail->name, jail->enabled ? "yes" : "no", jail->maxretry,
-      jail->bantime, jail->findtime, jail->expiretime,
-      jail->incr_bantime, jail->incr_findtime,
-      jail->bancount, jail->matchcount);
+    f2b_jail_get_status(jail, res, ressize);
   } else if (msg->type == CMD_JAIL_IP_SHOW) {
-    fmt = "ipaddr: %s\n"
-          "banned: %s\n"
-          "bancount: %d\n"
-          "lastseen: %d\n"
-          "banned_at: %d\n"
-          "release_at: %d\n";
-    snprintf(res, ressize, fmt, addr->text, addr->banned ? "yes" : "no",
-      addr->bancount, addr->lastseen, addr->banned_at, addr->release_at);
+    if ((addr = f2b_addrlist_lookup(jail->ipaddrs, args[1])) != NULL) {
+      f2b_ipaddr_status(addr, res, ressize);
+    } else {
+      snprintf(res, ressize, "can't find ip '%s' in jail '%s'\n", args[1], args[0]);
+    }
   } else if (msg->type == CMD_JAIL_IP_BAN) {
+    if ((addr = f2b_addrlist_lookup(jail->ipaddrs, args[1])) == NULL) {
+      /* TODO: this is copy-paste from f2b_jail_process */
+      time_t now = time(NULL);
+      addr = f2b_ipaddr_create(args[1], jail->maxretry);
+      if (!addr) {
+        snprintf(res, ressize, "cat't parse ip address: %s", args[1]);
+        return;
+      }
+      addr->lastseen = now;
+      f2b_matches_append(&addr->matches, now);
+      jail->ipaddrs = f2b_addrlist_append(jail->ipaddrs, addr);
+    }
     f2b_jail_ban(jail, addr);
     strlcpy(res, "ok", ressize);
   } else if (msg->type == CMD_JAIL_IP_RELEASE) {
-    f2b_jail_unban(jail, addr);
+    if ((addr = f2b_addrlist_lookup(jail->ipaddrs, args[1])) != NULL) {
+      f2b_jail_unban(jail, addr);
+    } else {
+      snprintf(res, ressize, "can't find ip '%s' in jail '%s'\n", args[1], args[0]);
+    }
     strlcpy(res, "ok", ressize);
+  } else if (msg->type == CMD_JAIL_REGEX_STATS) {
+    f2b_filter_stats(jail->filter, res, ressize);
+  } else if (msg->type == CMD_JAIL_REGEX_ADD) {
+    if (args[1] == NULL) {
+      strlcpy(res, "can't find regex: no args", ressize);
+      return;
+    }
+    if (f2b_filter_append(jail->filter, args[1])) {
+      strlcpy(res, "ok", ressize);
+    } else {
+      strlcpy(res, f2b_filter_error(jail->filter), ressize);
+    }
   } else {
     strlcpy(res, "error: unsupported command type", ressize);
   }
@@ -264,9 +271,14 @@ jails_start(f2b_config_t *config) {
 
 void
 jails_stop(f2b_jail_t *jails) {
-  for (f2b_jail_t *jail = jails; jail != NULL; jail = jail->next)
+  f2b_jail_t *jail = jails;
+  f2b_jail_t *next = NULL;
+  for (; jail != NULL; ) {
+    next = jail->next;
     f2b_jail_stop(jail);
-  jails = NULL;
+    free(jail);
+    jail = next;
+  }
 }
 
 int main(int argc, char *argv[]) {
@@ -380,8 +392,10 @@ int main(int argc, char *argv[]) {
     }
     if (state == reconfig) {
       state = run;
+      memset(&config, 0x0, sizeof(config));
       if (f2b_config_load(&config, opts.config_path, true)) {
         jails_stop(jails);
+        jails = NULL;
         if (config.defaults)
           f2b_jail_set_defaults(config.defaults);
         jails_start(&config);
@@ -395,6 +409,7 @@ int main(int argc, char *argv[]) {
   f2b_csocket_destroy(opts.csock, opts.csocket_path);
 
   jails_stop(jails);
+  jails = NULL;
 
   return EXIT_SUCCESS;
 }

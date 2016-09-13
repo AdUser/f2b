@@ -44,6 +44,21 @@ f2b_ipaddr_destroy(f2b_ipaddr_t *ipaddr) {
   free(ipaddr);
 }
 
+void
+f2b_ipaddr_status(f2b_ipaddr_t *addr, char *res, size_t ressize) {
+  assert(addr != NULL);
+  assert(res != NULL);
+  const char *fmt =
+    "ipaddr: %s\n"
+    "banned: %s\n"
+    "bancount: %d\n"
+    "lastseen: %d\n"
+    "banned_at: %d\n"
+    "release_at: %d\n";
+  snprintf(res, ressize, fmt, addr->text, addr->banned ? "yes" : "no",
+    addr->bancount, addr->lastseen, addr->banned_at, addr->release_at);
+}
+
 f2b_ipaddr_t *
 f2b_addrlist_append(f2b_ipaddr_t *list, f2b_ipaddr_t *ipaddr) {
   assert(ipaddr != NULL);

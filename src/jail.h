@@ -52,4 +52,6 @@ bool f2b_jail_unban (f2b_jail_t *jail, f2b_ipaddr_t *addr);
 bool   f2b_jail_init    (f2b_jail_t *jail, f2b_config_t *config);
 size_t f2b_jail_process (f2b_jail_t *jail);
 bool   f2b_jail_stop    (f2b_jail_t *jail);
+
+void   f2b_jail_get_status(f2b_jail_t *jail, char *res, size_t ressize);
 #endif /* F2B_JAIL_H_ */

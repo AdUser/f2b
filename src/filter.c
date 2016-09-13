@@ -96,6 +96,8 @@ f2b_filter_create(f2b_config_section_t *config, const char *file) {
     goto cleanup;
   if ((*(void **) (&filter->ready)   = dlsym(filter->h, "ready"))   == NULL)
     goto cleanup;
+  if ((*(void **) (&filter->stats)   = dlsym(filter->h, "stats"))   == NULL)
+    goto cleanup;
   if ((*(void **) (&filter->match)   = dlsym(filter->h, "match"))   == NULL)
     goto cleanup;
   if ((*(void **) (&filter->destroy) = dlsym(filter->h, "destroy")) == NULL)
@@ -148,6 +150,14 @@ f2b_filter_destroy(f2b_filter_t *filter) {
 }
 
 bool
+f2b_filter_append(f2b_filter_t *filter, const char *pattern) {
+  assert(filter  != NULL);
+  assert(pattern != NULL);
+
+  return filter->append(filter->cfg, pattern);
+}
+
+bool
 f2b_filter_match(f2b_filter_t *filter, const char *line, char *buf, size_t buf_size) {
   assert(filter != NULL);
   assert(line   != NULL);
@@ -160,4 +170,23 @@ const char *
 f2b_filter_error(f2b_filter_t *filter) {
   assert(filter != NULL);
   return filter->error(filter->cfg);
+}
+
+void
+f2b_filter_stats(f2b_filter_t *filter, char *res, size_t ressize) {
+  assert(filter != NULL);
+  assert(res    != NULL);
+  bool reset = true;
+  char *pattern;
+  int matches;
+  char buf[256];
+  const char *fmt =
+    "- pattern: %s\n"
+    "  matches: %d\n";
+  res[0] = '\0';
+  while (filter->stats(filter->cfg, &matches, &pattern, reset)) {
+    snprintf(buf, sizeof(buf), fmt, pattern, matches);
+    strlcat(res, buf, ressize);
+    reset = false;
+  }
 }

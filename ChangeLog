@@ -1,0 +1,42 @@
+# Change Log
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](http://keepachangelog.com/) 
+and this project adheres to [Semantic Versioning](http://semver.org/).
+
+## Unreleased
+
+## [0.3] - 2016-09-12
+### Added
+
+  * "jail <jail> regex stats" command
+  * "jail <jail> regex add" command
+  * apply CMAKE_INSTALL_PREFIX to configs
+  * added config for exec backend for ipfw
+  * redis backend (experimental)
+  * added config reload
+	* log file rotation
+
+### Changed
+
+  * enable 'icase' for filters by default
+  * enable 'sharing' for backends by default
+	* tune configs location
+	* enable hardening in build opts by default
+	* fix ssh filter patterns
+  * use strl*() instead snprintf()/strncpy() in backends
+	* rename tests utils
+	* print date/time in log file
+	* disable buffering for logfile
+  * add stats() funtion to filter's api
+
+### Fixed
+
+	* fix segfault in preg filter
+	* fix cppcheck warnings
+  * fix bsd build
+	* fix termination of daemon
+
+## [0.2] - 2016-08-21
+
+	* Initial public release

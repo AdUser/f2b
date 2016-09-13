@@ -1,5 +1,5 @@
 set(CNAME "f2b")
-set(VERSION 0.2)
+set(VERSION 0.3)
 
 project(${CNAME} C)
 cmake_minimum_required(VERSION 2.6)
@@ -8,9 +8,9 @@ include(CTest)
 
 option(WITH_CLIENT    "Simple client for configuring daemon" ON)
 option(WITH_CSOCKET   "Unix control socket support for daemon" ON)
-option(WITH_HARDENING "Enable hardening options" OFF)
+option(WITH_HARDENING "Enable hardening options" ON)
 option(WITH_PCRE      "Build pcre-compatible filter" ON)
-option(WITH_REDIS     "Build redis backend" ON)
+option(WITH_REDIS     "Build redis backend" OFF)
 
 if (NOT DEFINED CMAKE_INSTALL_PREFIX)
   set(CMAKE_INSTALL_PREFIX "/usr")
@@ -22,7 +22,12 @@ endif ()
 include(GNUInstallDirs)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -pedantic -std=c99")
-add_definitions("-D_XOPEN_SOURCE=600")
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  add_definitions("-D_XOPEN_SOURCE=600")
+else ()
+  include_directories(AFTER SYSTEM "/usr/local/include")
+  link_directories("/usr/local/lib")
+endif ()
 
 if (WITH_HARDENING)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat -Wformat-security -Werror=format-security" )
@@ -52,8 +57,16 @@ add_subdirectory(t)
 set_property(DIRECTORY "t" PROPERTY COMPILE_FLAGS "-g;-ggdb;-Wall;-Wextra;-pedantic;-O0")
 
 install(DIRECTORY "filters"  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/f2b")
-install(DIRECTORY "configs/" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/f2b")
-install(FILES "configs/f2b.conf.sample" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/f2b/" RENAME "f2b.conf")
+file(GLOB_RECURSE CONFIGS "*.conf.in")
+foreach(CONFIG ${CONFIGS})
+  string(REPLACE ".conf.in" ".conf" GENERATED ${CONFIG})
+  configure_file(${CONFIG} ${GENERATED})
+endforeach()
+install(DIRECTORY "configs/" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/f2b"
+  FILES_MATCHING PATTERN "*.conf")
+install(FILES "configs/f2b.conf" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/f2b"
+  RENAME "f2b.conf.sample")
+file(MAKE_DIRECTORY "${CMAKE_INSTALL_SYSCONFDIR}/f2b/conf-enabled")
 
 add_custom_target("dist" COMMAND
   "git" "archive" "--format=tar.gz"
