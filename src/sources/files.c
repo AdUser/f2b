@@ -139,7 +139,7 @@ error(cfg_t *cfg) {
 }
 
 void
-errorcb(cfg_t *cfg, void (*cb)(char *errstr)) {
+errcb(cfg_t *cfg, void (*cb)(char *errstr)) {
   assert(cfg != NULL);
   assert(cb  != NULL);
 
