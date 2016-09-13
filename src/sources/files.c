@@ -126,9 +126,9 @@ config(cfg_t *cfg, const char *key, const char *value) {
 bool
 ready(cfg_t *cfg) {
   assert(cfg != NULL);
-  if (cfg->files)
-    return true;
-  return false;
+  if (cfg->path[0] == '\0')
+    return false;
+  return true;
 }
 
 char *
