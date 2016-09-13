@@ -20,6 +20,7 @@ typedef enum {
 
 void f2b_log_msg(log_msgtype_t l, const char *fmt, ...)
   __attribute__ ((format (printf, 2, 3)));
+void f2b_log_error_cb(const char *errstr);
 void f2b_log_set_level(const char *level);
 void f2b_log_to_file  (const char *path);
 void f2b_log_to_stderr();
