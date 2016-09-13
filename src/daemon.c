@@ -5,7 +5,6 @@
  * published by the Free Software Foundation.
  */
 #include "common.h"
-#include "logfile.h"
 #include "ipaddr.h"
 #include "config.h"
 #include "jail.h"
