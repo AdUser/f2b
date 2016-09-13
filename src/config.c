@@ -132,6 +132,13 @@ f2b_config_section_create(const char *src) {
     return section;
   }
 
+  name = "source:";
+  if (strncmp(line, name, strlen(name)) == 0) {
+    section->type = t_source;
+    strlcpy(section->name, line + strlen(name), sizeof(section->name));
+    return section;
+  }
+
   name = "backend:";
   if (strncmp(line, name, strlen(name)) == 0) {
     section->type = t_backend;
@@ -305,6 +312,7 @@ f2b_config_section_append(f2b_config_t *config, f2b_config_section_t *section) {
   switch (section->type) {
     case t_main:     s = &config->main;     break;
     case t_defaults: s = &config->defaults; break;
+    case t_source:   s = &config->sources;  break;
     case t_filter:   s = &config->filters;  break;
     case t_backend:  s = &config->backends; break;
     case t_jail:     s = &config->jails;    break;
