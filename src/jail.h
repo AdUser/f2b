@@ -11,6 +11,7 @@
 #include "logfile.h"
 #include "ipaddr.h"
 #include "config.h"
+#include "source.h"
 #include "filter.h"
 #include "backend.h"
 #include "filelist.h"
@@ -35,9 +36,10 @@ typedef struct f2b_jail_t {
   char source_name[CONFIG_KEY_MAX];
   char source_init[CONFIG_VAL_MAX];
   f2b_logfile_t *logfiles;
+  f2b_source_t  *source;
   f2b_filter_t  *filter;
-  f2b_ipaddr_t  *ipaddrs;
   f2b_backend_t *backend;
+  f2b_ipaddr_t  *ipaddrs;
 } f2b_jail_t;
 
 void f2b_jail_parse_compound_value(const char *value, char *name, char *init);
