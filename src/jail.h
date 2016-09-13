@@ -8,13 +8,11 @@
 #define F2B_JAIL_H_
 
 #include "log.h"
-#include "logfile.h"
 #include "ipaddr.h"
 #include "config.h"
 #include "source.h"
 #include "filter.h"
 #include "backend.h"
-#include "filelist.h"
 
 typedef struct f2b_jail_t {
   struct f2b_jail_t *next;
@@ -35,7 +33,6 @@ typedef struct f2b_jail_t {
   char filter_init[CONFIG_VAL_MAX];
   char source_name[CONFIG_KEY_MAX];
   char source_init[CONFIG_VAL_MAX];
-  f2b_logfile_t *logfiles;
   f2b_source_t  *source;
   f2b_filter_t  *filter;
   f2b_backend_t *backend;
