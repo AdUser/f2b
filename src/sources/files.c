@@ -21,8 +21,10 @@ typedef struct f2b_file_t {
 } f2b_file_t;
 
 struct _config {
+  char glob[256];
   char error[256];
   f2b_file_t *files;
+  f2b_file_t *current;
 };
 
 static bool
