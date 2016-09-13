@@ -132,13 +132,15 @@ list_from_glob(const char *pattern) {
   return files;
 }
 
-static void
-list_destroy(f2b_file_t *list) {
+bool
+stop(cfg_t *cfg) {
   f2b_file_t *next = NULL;
 
-  for (; list != NULL; list = next) {
-    next = list->next;
-    file_close(list);
-    free(list);
+  for (; cfg->files != NULL; cfg->files = next) {
+    next = cfg->files->next;
+    file_close(cfg->files);
+    free(cfg->files);
   }
+
+  return true;
 }
