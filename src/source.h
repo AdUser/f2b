@@ -26,7 +26,9 @@ typedef struct f2b_source_t {
 
 f2b_source_t * f2b_source_create  (f2b_config_section_t *config, const char *init, void (*errcb)(const char *));
 void           f2b_source_destroy (f2b_source_t *s);
+bool           f2b_source_start   (f2b_source_t *s);
 bool           f2b_source_next    (f2b_source_t *s, char *buf, size_t bufsize, bool reset);
+bool           f2b_source_stop    (f2b_source_t *s);
 const char *   f2b_source_error   (f2b_source_t *s);
 
 #endif /* F2B_SOURCE_H_ */
