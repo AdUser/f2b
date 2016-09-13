@@ -102,15 +102,6 @@ file_getline(const f2b_file_t *file, char *buf, size_t bufsize) {
 }
 
 static f2b_file_t *
-list_append(f2b_file_t *list, f2b_file_t *file) {
-  assert(file != NULL);
-
-  if (list != NULL)
-    return file->next = list;
-  return file;
-}
-
-static f2b_file_t *
 list_from_glob(const char *pattern) {
   f2b_file_t *file = NULL;
   f2b_file_t *files = NULL;
@@ -129,7 +120,12 @@ list_from_glob(const char *pattern) {
       free(file);
       continue;
     }
-    files = list_append(files, file);
+    if (files != NULL) {
+      file->next = files;
+      files = file;
+    } else {
+      files = file;
+    }
   }
 
   globfree(&globbuf);
