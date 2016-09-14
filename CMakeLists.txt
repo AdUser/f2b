@@ -64,9 +64,10 @@ foreach(CONFIG ${CONFIGS})
 endforeach()
 install(DIRECTORY "configs/" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/f2b"
   FILES_MATCHING PATTERN "*.conf")
+install(DIRECTORY "configs/" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/f2b"
+  FILES_MATCHING PATTERN "README.txt")
 install(FILES "configs/f2b.conf" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/f2b"
   RENAME "f2b.conf.sample")
-file(MAKE_DIRECTORY "${CMAKE_INSTALL_SYSCONFDIR}/f2b/conf-enabled")
 
 add_custom_target("dist" COMMAND
   "git" "archive" "--format=tar.gz"
