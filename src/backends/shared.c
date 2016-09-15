@@ -29,7 +29,7 @@ usage_inc(const char *id) {
   }
   /* not found or list is empty */
   e = calloc(1, sizeof(cfg_id_t));
-  snprintf(e->name, sizeof(e->name), "%s", id);
+  strlcpy(e->name, id, sizeof(e->name));
   e->count++;
   e->next = ids_usage;
   ids_usage = e;
