@@ -1,6 +1,8 @@
 #include "common.h"
 #include "cmsg.h"
 
+#include <sys/uio.h>
+
 void
 f2b_cmsg_convert_args(f2b_cmsg_t *msg) {
   assert(msg != NULL);
