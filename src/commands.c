@@ -116,7 +116,7 @@ f2b_cmd_help() {
  * @param buflen Size of buffer above
  * @return Type of parsed command or CMD_NONE if no matches
  */
-enum f2b_cmsg_type
+enum f2b_cmd_type
 f2b_cmd_parse(const char *src, char *buf, size_t buflen) {
   size_t tokenc = 0; /* tokens count */
   char *tokens[CMD_TOKENS_MAX] = { NULL };

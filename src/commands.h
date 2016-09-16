@@ -11,8 +11,27 @@
 #define INPUT_LINE_MAX 256
 #define CMD_TOKENS_MAX 6
 
+enum f2b_cmd_type {
+  CMD_NONE = 0,
+  CMD_RESP,
+  CMD_HELP,
+  CMD_PING = 8,
+  CMD_STATUS,
+  CMD_ROTATE,
+  CMD_RELOAD,
+  CMD_SHUTDOWN,
+  CMD_JAIL_STATUS = 16,
+  CMD_JAIL_SET,
+  CMD_JAIL_IP_SHOW,
+  CMD_JAIL_IP_BAN,
+  CMD_JAIL_IP_RELEASE,
+  CMD_JAIL_REGEX_STATS,
+  CMD_JAIL_REGEX_ADD,
+  CMD_MAX_NUMBER,
+};
+
 void f2b_cmd_help();
-enum f2b_cmsg_type
+enum f2b_cmd_type
 f2b_cmd_parse(const char *src, char *buf, size_t buflen);
 
 #endif /* F2B_COMMANDS_H_ */
