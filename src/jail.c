@@ -13,6 +13,8 @@
 #define DEFAULT_EXPIRETIME 14400 /* in seconds, 4 hours */
 #define DEFAULT_MAXRETRY    5
 
+f2b_jail_t *jails = NULL;
+
 static f2b_jail_t defaults = {
   .enabled  = DEFAULT_STATE,
   .bantime  = DEFAULT_BANTIME,

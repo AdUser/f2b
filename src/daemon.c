@@ -40,7 +40,6 @@ struct {
 };
 
 enum { stop = 0, run, reconfig, logrotate, test } state = run;
-f2b_jail_t *jails = NULL;
 
 void signal_handler(int signum) {
   switch (signum) {

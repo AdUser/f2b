@@ -39,6 +39,8 @@ typedef struct f2b_jail_t {
   f2b_ipaddr_t  *ipaddrs;
 } f2b_jail_t;
 
+extern f2b_jail_t *jails;
+
 void f2b_jail_parse_compound_value(const char *value, char *name, char *init);
 
 f2b_jail_t *f2b_jail_create (f2b_config_section_t *section);
