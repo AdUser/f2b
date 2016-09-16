@@ -21,6 +21,7 @@ int main(int argc, char *argv[]) {
   f2b_filter_t *filter = NULL;
   char match[IPADDR_MAX] = "";
   char line[LOGLINE_MAX] = "";
+  char stats[4096];
   size_t read = 0, matched = 0;
   const char *error;
   FILE *file = NULL;
@@ -55,8 +56,10 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "! (error) : %s\n", error);
     }
   }
-  fprintf(stderr, "%% lines read: %zu, matched: %zu\n", read, matched);
   fclose(file);
+  fprintf(stderr, "stats: %% lines read: %zu, matched: %zu\n", read, matched);
+  f2b_filter_stats(filter, stats, sizeof(stats));
+  fputs(stats, stderr);
 
   return EXIT_SUCCESS;
 }
