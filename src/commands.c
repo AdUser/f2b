@@ -9,67 +9,83 @@
 #include "commands.h"
 
 struct f2b_cmd_t {
+  const short int argc;
+  const short int tokenc;
   const char *help;
   const char *tokens[CMD_TOKENS_MAX];
-  char *data;
 } commands[CMD_MAX_NUMBER] = {
   [CMD_NONE] = {
+    .argc = 0, .tokenc = 0,
     .tokens = { NULL },
     .help = "Unspecified command"
   },
   [CMD_RESP] = {
+    .argc = 1, .tokenc = 0,
     .tokens = { NULL },
     .help = "Command response, used internally",
   },
   [CMD_HELP] = {
+    .argc = 0, tokenc = 1,
     .tokens = { "help", NULL },
     .help = "Show available commands",
   },
   [CMD_PING] = {
+    .argc = 0, .tokenc = 1,
     .tokens = { "ping", NULL },
     .help = "Check the connection",
   },
   [CMD_STATUS] = {
+    .argc = 0, .tokenc = 1,
     .tokens = { "status", NULL },
     .help = "Show general stats and jails list",
   },
   [CMD_ROTATE] = {
+    .argc = 0, .tokenc = 1,
     .tokens = { "rotate", NULL },
     .help = "Reopen daemon's own log file",
   },
   [CMD_RELOAD] = {
+    .argc = 0, .tokenc = 1,
     .tokens = { "reload", NULL },
     .help = "Reload own config, all jails will be reset.",
   },
   [CMD_SHUTDOWN] = {
+    .argc = 0, .tokenc = 1,
     .tokens = { "shutdown", NULL },
     .help = "Gracefully terminate f2b daemon",
   },
   [CMD_JAIL_STATUS] = {
+    .argc = 2, .tokenc = 3,
     .tokens = { "jail", "<jailname>", "status", NULL },
     .help = "Show status and stats of given jail",
   },
   [CMD_JAIL_SET] = {
+    .argc = 3, .tokenc = 5,
     .tokens = { "jail", "<jailname>", "set", "<param>", "<value>", NULL },
     .help = "Set parameter of given jail",
   },
   [CMD_JAIL_IP_SHOW] = {
+    .argc = 2, .tokenc = 4,
     .tokens = { "jail", "<jailname>", "show", "<ip>", NULL },
     .help = "Show ip status in given jail",
   },
   [CMD_JAIL_IP_BAN] = {
+    .argc = 2, .tokenc = 4,
     .tokens = { "jail", "<jailname>", "ban", "<ip>", NULL },
     .help = "Forcefully ban some ip in given jail",
   },
   [CMD_JAIL_IP_RELEASE] = {
+    .argc = 2, .tokenc = 4,
     .tokens = { "jail", "<jailname>", "release", "<ip>", NULL },
     .help = "Forcefully release some ip in given jail",
   },
   [CMD_JAIL_REGEX_STATS] = {
+    .argc = 1, .tokenc = 4,
     .tokens = { "jail", "<jailname>", "regex", "stats", NULL },
     .help = "Show matches stats for jail regexps",
   },
   [CMD_JAIL_REGEX_ADD] = {
+    .argc = 2, .tokenc = 5,
     .tokens = { "jail", "<jailname>", "regex", "add", "<regex>", NULL },
     .help = "Add new regexp to jail",
   },
