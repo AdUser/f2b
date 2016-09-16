@@ -5,9 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
+### Added
+
+  * make source also a module
+  * f2b-source-test utility
 
 ### Changed
 
+  * f2b-filter-test now show per-pattern match stats
   * install short readme file in conf-enabled dir
 
 ### Fixed
