@@ -59,7 +59,7 @@ void signal_handler(int signum) {
 }
 
 void usage(int exitcode) {
-  fprintf(stderr, "Usage: f2b [-c <config>] [-d] [-h]\n");
+  fprintf(stderr, "Usage: f2b [-c <config>] [-d] [-h] [-t]\n");
   exit(exitcode);
 }
 
