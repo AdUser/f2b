@@ -25,7 +25,7 @@ struct f2b_cmd_t {
     .help = "Command response, used internally",
   },
   [CMD_HELP] = {
-    .argc = 0, tokenc = 1,
+    .argc = 0, .tokenc = 1,
     .tokens = { "help", NULL },
     .help = "Show available commands",
   },
