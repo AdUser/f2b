@@ -134,11 +134,17 @@ f2b_cmd_parse(const char *src, char *buf, size_t buflen) {
 
   if (line[0] == '\0')
     return CMD_NONE; /* empty string */
-  tokenc = 1;
 
-  buf[0] = '\0';
+  /* simple commands without args */
+  if      (strcmp(line, "ping")     == 0) { return CMD_PING;     }
+  else if (strcmp(line, "help")     == 0) { return CMD_HELP;     }
+  else if (strcmp(line, "status")   == 0) { return CMD_STATUS;   }
+  else if (strcmp(line, "rotate")   == 0) { return CMD_ROTATE;   }
+  else if (strcmp(line, "reload")   == 0) { return CMD_RELOAD;   }
+  else if (strcmp(line, "shutdown") == 0) { return CMD_SHUTDOWN; }
 
   /* split string to tokens */
+  tokenc = 1; /* we has at least one token */
   tokens[0] = strtok_r(line, " \t", &p);
   for (size_t i = 1; i < CMD_TOKENS_MAX; i++) {
     tokens[i] = strtok_r(NULL, " \t", &p);
@@ -147,13 +153,8 @@ f2b_cmd_parse(const char *src, char *buf, size_t buflen) {
     tokenc++;
   }
 
-  if      (strcmp(line, "ping")     == 0) { return CMD_PING;     }
-  else if (strcmp(line, "help")     == 0) { return CMD_HELP;     }
-  else if (strcmp(line, "status")   == 0) { return CMD_STATUS;   }
-  else if (strcmp(line, "rotate")   == 0) { return CMD_ROTATE;   }
-  else if (strcmp(line, "reload")   == 0) { return CMD_RELOAD;   }
-  else if (strcmp(line, "shutdown") == 0) { return CMD_SHUTDOWN; }
-  else if (strcmp(line, "jail") == 0 && tokenc > 1) {
+  buf[0] = '\0';
+  if (strcmp(line, "jail") == 0 && tokenc > 1) {
     /* commands for jail */
     strlcpy(buf, tokens[1], buflen);
     strlcat(buf, "\n", buflen);
