@@ -65,6 +65,10 @@ void f2b_log_msg(log_msgtype_t l, const char *fmt, ...) {
   return;
 }
 
+void f2b_log_error_cb(const char *errstr) {
+  f2b_log_msg(log_error, "%s", errstr);
+}
+
 void f2b_log_set_level(const char *level) {
   if (strcmp(level, "debug") == 0) { minlevel = log_debug; return; }
   if (strcmp(level, "info")  == 0) { minlevel = log_info;  return; }

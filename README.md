@@ -7,8 +7,8 @@ Features:
 
 * written in pure C
 * small memory footprint
-* minimum dependencies (req: libc, libdl; optional: pcre)
-* pluggable filters / backends (you may write custom one)
+* minimum dependencies (req: libc, libdl; optional: pcre, redis)
+* pluggable sources / filters / backends (you may write custom one)
 
 Similar software:
 

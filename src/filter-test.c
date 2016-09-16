@@ -17,7 +17,7 @@ void usage() {
 
 int main(int argc, char *argv[]) {
   f2b_config_param_t  param = { .name = "load", .value = "", .next = 0x0 };
-  f2b_config_section_t config = { .type = t_filter, .param = 0x0, .next = 0x0 };
+  f2b_config_section_t config = { .name = "test", .type = t_filter, .param = 0x0, .next = 0x0 };
   f2b_filter_t *filter = NULL;
   char match[IPADDR_MAX] = "";
   char line[LOGLINE_MAX] = "";
