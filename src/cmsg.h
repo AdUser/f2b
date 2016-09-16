@@ -50,6 +50,6 @@ typedef struct f2b_cmsg_t {
 } f2b_cmsg_t;
 
 void f2b_cmsg_convert_args(f2b_cmsg_t *msg);
-void f2b_cmsg_extract_args(const f2b_cmsg_t *msg, const char **argv);
+int  f2b_cmsg_extract_args(const f2b_cmsg_t *msg, const char **argv);
 
 #endif /* F2B_CMSG_H_ */

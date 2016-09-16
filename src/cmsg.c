@@ -11,7 +11,7 @@ f2b_cmsg_convert_args(f2b_cmsg_t *msg) {
   }
 }
 
-void
+int
 f2b_cmsg_extract_args(const f2b_cmsg_t *msg, const char **argv) {
   char prev = '\0';
   size_t argc = 0;
@@ -22,8 +22,12 @@ f2b_cmsg_extract_args(const f2b_cmsg_t *msg, const char **argv) {
   for (size_t i = 0; i < msg->size; i++) {
     if (prev == '\0' && msg->data[i] != '\0')
       argv[argc] = &msg->data[i], argc++;
-    if (argc >= DATA_ARGS_MAX)
+    if (argc >= DATA_ARGS_MAX) {
+      argc = -1;
       break;
+    }
     prev = msg->data[i];
   }
+
+  return argc;
 }
