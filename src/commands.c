@@ -79,15 +79,15 @@ struct f2b_cmd_t {
     .tokens = { "jail", "<jailname>", "release", "<ip>", NULL },
     .help = "Forcefully release some ip in given jail",
   },
-  [CMD_JAIL_REGEX_STATS] = {
+  [CMD_JAIL_FILTER_STATS] = {
     .argc = 1, .tokenc = 4,
-    .tokens = { "jail", "<jailname>", "regex", "stats", NULL },
+    .tokens = { "jail", "<jailname>", "filter", "stats", NULL },
     .help = "Show matches stats for jail regexps",
   },
-  [CMD_JAIL_REGEX_ADD] = {
-    .argc = 2, .tokenc = 5,
-    .tokens = { "jail", "<jailname>", "regex", "add", "<regex>", NULL },
-    .help = "Add new regexp to jail",
+  [CMD_JAIL_FILTER_RELOAD] = {
+    .argc = 2, .tokenc = 4,
+    .tokens = { "jail", "<jailname>", "filter", "reload", NULL },
+    .help = "Reload regexps for given jail",
   },
 };
 
@@ -183,22 +183,11 @@ f2b_cmd_parse(const char *src, char *buf, size_t buflen) {
       strlcat(buf, "\n", buflen);
       return CMD_JAIL_IP_RELEASE;
     }
-    if (tokenc == 4 && strcmp(tokens[2], "regex") == 0 && strcmp(tokens[3], "stats") == 0) {
-      return CMD_JAIL_REGEX_STATS;
+    if (tokenc == 4 && strcmp(tokens[2], "filter") == 0 && strcmp(tokens[3], "stats") == 0) {
+      return CMD_JAIL_FILTER_STATS;
     }
-    if (tokenc >= 5 && strcmp(tokens[2], "regex") == 0 && strcmp(tokens[3], "add") == 0) {
-      /* TODO: rewrite, this version is very error-prone */
-      char *regex = strstr(src, "add");
-      regex += strlen("add");
-      while (isblank(*regex))
-        regex++;
-      if (*regex == '\0') {
-        /* empty regex */
-        return CMD_NONE;
-      }
-      strlcat(buf, regex, buflen);
-      strlcat(buf, "\n", buflen);
-      return CMD_JAIL_REGEX_ADD;
+    if (tokenc == 4 && strcmp(tokens[2], "filter") == 0 && strcmp(tokens[3], "reload") == 0) {
+      return CMD_JAIL_FILTER_RELOAD;
     }
   }
 
