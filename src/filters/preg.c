@@ -149,13 +149,22 @@ match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
 }
 
 void
-destroy(cfg_t *cfg) {
+flush(cfg_t *cfg) {
   f2b_regex_t *next = NULL, *r = NULL;
+
+  assert(cfg != NULL);
 
   for (r = cfg->regexps; r != NULL; r = next) {
     next = r->next;
     regfree(&r->regex);
     free(r);
   }
+}
+
+void
+destroy(cfg_t *cfg) {
+  assert(cfg != NULL);
+
+  flush(cfg);
   free(cfg);
 }
