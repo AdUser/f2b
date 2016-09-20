@@ -18,11 +18,15 @@ f2b_filter_load_file(f2b_filter_t *filter, const char *path) {
   char line[REGEX_LINE_MAX] = "";
   char *p, *q;
 
+  assert(filter != NULL);
+  assert(path   != NULL);
+
   if ((f = fopen(path, "r")) == NULL) {
     f2b_log_msg(log_error, "can't open regex list '%s': %s", path, strerror(errno));
     return false;
   }
 
+  filter->flush(filter->cfg);
   while (1) {
     p = fgets(line, sizeof(line), f);
     if (!p && (feof(f) || ferror(f)))
