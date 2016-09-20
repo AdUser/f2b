@@ -175,6 +175,14 @@ f2b_filter_match(f2b_filter_t *filter, const char *line, char *buf, size_t buf_s
   return filter->match(filter->cfg, line, buf, buf_size);
 }
 
+bool
+f2b_filter_reload(f2b_filter_t *filter) {
+  assert(filter != NULL);
+
+  filter->flush(filter->cfg);
+  return f2b_filter_load_file(filter, filter->file);
+}
+
 const char *
 f2b_filter_error(f2b_filter_t *filter) {
   assert(filter != NULL);
