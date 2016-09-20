@@ -164,14 +164,10 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
       snprintf(res, ressize, "can't find ip '%s' in jail '%s'\n", args[1], args[0]);
     }
     strlcpy(res, "ok", ressize);
-  } else if (msg->type == CMD_JAIL_REGEX_STATS) {
+  } else if (msg->type == CMD_JAIL_FILTER_STATS) {
     f2b_filter_stats(jail->filter, res, ressize);
-  } else if (msg->type == CMD_JAIL_REGEX_ADD) {
-    if (args[1] == NULL) {
-      strlcpy(res, "can't find regex: no args", ressize);
-      return;
-    }
-    if (f2b_filter_append(jail->filter, args[1])) {
+  } else if (msg->type == CMD_JAIL_FILTER_RELOAD) {
+    if (f2b_filter_reload(jail->filter)) {
       strlcpy(res, "ok", ressize);
     } else {
       strlcpy(res, f2b_filter_error(jail->filter), ressize);
