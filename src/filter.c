@@ -76,6 +76,7 @@ f2b_filter_create(f2b_config_section_t *config, const char *file) {
   int flags = RTLD_NOW | RTLD_LOCAL;
   const char *dlerr = NULL;
 
+  assert(file   != NULL);
   assert(config != NULL);
   assert(config->type == t_filter);
 
@@ -124,6 +125,8 @@ f2b_filter_create(f2b_config_section_t *config, const char *file) {
     f2b_log_msg(log_warn, "param pair not accepted by filter '%s': %s=%s",
       config->name, param->name, param->value);
   }
+
+  strlcpy(filter->file, file, sizeof(filter->file));
 
   if (!f2b_filter_load_file(filter, file))
     goto cleanup;

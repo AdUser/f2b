@@ -13,6 +13,7 @@
 typedef struct f2b_filter_t {
   void *h;
   void *cfg;
+  char file[PATH_MAX];
   void *(*create)  (const char *id);
   bool  (*config)  (void *cfg, const char *key, const char *value);
   bool  (*append)  (void *cfg, const char *pattern);
