@@ -28,4 +28,5 @@ extern bool   append(cfg_t *c, const char *pattern);
 extern bool    ready(cfg_t *c);
 extern bool    stats(cfg_t *c, int *matches, char **pattern, bool reset);
 extern bool    match(cfg_t *c, const char *line, char *buf, size_t bufsize);
+extern void    flush(cfg_t *c);
 extern void  destroy(cfg_t *c);
