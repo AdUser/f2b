@@ -18,6 +18,7 @@ typedef struct f2b_filter_t {
   bool  (*append)  (void *cfg, const char *pattern);
   char *(*error)   (void *cfg);
   bool  (*ready)   (void *cfg);
+  bool  (*flush)   (void *cfg);
   bool  (*stats)   (void *cfg, int *matches, char **pattern, bool reset);
   bool  (*match)   (void *cfg, const char *line, char *buf, size_t buf_size);
   void  (*destroy) (void *cfg);
