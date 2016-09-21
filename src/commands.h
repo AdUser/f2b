@@ -32,7 +32,7 @@ enum f2b_cmd_type {
 
 void f2b_cmd_help();
 enum f2b_cmd_type
-f2b_cmd_parse(const char *src, char *buf, size_t buflen);
+f2b_cmd_parse     (char *buf, size_t bufsize, const char *src);
 
 void
 f2b_cmd_append_arg(char *buf, size_t bufsize, const char *arg);

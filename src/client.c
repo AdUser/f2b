@@ -42,7 +42,7 @@ handle_cmd(const char *line) {
   memset(&addr, 0x0, sizeof(addr));
   memset(&cmsg, 0x0, sizeof(cmsg));
 
-  cmsg.type = f2b_cmd_parse(line, &cmsg.data[0], sizeof(cmsg.data));
+  cmsg.type = f2b_cmd_parse(&cmsg.data[0], sizeof(cmsg.data), line);
   if (cmsg.type == CMD_HELP) {
     f2b_cmd_help();
     return EXIT_SUCCESS;

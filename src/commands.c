@@ -118,13 +118,13 @@ f2b_cmd_append_arg(char *buf, size_t bufsize, const char *arg) {
 
 /**
  * @brief Parse command from line
- * @param src  Line taken from user input
  * @param buf  Buffer for command parameters
- * @param buflen Size of buffer above
+ * @param bufsize SSize of buffer above
+ * @param src  Line taken from user input
  * @return Type of parsed command or CMD_NONE if no matches
  */
 enum f2b_cmd_type
-f2b_cmd_parse(const char *src, char *buf, size_t buflen) {
+f2b_cmd_parse(char *buf, size_t bufsize, const char *src) {
   size_t tokenc = 0; /* tokens count */
   char *tokens[CMD_TOKENS_MAX] = { NULL };
   char line[INPUT_LINE_MAX];
@@ -163,25 +163,25 @@ f2b_cmd_parse(const char *src, char *buf, size_t buflen) {
   buf[0] = '\0';
   if (strcmp(line, "jail") == 0 && tokenc > 1) {
     /* commands for jail */
-    f2b_cmd_append_arg(buf, buflen, tokens[1]);
+    f2b_cmd_append_arg(buf, bufsize, tokens[1]);
     if (tokenc == 3 && strcmp(tokens[2], "status") == 0) {
       return CMD_JAIL_STATUS;
     }
     if (tokenc == 5 && strcmp(tokens[2], "set") == 0) {
-      f2b_cmd_append_arg(buf, buflen, tokens[3]);
-      f2b_cmd_append_arg(buf, buflen, tokens[4]);
+      f2b_cmd_append_arg(buf, bufsize, tokens[3]);
+      f2b_cmd_append_arg(buf, bufsize, tokens[4]);
       return CMD_JAIL_SET;
     }
     if (tokenc == 5 && strcmp(tokens[2], "ip") == 0 && strcmp(tokens[3], "status") == 0) {
-      f2b_cmd_append_arg(buf, buflen, tokens[4]);
+      f2b_cmd_append_arg(buf, bufsize, tokens[4]);
       return CMD_JAIL_IP_STATUS;
     }
     if (tokenc == 5 && strcmp(tokens[2], "ip") == 0 && strcmp(tokens[3], "ban") == 0) {
-      f2b_cmd_append_arg(buf, buflen, tokens[4]);
+      f2b_cmd_append_arg(buf, bufsize, tokens[4]);
       return CMD_JAIL_IP_BAN;
     }
     if (tokenc == 5 && strcmp(tokens[2], "ip") == 0 && strcmp(tokens[3], "release") == 0) {
-      f2b_cmd_append_arg(buf, buflen, tokens[4]);
+      f2b_cmd_append_arg(buf, bufsize, tokens[4]);
       return CMD_JAIL_IP_RELEASE;
     }
     if (tokenc == 4 && strcmp(tokens[2], "filter") == 0 && strcmp(tokens[3], "stats") == 0) {
