@@ -110,17 +110,15 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
     }
   }
 
+  strlcpy(res, "ok", ressize); /* default reply */
   if (msg->type == CMD_PING) {
-    strlcpy(res, "ok", ressize);
+    /* nothing to do */
   } else if (msg->type == CMD_RELOAD) {
     state = reconfig;
-    strlcpy(res, "ok", ressize);
   } else if (msg->type == CMD_ROTATE) {
     state = logrotate;
-    strlcpy(res, "ok", ressize);
   } else if (msg->type == CMD_SHUTDOWN) {
     state = stop;
-    strlcpy(res, "ok", ressize);
   } else if (msg->type == CMD_STATUS) {
     snprintf(line, sizeof(line), "pid: %u\npidfile: %s\ncsocket: %s\njails:\n",
       getpid(), opts.pidfile_path, opts.csocket_path);
@@ -151,22 +149,17 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
       jail->ipaddrs = f2b_addrlist_append(jail->ipaddrs, addr);
     }
     f2b_jail_ban(jail, addr);
-    strlcpy(res, "ok", ressize);
   } else if (msg->type == CMD_JAIL_IP_RELEASE) {
-    if ((addr = f2b_addrlist_lookup(jail->ipaddrs, args[1])) != NULL) {
-      f2b_jail_unban(jail, addr);
-    } else {
+    if ((addr = f2b_addrlist_lookup(jail->ipaddrs, args[1])) == NULL) {
       snprintf(res, ressize, "can't find ip '%s' in jail '%s'\n", args[1], args[0]);
+      return;
     }
-    strlcpy(res, "ok", ressize);
+    f2b_jail_unban(jail, addr);
   } else if (msg->type == CMD_JAIL_FILTER_STATS) {
     f2b_filter_stats(jail->filter, res, ressize);
   } else if (msg->type == CMD_JAIL_FILTER_RELOAD) {
-    if (f2b_filter_reload(jail->filter)) {
-      strlcpy(res, "ok", ressize);
-    } else {
+    if (f2b_filter_reload(jail->filter) == false)
       strlcpy(res, f2b_filter_error(jail->filter), ressize);
-    }
   } else {
     strlcpy(res, "error: unsupported command type", ressize);
   }
