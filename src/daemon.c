@@ -9,6 +9,7 @@
 #include "config.h"
 #include "jail.h"
 #include "backend.h"
+#include "commands.h"
 #include "cmsg.h"
 #include "csocket.h"
 

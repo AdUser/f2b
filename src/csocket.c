@@ -5,6 +5,7 @@
  * published by the Free Software Foundation.
  */
 #include "common.h"
+#include "commands.h"
 #include "cmsg.h"
 #include "csocket.h"
 #include "log.h"

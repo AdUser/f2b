@@ -1,8 +1,6 @@
 #ifndef F2B_CMSG_H_
 #define F2B_CMSG_H_
 
-#include "commands.h"
-
 #define DATA_LEN_MAX 1476 /* 1500 - (16 bytes of cmsg header + 8 bytes of udp) */
 #define DATA_ARGS_MAX 6  /* number of args in data */
 #define F2B_PROTO_VER 1
