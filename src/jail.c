@@ -415,8 +415,7 @@ f2b_jail_stop(f2b_jail_t *jail) {
 }
 
 void
-f2b_jail_cmd_status(char *res, size_t ressize, const char *name) {
-  f2b_jail_t *jail = NULL;
+f2b_jail_cmd_status(char *res, size_t ressize, f2b_jail_t *jail) {
   const char *fmt =
     "name: %s\n"
     "enabled: %s\n"
@@ -433,85 +432,55 @@ f2b_jail_cmd_status(char *res, size_t ressize, const char *name) {
     "  matched: %d\n";
 
   assert(res  != NULL);
-  assert(name != NULL);
+  assert(jail != NULL);
 
-  if ((jail = f2b_jail_find(jails, name)) == NULL) {
-    snprintf(res, ressize, "can't find jail '%s'", name);
-    return;
-  }
   snprintf(res, ressize, fmt, jail->name, jail->enabled ? "yes" : "no", jail->maxretry,
     jail->bantime, jail->findtime, jail->expiretime,
     jail->incr_bantime, jail->incr_findtime,
     jail->bancount, jail->matchcount);
 }
 
+/**
+ * @brief misc operations on ip in given jail
+ * @param res  response buffer (don't change if no error)
+ * @param ressize response buffer size
+ * @param jail selected jail
+ * @param op Type of operation: >0 - ban, 0 - status, <0 - unban
+ * @param ip IP address
+ */
 void
-f2b_jail_cmd_ip_status(char *res, size_t ressize, const char *name, const char *ip) {
-  f2b_jail_t *jail = NULL;
+f2b_jail_cmd_ip_xxx(char *res, size_t ressize, f2b_jail_t *jail, int op, const char *ip) {
   f2b_ipaddr_t *addr = NULL;
 
   assert(res  != NULL);
-  assert(name != NULL);
+  assert(jail != NULL);
   assert(ip   != NULL);
 
-  if ((jail = f2b_jail_find(jails, name)) == NULL) {
-    snprintf(res, ressize, "can't find jail '%s'", name);
-    return;
-  }
-
   if ((addr = f2b_addrlist_lookup(jail->ipaddrs, ip)) == NULL) {
-    snprintf(res, ressize, "can't find ip '%s' in jail '%s'", ip, name);
-    return;
-  }
-  f2b_ipaddr_status(addr, res, ressize);
-}
-
-void
-f2b_jail_cmd_ip_ban(char *res, size_t ressize, const char *name, const char *ip) {
-  f2b_jail_t *jail = NULL;
-  f2b_ipaddr_t *addr = NULL;
-
-  assert(res  != NULL);
-  assert(name != NULL);
-  assert(ip   != NULL);
-
-  if ((jail = f2b_jail_find(jails, name)) == NULL) {
-    snprintf(res, ressize, "can't find jail '%s'", name);
-    return;
-  }
-
-  if ((addr = f2b_addrlist_lookup(jail->ipaddrs, ip)) == NULL) {
-    time_t now = time(NULL);
-    addr = f2b_ipaddr_create(ip, jail->maxretry);
-    if (!addr) {
-      snprintf(res, ressize, "can't parse ip address: %s", ip);
+    /* address not found in list */
+    if (op > 0) {
+      /* ban */
+      time_t now = time(NULL);
+      addr = f2b_ipaddr_create(ip, jail->maxretry);
+      if (!addr) {
+        snprintf(res, ressize, "can't parse ip address: %s", ip);
+        return;
+      }
+      addr->lastseen = now;
+      f2b_matches_append(&addr->matches, now);
+      jail->ipaddrs = f2b_addrlist_append(jail->ipaddrs, addr);
+    } else {
+      /* unban & status */
+      snprintf(res, ressize, "can't find ip '%s' in jail '%s'", ip, jail->name);
       return;
     }
-    addr->lastseen = now;
-    f2b_matches_append(&addr->matches, now);
-    jail->ipaddrs = f2b_addrlist_append(jail->ipaddrs, addr);
-  }
-  f2b_jail_unban(jail, addr);
-}
-
-void
-f2b_jail_cmd_ip_release(char *res, size_t ressize, const char *name, const char *ip) {
-  f2b_jail_t *jail = NULL;
-  f2b_ipaddr_t *addr = NULL;
-
-  assert(res  != NULL);
-  assert(name != NULL);
-  assert(ip   != NULL);
-
-  if ((jail = f2b_jail_find(jails, name)) == NULL) {
-    snprintf(res, ressize, "can't find jail '%s'", name);
-    return;
   }
 
-  if ((addr = f2b_addrlist_lookup(jail->ipaddrs, ip)) == NULL) {
-    snprintf(res, ressize, "can't find ip '%s' in jail '%s'", name, ip);
-    return;
+  if (op > 0) {
+    f2b_jail_ban(jail, addr);
+  } else if (op < 0) {
+    f2b_jail_unban(jail, addr);
+  } else {
+    f2b_ipaddr_status(addr, res, ressize);
   }
-
-  f2b_jail_unban(jail, addr);
 }

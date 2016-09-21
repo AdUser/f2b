@@ -104,7 +104,7 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
 
   if (msg->type >= CMD_JAIL_STATUS && msg->type <= CMD_MAX_NUMBER) {
     if ((jail = f2b_jail_find(jails, args[0])) == NULL) {
-      snprintf(res, ressize, "can't find jail '%s'\n", args[0]);
+      snprintf(res, ressize, "can't find jail '%s'", args[0]);
       return;
     }
   }
@@ -127,13 +127,13 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
       strlcat(res, line, ressize);
     }
   } else if (msg->type == CMD_JAIL_STATUS) {
-    f2b_jail_cmd_status(res, ressize, args[0]);
+    f2b_jail_cmd_status(res, ressize, jail);
   } else if (msg->type == CMD_JAIL_IP_STATUS) {
-    f2b_jail_cmd_ip_status(res, ressize, args[0], args[1]);
+    f2b_jail_cmd_ip_xxx(res, ressize, jail,  0, args[1]);
   } else if (msg->type == CMD_JAIL_IP_BAN) {
-    f2b_jail_cmd_ip_ban(res, ressize, args[0], args[1]);
+    f2b_jail_cmd_ip_xxx(res, ressize, jail,  1, args[1]);
   } else if (msg->type == CMD_JAIL_IP_RELEASE) {
-    f2b_jail_cmd_ip_release(res, ressize, args[0], args[1]);
+    f2b_jail_cmd_ip_xxx(res, ressize, jail, -1, args[1]);
   } else if (msg->type == CMD_JAIL_FILTER_STATS) {
     f2b_filter_stats(jail->filter, res, ressize);
   } else if (msg->type == CMD_JAIL_FILTER_RELOAD) {
