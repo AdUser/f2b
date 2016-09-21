@@ -192,3 +192,10 @@ f2b_cmd_parse(const char *src, char *buf, size_t buflen) {
 
   return CMD_NONE;
 }
+
+bool
+f2b_cmd_check_argc(enum f2b_cmd_type type, int argc) {
+  if (commands[type].argc == argc)
+    return true;
+  return false;
+}

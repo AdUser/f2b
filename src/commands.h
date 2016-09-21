@@ -34,4 +34,7 @@ void f2b_cmd_help();
 enum f2b_cmd_type
 f2b_cmd_parse(const char *src, char *buf, size_t buflen);
 
+bool
+f2b_cmd_check_argc(enum f2b_cmd_type type, int argc);
+
 #endif /* F2B_COMMANDS_H_ */
