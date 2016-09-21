@@ -143,7 +143,7 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
       time_t now = time(NULL);
       addr = f2b_ipaddr_create(args[1], jail->maxretry);
       if (!addr) {
-        snprintf(res, ressize, "cat't parse ip address: %s", args[1]);
+        snprintf(res, ressize, "can't parse ip address: %s", args[1]);
         return;
       }
       addr->lastseen = now;
