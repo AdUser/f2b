@@ -41,18 +41,19 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  if (!backend->ban(backend->cfg, ip)) {
-    f2b_log_msg(log_error, "action 'ban' failed");
+  if (!f2b_backend_ban(backend, ip)) {
+    f2b_log_msg(log_error, "action 'ban' failed: %s", f2b_backend_error(backend));
     goto cleanup;
   }
 
-  if (!backend->check(backend->cfg, ip)) {
-    f2b_log_msg(log_error, "action 'check' failed");
-    goto cleanup;
+  if (f2b_backend_check(backend, ip)) {
+    f2b_log_msg(log_info, "action 'check' failed returned true");
+  } else {
+    f2b_log_msg(log_info, "action 'check' failed returned false");
   }
 
-  if (!backend->unban(backend->cfg, ip)) {
-    f2b_log_msg(log_error, "action 'unban' failed");
+  if (f2b_backend_unban(backend, ip)) {
+    f2b_log_msg(log_error, "action 'unban' failed: %s", f2b_backend_error(backend));
     goto cleanup;
   }
 
