@@ -20,5 +20,13 @@ int main() {
   assert(memcmp(argv[0], "test1\0", 6) == 0);
   assert(memcmp(argv[1], "test2\0", 6) == 0);
 
+  /* data not null-terminated */
+  msg.size = 10;
+  memcpy(msg.data, "test1\0test2\n", 10);
+  assert(f2b_cmsg_extract_args(&msg, argv) == -1);
+
+  msg.size = 0;
+  assert(f2b_cmsg_extract_args(&msg, argv) == 0);
+
   return EXIT_SUCCESS;
 }
