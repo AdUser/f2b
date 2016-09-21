@@ -415,9 +415,8 @@ f2b_jail_stop(f2b_jail_t *jail) {
 }
 
 void
-f2b_jail_get_status(f2b_jail_t *jail, char *res, size_t ressize) {
-  assert(jail != NULL);
-  assert(res != NULL);
+f2b_jail_cmd_status(char *res, size_t ressize, const char *name) {
+  f2b_jail_t *jail = NULL;
   const char *fmt =
     "name: %s\n"
     "enabled: %s\n"
@@ -432,6 +431,14 @@ f2b_jail_get_status(f2b_jail_t *jail, char *res, size_t ressize) {
     "stats:\n"
     "  banned: %d\n"
     "  matched: %d\n";
+
+  assert(res  != NULL);
+  assert(name != NULL);
+
+  if ((jail = f2b_jail_find(jails, name)) == NULL) {
+    snprintf(res, ressize, "can't find jail '%s'", name);
+    return;
+  }
   snprintf(res, ressize, fmt, jail->name, jail->enabled ? "yes" : "no", jail->maxretry,
     jail->bantime, jail->findtime, jail->expiretime,
     jail->incr_bantime, jail->incr_findtime,

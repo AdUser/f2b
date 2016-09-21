@@ -128,7 +128,7 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
       strlcat(res, line, ressize);
     }
   } else if (msg->type == CMD_JAIL_STATUS) {
-    f2b_jail_get_status(jail, res, ressize);
+    f2b_jail_cmd_status(res, ressize, args[0]);
   } else if (msg->type == CMD_JAIL_IP_SHOW) {
     if ((addr = f2b_addrlist_lookup(jail->ipaddrs, args[1])) != NULL) {
       f2b_ipaddr_status(addr, res, ressize);
