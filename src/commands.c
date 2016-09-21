@@ -54,7 +54,7 @@ struct f2b_cmd_t {
     .help = "Gracefully terminate f2b daemon",
   },
   [CMD_JAIL_STATUS] = {
-    .argc = 2, .tokenc = 3,
+    .argc = 1, .tokenc = 3,
     .tokens = { "jail", "<jailname>", "status", NULL },
     .help = "Show status and stats of given jail",
   },
@@ -84,7 +84,7 @@ struct f2b_cmd_t {
     .help = "Show matches stats for jail regexps",
   },
   [CMD_JAIL_FILTER_RELOAD] = {
-    .argc = 2, .tokenc = 4,
+    .argc = 1, .tokenc = 4,
     .tokens = { "jail", "<jailname>", "filter", "reload", NULL },
     .help = "Reload regexps for given jail",
   },
