@@ -63,19 +63,19 @@ struct f2b_cmd_t {
     .tokens = { "jail", "<jailname>", "set", "<param>", "<value>", NULL },
     .help = "Set parameter of given jail",
   },
-  [CMD_JAIL_IP_SHOW] = {
-    .argc = 2, .tokenc = 4,
-    .tokens = { "jail", "<jailname>", "show", "<ip>", NULL },
+  [CMD_JAIL_IP_STATUS] = {
+    .argc = 2, .tokenc = 5,
+    .tokens = { "jail", "<jailname>", "ip", "status", "<ip>", NULL },
     .help = "Show ip status in given jail",
   },
   [CMD_JAIL_IP_BAN] = {
-    .argc = 2, .tokenc = 4,
-    .tokens = { "jail", "<jailname>", "ban", "<ip>", NULL },
+    .argc = 2, .tokenc = 5,
+    .tokens = { "jail", "<jailname>", "ip", "ban", "<ip>", NULL },
     .help = "Forcefully ban some ip in given jail",
   },
   [CMD_JAIL_IP_RELEASE] = {
-    .argc = 2, .tokenc = 4,
-    .tokens = { "jail", "<jailname>", "release", "<ip>", NULL },
+    .argc = 2, .tokenc = 5,
+    .tokens = { "jail", "<jailname>", "ip", "release", "<ip>", NULL },
     .help = "Forcefully release some ip in given jail",
   },
   [CMD_JAIL_FILTER_STATS] = {
@@ -167,18 +167,18 @@ f2b_cmd_parse(const char *src, char *buf, size_t buflen) {
       strlcat(buf, "\n", buflen);
       return CMD_JAIL_SET;
     }
-    if (tokenc == 4 && strcmp(tokens[2], "show") == 0) {
-      strlcat(buf, tokens[3], buflen);
+    if (tokenc == 5 && strcmp(tokens[2], "ip") == 0 && strcmp(tokens[3], "status") == 0) {
+      strlcat(buf, tokens[4], buflen);
       strlcat(buf, "\n", buflen);
-      return CMD_JAIL_IP_SHOW;
+      return CMD_JAIL_IP_STATUS;
     }
-    if (tokenc == 4 && strcmp(tokens[2], "ban") == 0) {
-      strlcat(buf, tokens[3], buflen);
+    if (tokenc == 5 && strcmp(tokens[2], "ip") == 0 && strcmp(tokens[3], "ban") == 0) {
+      strlcat(buf, tokens[4], buflen);
       strlcat(buf, "\n", buflen);
       return CMD_JAIL_IP_BAN;
     }
-    if (tokenc == 4 && strcmp(tokens[2], "release") == 0) {
-      strlcat(buf, tokens[3], buflen);
+    if (tokenc == 5 && strcmp(tokens[2], "ip") == 0 && strcmp(tokens[3], "release") == 0) {
+      strlcat(buf, tokens[4], buflen);
       strlcat(buf, "\n", buflen);
       return CMD_JAIL_IP_RELEASE;
     }
