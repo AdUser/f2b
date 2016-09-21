@@ -98,7 +98,7 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
   int argc = f2b_cmsg_extract_args(msg, args);
 
   if (f2b_cmd_check_argc(msg->type, argc) == false) {
-    strlcpy(res, "cms args number mismatch", ressize);
+    strlcpy(res, "cmd args number mismatch", ressize);
     return;
   }
 
