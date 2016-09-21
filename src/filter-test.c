@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
   }
   fclose(file);
   fprintf(stderr, "stats: %% lines read: %zu, matched: %zu\n", read, matched);
-  f2b_filter_stats(filter, stats, sizeof(stats));
+  f2b_filter_cmd_stats(stats, sizeof(stats), filter);
   fputs(stats, stderr);
 
   return EXIT_SUCCESS;

@@ -175,14 +175,6 @@ f2b_filter_match(f2b_filter_t *filter, const char *line, char *buf, size_t buf_s
   return filter->match(filter->cfg, line, buf, buf_size);
 }
 
-bool
-f2b_filter_reload(f2b_filter_t *filter) {
-  assert(filter != NULL);
-
-  filter->flush(filter->cfg);
-  return f2b_filter_load_file(filter, filter->file);
-}
-
 const char *
 f2b_filter_error(f2b_filter_t *filter) {
   assert(filter != NULL);
@@ -190,20 +182,33 @@ f2b_filter_error(f2b_filter_t *filter) {
 }
 
 void
-f2b_filter_stats(f2b_filter_t *filter, char *res, size_t ressize) {
-  assert(filter != NULL);
-  assert(res    != NULL);
+f2b_filter_cmd_stats(char *buf, size_t bufsize, f2b_filter_t *filter) {
   bool reset = true;
   char *pattern;
-  int matches;
-  char buf[256];
+  char tmp[256];
   const char *fmt =
     "- pattern: %s\n"
     "  matches: %d\n";
-  res[0] = '\0';
+  int matches;
+
+  assert(filter != NULL);
+  assert(buf    != NULL);
+
+  buf[0] = '\0';
   while (filter->stats(filter->cfg, &matches, &pattern, reset)) {
-    snprintf(buf, sizeof(buf), fmt, pattern, matches);
-    strlcat(res, buf, ressize);
+    snprintf(tmp, sizeof(tmp), fmt, pattern, matches);
+    strlcat(buf, tmp, bufsize);
     reset = false;
   }
+}
+
+void
+f2b_filter_cmd_reload(char *buf, size_t bufsize, f2b_filter_t *filter) {
+  assert(buf    != NULL);
+  assert(filter != NULL);
+
+  filter->flush(filter->cfg);
+  if (f2b_filter_load_file(filter, filter->file))
+    return;
+  strlcpy(buf, f2b_filter_error(filter), bufsize);
 }

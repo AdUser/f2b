@@ -135,10 +135,9 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
   } else if (msg->type == CMD_JAIL_IP_RELEASE) {
     f2b_jail_cmd_ip_xxx(res, ressize, jail, -1, args[1]);
   } else if (msg->type == CMD_JAIL_FILTER_STATS) {
-    f2b_filter_stats(jail->filter, res, ressize);
+    f2b_filter_cmd_stats(res, ressize, jail->filter);
   } else if (msg->type == CMD_JAIL_FILTER_RELOAD) {
-    if (f2b_filter_reload(jail->filter) == false)
-      strlcpy(res, f2b_filter_error(jail->filter), ressize);
+    f2b_filter_cmd_reload(res, ressize, jail->filter);
   } else {
     strlcpy(res, "error: unsupported command type", ressize);
   }

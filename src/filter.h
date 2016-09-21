@@ -27,10 +27,10 @@ typedef struct f2b_filter_t {
 
 f2b_filter_t * f2b_filter_create  (f2b_config_section_t *config, const char *id);
 const char *   f2b_filter_error   (f2b_filter_t *f);
-bool           f2b_filter_reload  (f2b_filter_t *f);
 bool           f2b_filter_append  (f2b_filter_t *f, const char *pattern);
 bool           f2b_filter_match   (f2b_filter_t *f, const char *line, char *buf, size_t buf_size);
-void           f2b_filter_stats   (f2b_filter_t *f, char *res, size_t ressize);
 void           f2b_filter_destroy (f2b_filter_t *f);
 
+void f2b_filter_cmd_reload(char *buf, size_t bufsize, f2b_filter_t *f);
+void f2b_filter_cmd_stats (char *buf, size_t bufsize, f2b_filter_t *f);
 #endif /* F2B_FILTER_H_ */
