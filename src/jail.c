@@ -465,3 +465,31 @@ f2b_jail_cmd_ip_status(char *res, size_t ressize, const char *name, const char *
   }
   f2b_ipaddr_status(addr, res, ressize);
 }
+
+void
+f2b_jail_cmd_ip_ban(char *res, size_t ressize, const char *name, const char *ip) {
+  f2b_jail_t *jail = NULL;
+  f2b_ipaddr_t *addr = NULL;
+
+  assert(res  != NULL);
+  assert(name != NULL);
+  assert(ip   != NULL);
+
+  if ((jail = f2b_jail_find(jails, name)) == NULL) {
+    snprintf(res, ressize, "can't find jail '%s'", name);
+    return;
+  }
+
+  if ((addr = f2b_addrlist_lookup(jail->ipaddrs, ip)) == NULL) {
+    time_t now = time(NULL);
+    addr = f2b_ipaddr_create(ip, jail->maxretry);
+    if (!addr) {
+      snprintf(res, ressize, "can't parse ip address: %s", ip);
+      return;
+    }
+    addr->lastseen = now;
+    f2b_matches_append(&addr->matches, now);
+    jail->ipaddrs = f2b_addrlist_append(jail->ipaddrs, addr);
+  }
+  f2b_jail_unban(jail, addr);
+}
