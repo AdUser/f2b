@@ -194,6 +194,7 @@ flush(cfg_t *cfg) {
     pcre_free(r->regex);
     free(r);
   }
+  cfg->regexps = NULL;
 }
 
 void

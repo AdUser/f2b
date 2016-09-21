@@ -159,6 +159,7 @@ flush(cfg_t *cfg) {
     regfree(&r->regex);
     free(r);
   }
+  cfg->regexps = NULL;
 }
 
 void
