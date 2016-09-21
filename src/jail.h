@@ -54,5 +54,6 @@ bool   f2b_jail_init    (f2b_jail_t *jail, f2b_config_t *config);
 size_t f2b_jail_process (f2b_jail_t *jail);
 bool   f2b_jail_stop    (f2b_jail_t *jail);
 
-void   f2b_jail_cmd_status(char *res, size_t ressize, const char *jail);
+void f2b_jail_cmd_status    (char *res, size_t ressize, const char *name);
+void f2b_jail_cmd_ip_status (char *res, size_t ressize, const char *name, const char *ip);
 #endif /* F2B_JAIL_H_ */
