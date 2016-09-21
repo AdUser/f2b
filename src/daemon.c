@@ -96,22 +96,16 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
     return;
 
   memset(args, 0x0, sizeof(args));
-  f2b_cmsg_extract_args(msg, args);
+  int argc = f2b_cmsg_extract_args(msg, args);
 
-  if (msg->type >= CMD_JAIL_STATUS && msg->type <= CMD_MAX_NUMBER) {
-    if (args[0] == NULL) {
-      strlcpy(res, "can't find jail: no args\n", ressize);
-      return;
-    }
-    if ((jail = f2b_jail_find(jails, args[0])) == NULL) {
-      snprintf(res, ressize, "can't find jail '%s'\n", args[0]);
-      return;
-    }
+  if (f2b_cmd_check_argc(msg->type, argc) == false) {
+    strlcpy(res, "cms args number mismatch", ressize);
+    return;
   }
 
-  if (jail && (msg->type >= CMD_JAIL_IP_SHOW && msg->type <= CMD_JAIL_IP_RELEASE)) {
-    if (args[1] == NULL) {
-      strlcpy(res, "can't find ip: no args", ressize);
+  if (msg->type >= CMD_JAIL_STATUS && msg->type <= CMD_MAX_NUMBER) {
+    if ((jail = f2b_jail_find(jails, args[0])) == NULL) {
+      snprintf(res, ressize, "can't find jail '%s'\n", args[0]);
       return;
     }
   }
