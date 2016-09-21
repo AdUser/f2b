@@ -17,6 +17,8 @@ void f2b_csocket_destroy(int csock, const char *path);
 int  f2b_csocket_connect(const char *spath, const char *cpath);
 void f2b_csocket_disconnect(int sock, const char *cpath);
 
+void f2b_csocket_rtimeout(int sock, float timeout);
+
 int f2b_csocket_poll(int csock, void (*cb)(const f2b_cmsg_t *cmsg, char *res, size_t ressize));
 int f2b_csocket_send(int csock, f2b_cmsg_t *cmsg, struct sockaddr_storage *addr, socklen_t *socklen);
 int f2b_csocket_recv(int csock, f2b_cmsg_t *cmsg, struct sockaddr_storage *addr, socklen_t *socklen);

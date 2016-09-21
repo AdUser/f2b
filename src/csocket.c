@@ -96,6 +96,18 @@ f2b_csocket_disconnect(int sock, const char *cpath) {
   return;
 }
 
+void
+f2b_csocket_rtimeout(int sock, float timeout) {
+  int ret = 0;
+  struct timeval tv;
+  tv.tv_sec  = (int) timeout;
+  tv.tv_usec = (int) ((timeout - tv.tv_sec) * 1000000);
+  ret = setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (void *) &tv, sizeof(struct timeval));
+  if (ret == 0)
+    return;
+  f2b_log_msg(log_warn, "can't set recv timeout for csocket: %s", strerror(errno));
+}
+
 /**
  * @brief Recieve and unpack control message
  * @param csock Opened socket fd
