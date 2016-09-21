@@ -50,11 +50,11 @@ redis_connect(cfg_t *cfg) {
     if (!conn)
       break;
     if (conn->err) {
-      snprintf(cfg->error, sizeof(cfg->error), "Connection error: %s", cfg->conn->errstr);
+      snprintf(cfg->error, sizeof(cfg->error), "Connection error: %s", conn->errstr);
       break;
     }
     if (cfg->password[0]) {
-      reply = redisCommand(cfg->conn, "AUTH %s", cfg->password);
+      reply = redisCommand(conn, "AUTH %s", cfg->password);
       if (reply->type == REDIS_REPLY_ERROR) {
         snprintf(cfg->error, sizeof(cfg->error), "auth error: %s", reply->str);
         break;
@@ -62,7 +62,7 @@ redis_connect(cfg_t *cfg) {
       freeReplyObject(reply);
     }
     if (cfg->database) {
-      reply = redisCommand(cfg->conn, "SELECT %d", cfg->database);
+      reply = redisCommand(conn, "SELECT %d", cfg->database);
       if (reply->type == REDIS_REPLY_ERROR) {
         snprintf(cfg->error, sizeof(cfg->error), "auth error: %s", reply->str);
         break;
