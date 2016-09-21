@@ -5,7 +5,6 @@
  * published by the Free Software Foundation.
  */
 #include "common.h"
-#include "cmsg.h"
 #include "commands.h"
 
 struct f2b_cmd_t {
