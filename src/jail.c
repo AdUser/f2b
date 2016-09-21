@@ -493,3 +493,25 @@ f2b_jail_cmd_ip_ban(char *res, size_t ressize, const char *name, const char *ip)
   }
   f2b_jail_unban(jail, addr);
 }
+
+void
+f2b_jail_cmd_ip_release(char *res, size_t ressize, const char *name, const char *ip) {
+  f2b_jail_t *jail = NULL;
+  f2b_ipaddr_t *addr = NULL;
+
+  assert(res  != NULL);
+  assert(name != NULL);
+  assert(ip   != NULL);
+
+  if ((jail = f2b_jail_find(jails, name)) == NULL) {
+    snprintf(res, ressize, "can't find jail '%s'", name);
+    return;
+  }
+
+  if ((addr = f2b_addrlist_lookup(jail->ipaddrs, ip)) == NULL) {
+    snprintf(res, ressize, "can't find ip '%s' in jail '%s'", name, ip);
+    return;
+  }
+
+  f2b_jail_unban(jail, addr);
+}

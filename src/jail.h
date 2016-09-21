@@ -57,4 +57,5 @@ bool   f2b_jail_stop    (f2b_jail_t *jail);
 void f2b_jail_cmd_status    (char *res, size_t ressize, const char *name);
 void f2b_jail_cmd_ip_status (char *res, size_t ressize, const char *name, const char *ip);
 void f2b_jail_cmd_ip_ban    (char *res, size_t ressize, const char *name, const char *ip);
+void f2b_jail_cmd_ip_release(char *res, size_t ressize, const char *name, const char *ip);
 #endif /* F2B_JAIL_H_ */

@@ -85,7 +85,6 @@ void
 f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
   const char *args[DATA_ARGS_MAX];
   f2b_jail_t *jail = NULL;
-  f2b_ipaddr_t *addr = NULL;
   char line[LINE_MAX];
 
   assert(msg != NULL);
@@ -134,11 +133,7 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
   } else if (msg->type == CMD_JAIL_IP_BAN) {
     f2b_jail_cmd_ip_ban(res, ressize, args[0], args[1]);
   } else if (msg->type == CMD_JAIL_IP_RELEASE) {
-    if ((addr = f2b_addrlist_lookup(jail->ipaddrs, args[1])) == NULL) {
-      snprintf(res, ressize, "can't find ip '%s' in jail '%s'\n", args[1], args[0]);
-      return;
-    }
-    f2b_jail_unban(jail, addr);
+    f2b_jail_cmd_ip_release(res, ressize, args[0], args[1]);
   } else if (msg->type == CMD_JAIL_FILTER_STATS) {
     f2b_filter_stats(jail->filter, res, ressize);
   } else if (msg->type == CMD_JAIL_FILTER_RELOAD) {
