@@ -108,6 +108,14 @@ f2b_cmd_help() {
   return;
 }
 
+void
+f2b_cmd_append_arg(char *buf, size_t bufsize, const char *arg) {
+  assert(buf != NULL);
+  assert(arg != NULL);
+  strlcat(buf, arg,  bufsize);
+  strlcat(buf, "\n", bufsize);
+}
+
 /**
  * @brief Parse command from line
  * @param src  Line taken from user input
@@ -155,31 +163,25 @@ f2b_cmd_parse(const char *src, char *buf, size_t buflen) {
   buf[0] = '\0';
   if (strcmp(line, "jail") == 0 && tokenc > 1) {
     /* commands for jail */
-    strlcpy(buf, tokens[1], buflen);
-    strlcat(buf, "\n", buflen);
+    f2b_cmd_append_arg(buf, buflen, tokens[1]);
     if (tokenc == 3 && strcmp(tokens[2], "status") == 0) {
       return CMD_JAIL_STATUS;
     }
     if (tokenc == 5 && strcmp(tokens[2], "set") == 0) {
-      strlcat(buf, tokens[3], buflen);
-      strlcat(buf, "\n", buflen);
-      strlcat(buf, tokens[4], buflen);
-      strlcat(buf, "\n", buflen);
+      f2b_cmd_append_arg(buf, buflen, tokens[3]);
+      f2b_cmd_append_arg(buf, buflen, tokens[4]);
       return CMD_JAIL_SET;
     }
     if (tokenc == 5 && strcmp(tokens[2], "ip") == 0 && strcmp(tokens[3], "status") == 0) {
-      strlcat(buf, tokens[4], buflen);
-      strlcat(buf, "\n", buflen);
+      f2b_cmd_append_arg(buf, buflen, tokens[4]);
       return CMD_JAIL_IP_STATUS;
     }
     if (tokenc == 5 && strcmp(tokens[2], "ip") == 0 && strcmp(tokens[3], "ban") == 0) {
-      strlcat(buf, tokens[4], buflen);
-      strlcat(buf, "\n", buflen);
+      f2b_cmd_append_arg(buf, buflen, tokens[4]);
       return CMD_JAIL_IP_BAN;
     }
     if (tokenc == 5 && strcmp(tokens[2], "ip") == 0 && strcmp(tokens[3], "release") == 0) {
-      strlcat(buf, tokens[4], buflen);
-      strlcat(buf, "\n", buflen);
+      f2b_cmd_append_arg(buf, buflen, tokens[4]);
       return CMD_JAIL_IP_RELEASE;
     }
     if (tokenc == 4 && strcmp(tokens[2], "filter") == 0 && strcmp(tokens[3], "stats") == 0) {
