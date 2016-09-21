@@ -16,10 +16,11 @@
 struct {
   enum { interactive = 0, oneshot } mode;
   int  csocket;
+  float timeout;
   char csocket_spath[PATH_MAX];
   char csocket_cpath[PATH_MAX];
 } opts = {
-  interactive, -1,
+  interactive, -1, 5.0,
   DEFAULT_CSOCKET_PATH,
   DEFAULT_CSOCKET_CPATH, /* template */
 };
@@ -119,6 +120,8 @@ int main(int argc, char *argv[]) {
 
   if ((opts.csocket = f2b_csocket_connect(opts.csocket_spath, opts.csocket_cpath)) <= 0)
     exit(EXIT_FAILURE);
+
+  f2b_csocket_rtimeout(opts.csocket, opts.timeout);
 
   if (opts.mode == oneshot) {
     ret = handle_cmd(line);
