@@ -4,7 +4,7 @@ set(BACKENDS "")
 add_library("f2b_backend_exec" MODULE "exec.c" "../strlcpy.c")
 list(APPEND BACKENDS "f2b_backend_exec")
 
-find_library(REDIS_FOUND "pcre")
+find_library(REDIS_FOUND "hiredis")
 if (WITH_REDIS AND REDIS_FOUND)
   add_library("f2b_backend_redis" MODULE "redis.c" "../strlcpy.c")
   target_link_libraries("f2b_backend_redis" "hiredis")
