@@ -184,6 +184,8 @@ bool
 stop(cfg_t *cfg) {
   f2b_file_t *next = NULL;
 
+  assert(cfg != NULL);
+
   for (; cfg->files != NULL; cfg->files = next) {
     next = cfg->files->next;
     file_close(cfg->files);
