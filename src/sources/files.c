@@ -28,6 +28,12 @@ struct _config {
   f2b_file_t *current;
 };
 
+static void
+errcb_stub(char *str) {
+  assert(str != NULL);
+  (void)(str);
+}
+
 static bool
 file_open(f2b_file_t *file, const char *path) {
   struct stat st;
@@ -111,6 +117,7 @@ create(const char *init) {
   if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
     return NULL;
   strlcpy(cfg->path, init, sizeof(cfg->path));
+  cfg->errcb = &errcb_stub;
   return cfg;
 }
 
