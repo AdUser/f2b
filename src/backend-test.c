@@ -10,7 +10,7 @@
 #include "backend.h"
 
 void usage() {
-  fprintf(stderr, "Usage: backend-test <config-file.conf> <id>\n");
+  fprintf(stderr, "Usage: backend-test <backend.conf> <id>\n");
   exit(EXIT_FAILURE);
 }
 
@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (config.backends == NULL) {
-    f2b_log_msg(log_error, "nos backend found in config");
+    f2b_log_msg(log_error, "no backends found in config");
     return EXIT_FAILURE;
   } else {
     section = config.backends;
