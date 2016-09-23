@@ -10,25 +10,37 @@
 #include "source.h"
 
 void usage() {
-  fprintf(stderr, "Usage: source-test <library.so> <init string>\n");
+  fprintf(stderr, "Usage: source-test <source.conf> <init string>\n");
   exit(EXIT_FAILURE);
 }
 
 int main(int argc, char *argv[]) {
-  f2b_config_param_t  param = { .name = "load", .value = "", .next = 0x0 };
-  f2b_config_section_t config = { .name = "test", .type = t_source, .param = 0x0, .next = 0x0 };
-  f2b_source_t *source = NULL;
+  f2b_config_t          config;
+  f2b_config_section_t *section = NULL;
+  f2b_source_t         *source  = NULL;
   char buf[1024] = "";
   bool reset;
 
-  if (argc < 2)
+  if (argc < 3)
     usage();
 
-  config.param = &param;
-  snprintf(param.value, sizeof(param.value), "%s", argv[1]);
+  memset(&config, 0x0, sizeof(config));
+  if (f2b_config_load(&config, argv[1], false) != true) {
+    f2b_log_msg(log_error, "can't load config");
+    return EXIT_FAILURE;
+  }
 
-  if ((source = f2b_source_create(&config, argv[2], f2b_log_error_cb)) == false)
-    usage();
+  if (config.sources == NULL) {
+    f2b_log_msg(log_error, "no sources found in config");
+    return EXIT_FAILURE;
+  } else {
+    section = config.sources;
+  }
+
+  if ((source = f2b_source_create(section, argv[2], f2b_log_error_cb)) == NULL) {
+    f2b_log_msg(log_error, "can't create source '%s' with init '%s'", section->name, argv[2]);
+    return EXIT_FAILURE;
+  }
 
   if (f2b_source_start(source) == false) {
     f2b_log_msg(log_error, "source start error: %s", f2b_source_error(source));
@@ -39,7 +51,7 @@ int main(int argc, char *argv[]) {
     reset = true;
     while (f2b_source_next(source, buf, sizeof(buf), reset)) {
       reset = false;
-      fputs(buf, stderr);
+      puts(buf);
     }
     sleep(1);
   }
