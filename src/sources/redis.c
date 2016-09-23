@@ -42,7 +42,7 @@ redis_connect(cfg_t *cfg) {
   redisContext *conn = NULL;
   redisReply *reply = NULL;
   do {
-    struct timeval timeout = { cfg->timeout, 0 };
+    struct timeval timeout = { .tv_sec = cfg->timeout, .tv_usec = 0 };
     conn = redisConnectWithTimeout(cfg->host, cfg->port, timeout);
     if (!conn)
       break;
@@ -66,6 +66,18 @@ redis_connect(cfg_t *cfg) {
       }
       freeReplyObject(reply);
     }
+    timeout.tv_sec  = 0;
+    timeout.tv_usec = 10000; /* 0.01s */
+    if (redisSetTimeout(conn, timeout) != REDIS_OK) {
+      strlcpy(cfg->error, "can't enable nonblocking mode", sizeof(cfg->error));
+      break;
+    }
+    reply = redisCommand(conn, "SUBSCRIBE %s", cfg->hash);
+    if (reply->type == REDIS_REPLY_ERROR) {
+      snprintf(cfg->error, sizeof(cfg->error), "can't subscribe: %s", reply->str);
+      break;
+    }
+    freeReplyObject(reply);
     if (cfg->conn)
       redisFree(cfg->conn);
     cfg->conn = conn;
