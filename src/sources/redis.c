@@ -26,6 +26,12 @@ struct _config {
   redisContext *conn;
 };
 
+static void
+errcb_stub(char *str) {
+  assert(str != NULL);
+  (void)(str);
+}
+
 static bool
 redis_connect(cfg_t *cfg) {
   assert(cfg != NULL);
@@ -95,6 +101,7 @@ create(const char *init) {
   strlcpy(cfg->name, init, sizeof(cfg->name));
   strlcpy(cfg->hash, "f2b-banned-", sizeof(cfg->hash));
   strlcat(cfg->hash, init, sizeof(cfg->hash));
+  cfg->errcb = &errcb_stub;
 
   return cfg;
 }
