@@ -355,8 +355,8 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
   }
 
   if ((jail->backend = f2b_backend_create(b_section, jail->backend_init)) == NULL) {
-    f2b_log_msg(log_error, "jail '%s': can't init backend '%s' with %s -- %s",
-      jail->name, jail->backend_name, jail->backend_init, f2b_backend_error(jail->backend));
+    f2b_log_msg(log_error, "jail '%s': can't init backend '%s' with %s",
+      jail->name, jail->backend_name, jail->backend_init);
     goto cleanup;
   }
   if (!f2b_backend_start(jail->backend)) {
