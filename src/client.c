@@ -48,7 +48,7 @@ handle_cmd(const char *line) {
     f2b_cmd_help();
     return EXIT_SUCCESS;
   } else if (cmsg.type == CMD_NONE) {
-    f2b_log_msg(log_warn, "unable to parse command line");
+    f2b_log_msg(log_error, "unable to parse command line");
     return EXIT_FAILURE;
   }
   /* fill other fields */
