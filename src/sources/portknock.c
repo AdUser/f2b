@@ -6,9 +6,24 @@
  */
 #include "source.h"
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#define MAX_PORTS 32
+
 struct _config {
+  char name[32];
   char error[256];
+  int listen_af;
+  union {
+    struct in_addr  v4;
+    struct in6_addr v6;
+  } listen_addr;
   void (*errcb)(char *errstr);
+  size_t ports_used;
+  uint16_t ports[MAX_PORTS];
+  int sockets[MAX_PORTS];
 };
 
 static void
@@ -23,7 +38,7 @@ create(const char *init) {
   assert(init != NULL);
   if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
     return NULL;
-  strlcpy(cfg->path, init, sizeof(cfg->path));
+  strlcpy(cfg->name, init, sizeof(cfg->name));
   cfg->errcb = &errcb_stub;
   return cfg;
 }
@@ -33,16 +48,44 @@ config(cfg_t *cfg, const char *key, const char *value) {
   assert(cfg != NULL);
   assert(key   != NULL);
   assert(value != NULL);
-  /* no options */
+
+  if (strcmp(key, "listen") == 0) {
+    void *buf = NULL;
+    if (strchr(value, ':') == NULL) {
+      cfg->listen_af = AF_INET;
+      buf = &cfg->listen_addr.v4;
+    } else {
+      cfg->listen_af = AF_INET6;
+      buf = &cfg->listen_addr.v6;
+    }
+    if (inet_pton(cfg->listen_af, value, buf) <= 0) {
+      snprintf(cfg->error, sizeof(cfg->error), "invalid listen address: %s", value);
+      return false;
+    }
+    return true;
+  }
+  if (strcmp(key, "port") == 0) {
+    if (cfg->ports_used >= MAX_PORTS) {
+      strlcpy(cfg->error, "max ports number reached in this portknock instance", sizeof(cfg->error));
+      return false;
+    }
+    cfg->ports[cfg->ports_used] = atoi(value);
+    if (cfg->ports[cfg->ports_used] == 0) {
+      snprintf(cfg->error, sizeof(cfg->error), "invalid port number: %s", value);
+      return false;
+    }
+    cfg->ports_used++;
+  }
+
   return false;
 }
 
 bool
 ready(cfg_t *cfg) {
   assert(cfg != NULL);
-  if (cfg->path[0] == '\0')
-    return false;
-  return true;
+  if (cfg->ports_used > 0)
+    return true;
+  return false;
 }
 
 char *
