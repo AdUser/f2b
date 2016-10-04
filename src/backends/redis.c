@@ -28,6 +28,8 @@ struct _config {
   char error[256];
   bool shared;
   time_t timeout;
+  uint8_t ping_num; /*< current number of ping() call */
+  uint8_t ping_max; /*< max ping() calls before actually pinginig redis server */
   uint8_t database;
   char password[32];
   char host[32];
@@ -127,6 +129,10 @@ config(cfg_t *cfg, const char *key, const char *value) {
   }
   if (strcmp(key, "port") == 0) {
     cfg->port = atoi(value);
+    return true;
+  }
+  if (strcmp(key, "ping") == 0) {
+    cfg->ping_max = atoi(value);
     return true;
   }
   if (strcmp(key, "database") == 0) {
@@ -238,6 +244,12 @@ ping(cfg_t *cfg) {
     return false;
   }
 
+  cfg->ping_num++;
+  if (cfg->ping_num < cfg->ping_max)
+    return true; /* skip this try */
+
+  /* max empty calls reached, make real ping */
+  cfg->ping_num = 0;
   redisReply *reply = redisCommand(cfg->conn, "PING");
   if (reply) {
     bool result = true;
