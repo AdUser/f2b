@@ -229,14 +229,10 @@ f2b_jail_process(f2b_jail_t *jail) {
     jail->matchcount++;
     addr = f2b_addrlist_lookup(jail->ipaddrs, matchbuf);
     if (!addr) {
-      /* new ip */
       addr = f2b_ipaddr_create(matchbuf, jail->maxretry);
-      addr->lastseen = now;
-      f2b_matches_append(&addr->matches, now);
       jail->ipaddrs = f2b_addrlist_append(jail->ipaddrs, addr);
-      f2b_log_msg(log_info, "jail '%s': new ip found -- %s", jail->name, matchbuf);
+      f2b_log_msg(log_debug, "jail '%s': new ip found -- %s", jail->name, matchbuf);
     }
-    /* this ip was seen before */
     addr->lastseen = now;
     if (addr->banned) {
       if (addr->banned_at != now)
