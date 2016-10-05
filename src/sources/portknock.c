@@ -10,20 +10,22 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#define MAX_PORTS 32
+#define HOST_MAX 48
+#define PORT_MAX 6
+
+typedef struct f2b_port_t {
+  struct f2b_port_t *next;
+  char host[HOST_MAX];
+  char port[PORT_MAX];
+  int fd;
+} f2b_port_t;
 
 struct _config {
   char name[32];
   char error[256];
-  int listen_af;
-  union {
-    struct in_addr  v4;
-    struct in6_addr v6;
-  } listen_addr;
   void (*errcb)(char *errstr);
-  size_t ports_used;
-  uint16_t ports[MAX_PORTS];
-  int sockets[MAX_PORTS];
+  f2b_port_t *ports;
+  f2b_port_t *current;
 };
 
 static void
@@ -83,7 +85,7 @@ config(cfg_t *cfg, const char *key, const char *value) {
 bool
 ready(cfg_t *cfg) {
   assert(cfg != NULL);
-  if (cfg->ports_used > 0)
+  if (cfg->ports)
     return true;
   return false;
 }
