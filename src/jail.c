@@ -235,7 +235,6 @@ f2b_jail_process(f2b_jail_t *jail) {
       f2b_matches_append(&addr->matches, now);
       jail->ipaddrs = f2b_addrlist_append(jail->ipaddrs, addr);
       f2b_log_msg(log_info, "jail '%s': new ip found -- %s", jail->name, matchbuf);
-      continue;
     }
     /* this ip was seen before */
     addr->lastseen = now;
