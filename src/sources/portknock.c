@@ -176,7 +176,9 @@ bool
 stop(cfg_t *cfg) {
   assert(cfg != NULL);
 
-  /* TODO */
+  for (f2b_port_t *port = cfg->ports; port != NULL; port = port->next)
+    close(port->sock);
+
   return true;
 }
 
@@ -192,7 +194,13 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
 
 void
 destroy(cfg_t *cfg) {
+  f2b_port_t *next;
   assert(cfg != NULL);
+
+  for (; cfg->ports != NULL; cfg->ports = next) {
+    next = cfg->ports->next;
+    free(cfg->ports);
+  }
 
   free(cfg);
 }
