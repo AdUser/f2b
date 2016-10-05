@@ -7,6 +7,7 @@
 #include "source.h"
 
 #include <ctype.h>
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -134,6 +135,8 @@ bool
 start(cfg_t *cfg) {
   struct addrinfo hints;
   struct addrinfo *result;
+  int opt;
+
   assert(cfg != NULL);
 
   memset(&hints, 0, sizeof(struct addrinfo));
@@ -141,10 +144,9 @@ start(cfg_t *cfg) {
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_protocol = 0;
 
-  for (f2b_port_t *port = cfg->ports; port != 0; port = port->next) {
+  for (f2b_port_t *port = cfg->ports; port != NULL; port = port->next) {
     port->sock = -1;
     int ret = getaddrinfo(port->host, port->port, &hints, &result);
-    int opt = 1;
     if (ret != 0) {
       snprintf(cfg->error, sizeof(cfg->error), "getaddrinfo: %s", gai_strerror(ret));
       cfg->errcb(cfg->error);
@@ -154,6 +156,10 @@ start(cfg_t *cfg) {
       port->sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
       if (port->sock == -1)
         continue;
+      if ((opt = fcntl(port->sock, F_GETFL, 0)) < 0)
+        continue;
+      fcntl(port->sock, F_SETFL, opt | O_NONBLOCK);
+      opt = 1;
       setsockopt(port->sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
       if (bind(port->sock, rp->ai_addr, rp->ai_addrlen) == 0) {
         if (listen(port->sock, 5) == 0) /* TODO: hardcoded */
