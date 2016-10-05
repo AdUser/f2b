@@ -190,11 +190,40 @@ stop(cfg_t *cfg) {
 
 bool
 next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
+  struct sockaddr_storage addr;
+  socklen_t addrlen;
+
   assert(cfg != NULL);
   assert(buf != NULL);
   assert(bufsize > 0);
 
-  /* TODO */
+  if (reset || cfg->current == NULL)
+    cfg->current = cfg->ports;
+
+  for (f2b_port_t *port = cfg->current; port != NULL; port = port->next) {
+    if (port->sock < 0)
+      continue;
+    addrlen = sizeof(addr);
+    int sock = accept(port->sock, (struct sockaddr *) &addr, &addrlen);
+    if (sock < 0 && errno == EAGAIN)
+      continue;
+    if (sock < 0) {
+      snprintf(cfg->error, sizeof(cfg->error), "accept error: %s", strerror(errno));
+      cfg->errcb(cfg->error);
+      continue;
+    }
+    close(sock);
+    if (addr.ss_family == AF_INET) {
+      inet_ntop(AF_INET,  &(((struct sockaddr_in *) &addr)->sin_addr), buf, bufsize);
+      return true;
+    }
+    if (addr.ss_family == AF_INET6) {
+      inet_ntop(AF_INET6, &(((struct sockaddr_in6 *) &addr)->sin6_addr), buf, bufsize);
+      return true;
+    }
+    cfg->errcb("can't convert sockaddr to string: unknown AF");
+  }
+
   return false;
 }
 
