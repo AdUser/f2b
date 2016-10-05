@@ -6,6 +6,7 @@
  */
 #include "source.h"
 
+#include <ctype.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -27,6 +28,41 @@ struct _config {
   f2b_port_t *ports;
   f2b_port_t *current;
 };
+
+static bool
+try_parse_listen_opt(f2b_port_t *port, const char *value) {
+  char buf[256];
+  char *p;
+
+  strlcpy(buf, value, sizeof(buf));
+  if (*buf == '[') {
+    /* IPv6, expected: [XXXX::XXXX:XXXX]:YYYY */
+    if ((p = strstr(buf, "]:")) == NULL) {
+      *p = '\0', p += 2;
+      strlcpy(port->port, p, sizeof(port->port));
+      p = buf + 1;
+      strlcpy(port->host, p, sizeof(port->host));
+      return true;
+    }
+    return false; /* can't find port */
+  }
+  if ((p = strchr(buf, ':')) != NULL) {
+    /* IPv4, expected: XX.XX.XX.XX:YYYY */
+    *p = '\0', p += 1;
+    strlcpy(port->port, p, sizeof(port->port));
+    p = buf;
+    strlcpy(port->host, p, sizeof(port->host));
+    return true;
+  }
+  if (isdigit(*buf) && strlen(buf) <= 5) {
+    /* IPv4, expected: YYYY */
+    strlcpy(port->host, "0.0.0.0", sizeof(port->host));
+    strlcpy(port->port, buf,       sizeof(port->port));
+    return true;
+  }
+
+  return false;
+}
 
 static void
 errcb_stub(char *str) {
@@ -52,31 +88,19 @@ config(cfg_t *cfg, const char *key, const char *value) {
   assert(value != NULL);
 
   if (strcmp(key, "listen") == 0) {
-    void *buf = NULL;
-    if (strchr(value, ':') == NULL) {
-      cfg->listen_af = AF_INET;
-      buf = &cfg->listen_addr.v4;
-    } else {
-      cfg->listen_af = AF_INET6;
-      buf = &cfg->listen_addr.v6;
-    }
-    if (inet_pton(cfg->listen_af, value, buf) <= 0) {
-      snprintf(cfg->error, sizeof(cfg->error), "invalid listen address: %s", value);
+    f2b_port_t *port = NULL;
+    if ((port = calloc(1, sizeof(f2b_port_t))) == NULL) {
+      strlcpy(cfg->error, "out of memory", sizeof(cfg->error));
       return false;
     }
+    if (try_parse_listen_opt(port, value) == false) {
+      snprintf(cfg->error, sizeof(cfg->error), "can't parse: %s", value);
+      free(port);
+      return false;
+    }
+    port->next = cfg->ports;
+    cfg->ports = port;
     return true;
-  }
-  if (strcmp(key, "port") == 0) {
-    if (cfg->ports_used >= MAX_PORTS) {
-      strlcpy(cfg->error, "max ports number reached in this portknock instance", sizeof(cfg->error));
-      return false;
-    }
-    cfg->ports[cfg->ports_used] = atoi(value);
-    if (cfg->ports[cfg->ports_used] == 0) {
-      snprintf(cfg->error, sizeof(cfg->error), "invalid port number: %s", value);
-      return false;
-    }
-    cfg->ports_used++;
   }
 
   return false;
