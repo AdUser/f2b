@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netdb.h>
 
 #define HOST_MAX 48
 #define PORT_MAX 6
@@ -18,7 +19,7 @@ typedef struct f2b_port_t {
   struct f2b_port_t *next;
   char host[HOST_MAX];
   char port[PORT_MAX];
-  int fd;
+  int sock;
 } f2b_port_t;
 
 struct _config {
@@ -131,9 +132,41 @@ errcb(cfg_t *cfg, void (*cb)(char *errstr)) {
 
 bool
 start(cfg_t *cfg) {
+  struct addrinfo hints;
+  struct addrinfo *result;
   assert(cfg != NULL);
 
-  /* TODO */
+  memset(&hints, 0, sizeof(struct addrinfo));
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_protocol = 0;
+
+  for (f2b_port_t *port = cfg->ports; port != 0; port = port->next) {
+    port->sock = -1;
+    int ret = getaddrinfo(port->host, port->port, &hints, &result);
+    if (ret != 0) {
+      snprintf(cfg->error, sizeof(cfg->error), "getaddrinfo: %s", gai_strerror(ret));
+      cfg->errcb(cfg->error);
+      continue;
+    }
+    for (struct addrinfo *rp = result; rp != NULL; rp = rp->ai_next) {
+      port->sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+      if (port->sock == -1)
+        continue;
+      if (bind(port->sock, rp->ai_addr, rp->ai_addrlen) == 0) {
+        if (listen(port->sock, 5) == 0) /* TODO: hardcoded */
+          break; /* success */
+        close(port->sock);
+        port->sock = -1;
+      }
+    }
+    freeaddrinfo(result);
+    if (port->sock < 0) {
+      snprintf(cfg->error, sizeof(cfg->error), "can't bind/listen on %s:%s", port->host, port->port);
+      cfg->errcb(cfg->error);
+    }
+  }
+
   return true;
 }
 
