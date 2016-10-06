@@ -324,6 +324,7 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
       }
       fprintf(pidfile, "%d\n", getpid());
+      fflush(pidfile);
     } else {
       f2b_log_msg(log_warn, "can't open pidfile: %s", strerror(errno));
     }
