@@ -44,6 +44,9 @@ enum { stop = 0, run, reconfig, logrotate, test } state = run;
 
 void signal_handler(int signum) {
   switch (signum) {
+    case SIGUSR1:
+      state = logrotate;
+      break;
     case SIGTERM:
     case SIGINT:
       f2b_log_msg(log_info, "got SIGTERM/SIGINT, exiting");
