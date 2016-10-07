@@ -5,19 +5,34 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
+
+## [0.4] - 2016-10-07
 ### Added
 
-  * make source also a module
+  * make source(s) also a module. now available:
+    * files source
+    * redis source
   * f2b-source-test utility
+  * SIGUSR1 handler for logfile reopening
+  * timeout in client
+  * filters/nginx-bots.pcre
 
 ### Changed
 
   * f2b-filter-test now show per-pattern match stats
   * install short readme file in conf-enabled dir
+  * tested & fixed redis backend
+  * f2b-backend-test : simplify usage
+  * chg jail commands 'show', 'ban' & 'release' : add expicit 'ip' prefix
+  * rename commands: regex stats -> filter stats, regex add -> filter reload
 
 ### Fixed
 
-  * fix inversion of 'shared' option for 'exec' backend
+  * inversion of 'shared' option for 'exec' backend
+  * correctly write pidfile
+  * bans with maxretry = 1
+  * redis detection in cmake
+  * double free in filter's flush()
 
 ## [0.3] - 2016-09-12
 ### Added
