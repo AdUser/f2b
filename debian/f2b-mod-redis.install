@@ -1,0 +1,2 @@
+etc/f2b/conf-available/*-*-redis.conf
+usr/lib/*/libf2b_*_redis.so*

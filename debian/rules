@@ -19,4 +19,5 @@ export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 override_dh_auto_configure:
 	dh_auto_configure -- \
 	-DCMAKE_LIBRARY_PATH=$(DEB_HOST_MULTIARCH) \
+	-DWITH_REDIS=ON \
 	-DWITH_HARDENING=ON

@@ -2,7 +2,7 @@ Source: f2b
 Section: net
 Priority: optional
 Maintainer: Alex 'AdUser' Z <ad_user@runbox.com>
-Build-Depends: debhelper (>= 9), cmake, libpcre3-dev
+Build-Depends: debhelper (>= 9), cmake, libpcre3-dev, libhiredis-dev
 Standards-Version: 3.9.5
 Homepage: https://github.com/AdUser/f2b
 Vcs-Git: https://github.com/AdUser/f2b.git
@@ -11,10 +11,25 @@ Vcs-Browser: https://github.com/AdUser/f2b
 Package: f2b
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: f2b is lightweight fail2ban alternative
+Description: lightweight fail2ban alternative
  Features:
  .
  * written in pure C
  * small memory footprint
  * minimum dependencies (req: libc, libdl; optional: pcre)
  * pluggable filters / backends (you may write custom one)
+ .
+ This package contains daemon, client and basic modules
+
+Package: f2b-mod-pcre3
+Architecture: any
+Depends: f2b (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Description: lightweight fail2ban alternative
+ This package contains filter module that uses pcre3 library
+
+Package: f2b-mod-redis
+Architecture: any
+Depends: f2b (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Suggests: redis-server
+Description: lightweight fail2ban alternative
+ This package contains source and backend modules working with redis-server
