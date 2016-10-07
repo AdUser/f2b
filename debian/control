@@ -14,10 +14,10 @@ Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: lightweight fail2ban alternative
  Features:
  .
- * written in pure C
- * small memory footprint
- * minimum dependencies (req: libc, libdl; optional: pcre)
- * pluggable filters / backends (you may write custom one)
+   * written in pure C
+   * small memory footprint
+   * minimum dependencies (req: libc, libdl; optional: pcre)
+   * pluggable filters / backends (you may write custom one)
  .
  This package contains daemon, client and basic modules
 
