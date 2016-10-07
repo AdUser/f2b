@@ -1,0 +1,12 @@
+etc/f2b/conf-available/*-source-files.conf
+etc/f2b/conf-available/*-filter-preg.conf
+etc/f2b/conf-available/*-backend-exec-*.conf
+etc/f2b/conf-enabled
+etc/f2b/f2b.conf
+usr/bin/f2b-*-test
+usr/bin/f2bc
+usr/sbin/f2b
+usr/share/f2b
+usr/lib/*/libf2b_backend_exec.so*
+usr/lib/*/libf2b_filter_preg.so*
+usr/lib/*/libf2b_source_files.so*
