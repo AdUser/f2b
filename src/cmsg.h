@@ -9,7 +9,8 @@
 #define CMSG_FLAG_AUTH_PASS  0x02
 
 /**
- * @struct f2b control message
+ * @struct f2b_cmsg_t
+ * @brief f2b control message
  *
  * Use sendmsg/recvmsg and iovec structs to pack/unpack
  */
