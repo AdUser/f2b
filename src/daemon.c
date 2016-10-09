@@ -45,6 +45,7 @@ enum { stop = 0, run, reconfig, logrotate, test } state = run;
 void signal_handler(int signum) {
   switch (signum) {
     case SIGUSR1:
+      f2b_log_msg(log_info, "got SIGUSR1, reopening log file");
       state = logrotate;
       break;
     case SIGTERM:
@@ -272,6 +273,7 @@ int main(int argc, char *argv[]) {
   SA_REGISTER(SIGTERM, &signal_handler);
   SA_REGISTER(SIGINT,  &signal_handler);
   SA_REGISTER(SIGHUP,  &signal_handler);
+  SA_REGISTER(SIGUSR1, &signal_handler);
 
   if (opts.config_path[0] == '\0')
     usage(EXIT_FAILURE);
