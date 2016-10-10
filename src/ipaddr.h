@@ -13,27 +13,52 @@
 
 #include "matches.h"
 
+/**
+ * @def IPADDR_MAX
+ * Maximum text length of address
+ */
 #define IPADDR_MAX 48 /* 8 x "ffff" + 7 x "::" + '\0' */
 
+/**
+ * @struct f2b_ipaddr_t
+ * Describes ip-address and it's metadata
+ */
 typedef struct f2b_ipaddr_t {
-  struct f2b_ipaddr_t *next;
-  int type;
-  char text[IPADDR_MAX];
-  bool banned;
-  size_t bancount;
-  time_t lastseen;
-  time_t banned_at;
-  time_t release_at;
+  struct f2b_ipaddr_t *next; /**< pointer to next addr */
+  int type;                  /**< address type, AF_INET/AF_INET6 */
+  char text[IPADDR_MAX];     /**< textual address */
+  bool banned;               /**< is address banned, flag */
+  size_t bancount;           /**< how many times this address was banned */
+  time_t lastseen;           /**< self-descriptive, unixtime */
+  time_t banned_at;          /**< self-descriptive, unixtime */
+  time_t release_at;         /**< self-descriptive, unixtime */
   union {
-    struct in_addr  v4;
-    struct in6_addr v6;
-  } binary;
-  f2b_matches_t matches;
+    struct in_addr  v4;      /**< AF_INET address  */
+    struct in6_addr v6;      /**< AF_INET6 address */
+  } binary;                  /**< binary address representation, see @a type */
+  f2b_matches_t matches;     /**< list of matches */
 } f2b_ipaddr_t;
 
+/**
+ * @brief Create address record and fill related metadata
+ * @param addr  Textual address
+ * @param max_matches Maximum matches count
+ * @returns Pointer to address or NULL no error
+ */
 f2b_ipaddr_t * f2b_ipaddr_create (const char *addr, size_t max_matches);
-void           f2b_ipaddr_destroy(f2b_ipaddr_t *ipaddr);
-void           f2b_ipaddr_status (f2b_ipaddr_t *ipaddr, char *res, size_t ressize);
+/**
+ * @brief Free address metadata
+ * @param ipaddr Pointer to f2b_ipaddr_t struct
+ * @note @a ipaddr pointer becomes invalid after calling this function
+ */
+void f2b_ipaddr_destroy(f2b_ipaddr_t *ipaddr);
+/**
+ * @brief Get some stats about given address
+ * @param ipaddr Pointer to f2b_ipaddr_t struct
+ * @param res Buffer for storing stats
+ * @param ressize Size of buffer above
+ */
+void f2b_ipaddr_status (f2b_ipaddr_t *ipaddr, char *res, size_t ressize);
 
 f2b_ipaddr_t * f2b_addrlist_append(f2b_ipaddr_t *list, f2b_ipaddr_t *ipaddr);
 f2b_ipaddr_t * f2b_addrlist_lookup(f2b_ipaddr_t *list, const char *addr);
