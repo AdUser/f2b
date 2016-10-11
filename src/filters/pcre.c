@@ -55,6 +55,13 @@ config(cfg_t *cfg, const char *key, const char *value) {
   }
   if (strcmp(key, "usejit") == 0) {
     cfg->usejit = (strcmp(value, "yes") == 0) ? true : false;
+#ifndef PCRE_CONFIG_JIT
+    if (cfg->usejit) {
+      cfg->usejit = false;
+      strlcpy(cfg->error, "seems like your pcre library doesn't support jit")
+      return false;
+    }
+#endif
     return true;
   }
 
@@ -99,8 +106,10 @@ append(cfg_t *cfg, const char *pattern) {
 
   if (cfg->study) {
     flags = 0;
+#ifdef PCRE_CONFIG_JIT
     if (cfg->usejit)
       flags |= PCRE_STUDY_JIT_COMPILE;
+#endif
     if ((regex->data = pcre_study(regex->regex, 0, &errptr)) == NULL) {
       snprintf(cfg->error, sizeof(cfg->error), "regex learn failed: %s", errptr);
       pcre_free(regex->regex);
@@ -189,8 +198,13 @@ flush(cfg_t *cfg) {
 
   for (r = cfg->regexps; r != NULL; r = next) {
     next = r->next;
+#ifdef PCRE_CONFIG_JIT
     if (cfg->study)
       pcre_free_study(r->data);
+#else
+    if (cfg->study)
+      pcre_free(r->data);
+#endif
     pcre_free(r->regex);
     free(r);
   }
