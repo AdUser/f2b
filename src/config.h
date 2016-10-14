@@ -7,20 +7,36 @@
 #ifndef F2B_CONFIG_H_
 #define F2B_CONFIG_H_
 
-#define CONFIG_LINE_MAX 256
+/**
+ * @file
+ * This header describes f2b ini-style config structs and routines
+ */
 
+/**
+ * @def CONFIG_LINE_MAX
+ * Maximum length of config line
+ */
+#define CONFIG_LINE_MAX 256
+/**
+ * @def CONFIG_KEY_MAX
+ * Maximum length of parameter name
+ */
 #define CONFIG_KEY_MAX 32
+/**
+ * @def CONFIG_VAL_MAX
+ * Maximum length of parameter value
+ */
 #define CONFIG_VAL_MAX 192
 
 /** Section types in config */
 typedef enum f2b_section_type {
-  t_unknown = 0,
-  t_main,
-  t_defaults,
-  t_source,
-  t_filter,
-  t_backend,
-  t_jail,
+  t_unknown = 0, /**< default value */
+  t_main,        /**< [main] section */
+  t_defaults,    /**< [defaults] section */
+  t_source,      /**< [source:*] section */
+  t_filter,      /**< [filter:*] section */
+  t_backend,     /**< [backend:*] section */
+  t_jail,        /**< [jail:*] section */
 } f2b_section_type;
 
 /** Key-value line in config */

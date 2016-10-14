@@ -10,6 +10,11 @@
 #include "config.h"
 #include "log.h"
 
+/**
+ * @file
+ * This header describes source module definition and related routines
+ */
+
 /** source module definition */
 typedef struct f2b_source_t {
   void *h;   /**< dlopen handler */
@@ -37,22 +42,44 @@ typedef struct f2b_source_t {
 
 /**
  * @brief Create module from config
- * @param config Pointer to section of config
+ * @param config Pointer to config section with module description
  * @param init   Module init string
  * @param errcb  Error callback
- * @returns Pointer to module metadata of NULL on error
+ * @returns Pointer to allocated module struct or NULL on error
  */
 f2b_source_t * f2b_source_create  (f2b_config_section_t *config, const char *init, void (*errcb)(const char *));
 /**
  * @brief Free module metadata
- * @param b Pointer to module struct
+ * @param s Pointer to module struct
  */
 void f2b_source_destroy (f2b_source_t *s);
 
-/* helpers */
-bool           f2b_source_start   (f2b_source_t *s);
-bool           f2b_source_next    (f2b_source_t *s, char *buf, size_t bufsize, bool reset);
-bool           f2b_source_stop    (f2b_source_t *s);
-const char *   f2b_source_error   (f2b_source_t *s);
+/**
+ * @brief Start given source
+ * @param s Pointer to source struct
+ * @returns true on success, false on error with setting last error
+ */
+bool f2b_source_start (f2b_source_t *s);
+/**
+ * @brief Get next line of data from given source
+ * @param s Pointer to source struct
+ * @param buf Buffer for data
+ * @param bufsize Size of buffer for data
+ * @param reset Reset source internals
+ * @returns false of no data available, true otherwise with setting @a buf
+ */
+bool f2b_source_next (f2b_source_t *s, char *buf, size_t bufsize, bool reset);
+/**
+ * @brief Stop given source
+ * @param s Pointer to source struct
+ * @returns true on success, false on error with setting last error
+ */
+bool f2b_source_stop (f2b_source_t *s);
+/**
+ * @brief Get last source error
+ * @param s Pointer to source struct
+ * @returns Pointer to string with description of last error
+ */
+const char * f2b_source_error (f2b_source_t *s);
 
 #endif /* F2B_SOURCE_H_ */

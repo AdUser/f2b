@@ -7,15 +7,23 @@
 #ifndef F2B_LOG_H_
 #define F2B_LOG_H_
 
+/**
+ * @file
+ * This file contains logging routines
+ */
+
+/**
+ * @def LOGLINE_MAX
+ */
 #define LOGLINE_MAX 1024
 
 typedef enum {
-  log_debug = 0,
-  log_info  = 1,
-  log_note  = 2,
-  log_warn  = 3,
-  log_error = 4,
-  log_fatal = 5
+  log_debug = 0, /**< diagnostic messages */
+  log_info  = 1, /**< usefull, but not important messages */
+  log_note  = 2, /**< ban/unban events */
+  log_warn  = 3, /**< something goes wrong */
+  log_error = 4, /**< error messages */
+  log_fatal = 5  /**< critical error, program terminates */
 } log_msgtype_t;
 
 void f2b_log_msg(log_msgtype_t l, const char *fmt, ...)

@@ -10,6 +10,11 @@
 #include "config.h"
 #include "log.h"
 
+/**
+ * @file
+ * This header describes filter module definition and related routines
+ */
+
 /** filter module definition */
 typedef struct f2b_filter_t {
   void *h;   /**< dlopen handler */
@@ -36,12 +41,46 @@ typedef struct f2b_filter_t {
   void  (*destroy) (void *cfg);
 } f2b_filter_t;
 
+/**
+ * @brief Create module from config
+ * @param config Pointer to config section with module description
+ * @param id Filter id
+ * @returns Pointer to allocated module struct or NULL on error
+ */
 f2b_filter_t * f2b_filter_create  (f2b_config_section_t *config, const char *id);
-const char *   f2b_filter_error   (f2b_filter_t *f);
-bool           f2b_filter_append  (f2b_filter_t *f, const char *pattern);
-bool           f2b_filter_match   (f2b_filter_t *f, const char *line, char *buf, size_t buf_size);
-void           f2b_filter_destroy (f2b_filter_t *f);
+/**
+ * @brief Free module metadata
+ * @param f Pointer to module struct
+ */
+void f2b_filter_destroy (f2b_filter_t *f);
 
+/**
+ * @brief Get last filter error
+ * @param f Pointer to filter struct
+ * @returns Pointer to string with description of last error
+ */
+const char * f2b_filter_error (f2b_filter_t *f);
+/**
+ * @brief Append pattern to filter
+ * @param f Pointer to filter struct
+ * @param pattern Match pattern
+ * @returns true on success, false on error with setting last error
+ */
+bool f2b_filter_append(f2b_filter_t *f, const char *pattern);
+/**
+ * @brief Match a line against given filter
+ * @param f Pointer to filter struct
+ * @param line Line of data
+ * @param buf Match buffer
+ * @param bufsize Size of match buffer
+ * @returns false if no match and true otherwise with filling @a buf with matched token
+ */
+bool f2b_filter_match (f2b_filter_t *f, const char *line, char *buf, size_t bufsize);
+
+/* handlers for cmsg processing */
+/** handler of 'jail $JAIL filter reload' cmd */
 void f2b_filter_cmd_reload(char *buf, size_t bufsize, f2b_filter_t *f);
+/** handler of 'jail $JAIL filter stats' cmd */
 void f2b_filter_cmd_stats (char *buf, size_t bufsize, f2b_filter_t *f);
+
 #endif /* F2B_FILTER_H_ */

@@ -14,6 +14,11 @@
 #include "filter.h"
 #include "backend.h"
 
+/**
+ * @file
+ * This header describes jail definition and related routines
+ */
+
 /** jail metadata struct */
 typedef struct f2b_jail_t {
   struct f2b_jail_t *next;   /**< pointer to next jail */
@@ -39,7 +44,10 @@ typedef struct f2b_jail_t {
   f2b_ipaddr_t  *ipaddrs; /**< list of known ip addresses */
 } f2b_jail_t;
 
-/** defined jails list */
+/**
+ * @var jails
+ * Global list of Defined jails
+ */
 extern f2b_jail_t *jails;
 
 /**
@@ -88,14 +96,14 @@ bool   f2b_jail_stop    (f2b_jail_t *jail);
  * @brief Get jail status
  * @param res Response buffer
  * @param ressize Size of buffer above
- * @param Jail pointer
+ * @param jail Jail pointer
  */
 void f2b_jail_cmd_status (char *res, size_t ressize, f2b_jail_t *jail);
 /**
  * @brief ipaddr manage routine in given jail
  * @param res Response buffer
  * @param ressize Size of buffer above
- * @param Jail pointer
+ * @param jail Jail pointer
  * @param op Operation for ipaddr >0 - ban, 0 - check, <0 - unban
  * @param ip Ip address
  */

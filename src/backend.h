@@ -10,6 +10,11 @@
 #include "config.h"
 #include "log.h"
 
+/**
+ * @file
+ * This header describes backend module definition and related routines
+ */
+
 /** backend module definition */
 typedef struct f2b_backend_t {
   void *h;   /**< dlopen handler */
@@ -42,7 +47,7 @@ typedef struct f2b_backend_t {
 /**
  * @brief Create module from config
  * @param config Pointer to section of config
- * @param init   Module init string
+ * @param id     Backend id
  * @returns Pointer to module metadata of NULL on error
  */
 f2b_backend_t * f2b_backend_create (f2b_config_section_t *config, const char *id);
@@ -53,14 +58,53 @@ f2b_backend_t * f2b_backend_create (f2b_config_section_t *config, const char *id
 void f2b_backend_destroy(f2b_backend_t *b);
 
 /* helpers */
+/**
+ * @brief Get last backend error
+ * @param b Pointer to backend struct
+ * @returns Pointer to string with description of last error
+ */
 const char *
      f2b_backend_error (f2b_backend_t *b);
+/**
+ * @brief Start given backend
+ * @param b Pointer to backend struct
+ * @returns true on success, false on error with setting last error
+ */
 bool f2b_backend_start (f2b_backend_t *b);
+/**
+ * @brief Stop given backend
+ * @param b Pointer to backend struct
+ * @returns true on success, false on error with setting last error
+ */
 bool f2b_backend_stop  (f2b_backend_t *b);
+/**
+ * @brief Perform maintenance of given backend
+ * @param b Pointer to backend struct
+ * @returns true on success, false on error with setting last error
+ */
 bool f2b_backend_ping  (f2b_backend_t *b);
 
+/**
+ * @brief Send command to ban given ip
+ * @param b  Pointer to backend struct
+ * @param ip IP address
+ * @returns true on success, false on error with setting last error
+ */
 bool f2b_backend_ban   (f2b_backend_t *b, const char *ip);
+/**
+ * @brief Check is given ip already banned by backend
+ * @param b  Pointer to backend struct
+ * @param ip IP address
+ * @returns true on success, false on error with setting last error
+ * @note Not all backends support this command
+ */
 bool f2b_backend_check (f2b_backend_t *b, const char *ip);
+/**
+ * @brief Send command to release given ip
+ * @param b  Pointer to backend struct
+ * @param ip IP address
+ * @returns true on success, false on error with setting last error
+ */
 bool f2b_backend_unban (f2b_backend_t *b, const char *ip);
 
 #endif /* F2B_BACKEND_H_ */

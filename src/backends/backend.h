@@ -138,6 +138,7 @@ extern bool      ban(cfg_t *cfg, const char *ip);
  * @param cfg Module handler
  * @param ip IP address
  * @returns true on success, false on error with setting intenal error buffer
+ * @note If this action is meaningless for backend it should return true
  */
 extern bool    check(cfg_t *cfg, const char *ip);
 /**
@@ -145,6 +146,7 @@ extern bool    check(cfg_t *cfg, const char *ip);
  * @param cfg Module handler
  * @param ip IP address
  * @returns true on success, false on error with setting intenal error buffer
+ * @note If this action is meaningless for backend it should return true
  */
 extern bool    unban(cfg_t *cfg, const char *ip);
 /**
