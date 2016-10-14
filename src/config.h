@@ -50,6 +50,13 @@ typedef struct f2b_config_t {
 } f2b_config_t;
 
 /**
+ * @brief Try parse line with `key = value` parameter
+ * @param src Source line
+ * @returns Pointer to created allocated parameter struct or NULL on error
+ */
+f2b_config_param_t * f2b_config_param_create(const char *src);
+
+/**
  * @brief Find parameter with given name in list
  * @param list Linked list of parameters
  * @param name Name of wanted parameter
