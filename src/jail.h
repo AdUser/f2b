@@ -14,6 +14,7 @@
 #include "filter.h"
 #include "backend.h"
 
+/** jail metadata struct */
 typedef struct f2b_jail_t {
   struct f2b_jail_t *next;   /**< pointer to next jail */
   bool enabled;              /**< option: is jail enabled */

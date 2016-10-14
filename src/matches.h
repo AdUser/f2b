@@ -7,6 +7,7 @@
 #ifndef F2B_MATCHES_H_
 #define F2B_MATCHES_H_
 
+/** matches container */
 typedef struct {
   size_t hits;   /**< how many times this ip matched by filter */
   size_t max;    /**< max matches that this in struct can contain */

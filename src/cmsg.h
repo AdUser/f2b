@@ -22,7 +22,7 @@ typedef struct f2b_cmsg_t {
   uint8_t flags;   /**< CMSG_FLAG_* */
   uint16_t size;   /**< payload length */
   /* 8 bytes */
-  char pass[8];
+  char pass[8];    /**< auth data */
   /* 16 bytes */
   /* end of header */
   char data[DATA_LEN_MAX];      /**< set of "\n"-terminated strings */
