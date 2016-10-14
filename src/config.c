@@ -174,6 +174,39 @@ f2b_config_section_find(f2b_config_section_t *section, const char *name) {
   return NULL;
 }
 
+f2b_config_section_t *
+f2b_config_section_append(f2b_config_t *config, f2b_config_section_t *section) {
+  f2b_config_section_t *prev = NULL;
+  f2b_config_section_t **s   = NULL;
+
+  assert(config != NULL);
+  assert(section != NULL);
+
+  switch (section->type) {
+    case t_main:     s = &config->main;     break;
+    case t_defaults: s = &config->defaults; break;
+    case t_source:   s = &config->sources;  break;
+    case t_filter:   s = &config->filters;  break;
+    case t_backend:  s = &config->backends; break;
+    case t_jail:     s = &config->jails;    break;
+    default:
+      f2b_log_msg(log_error, "unknown section type");
+      abort();
+      break;
+  }
+
+  if ((prev = f2b_config_section_find(*s, section->name)) != NULL) {
+    /* found section with this name */
+    free(section);
+    return prev;
+  }
+
+  /* not found, append */
+  section->next = *s;
+  *s = section;
+  return section;
+}
+
 bool
 f2b_config_load(f2b_config_t *config, const char *path, bool recursion) {
   f2b_config_section_t *section = NULL; /* always points to current section */
@@ -299,37 +332,4 @@ f2b_config_free(f2b_config_t *config) {
   FREE_SECTIONS(config->filters);
   FREE_SECTIONS(config->backends);
   FREE_SECTIONS(config->jails);
-}
-
-f2b_config_section_t *
-f2b_config_section_append(f2b_config_t *config, f2b_config_section_t *section) {
-  f2b_config_section_t *prev = NULL;
-  f2b_config_section_t **s   = NULL;
-
-  assert(config != NULL);
-  assert(section != NULL);
-
-  switch (section->type) {
-    case t_main:     s = &config->main;     break;
-    case t_defaults: s = &config->defaults; break;
-    case t_source:   s = &config->sources;  break;
-    case t_filter:   s = &config->filters;  break;
-    case t_backend:  s = &config->backends; break;
-    case t_jail:     s = &config->jails;    break;
-    default:
-      f2b_log_msg(log_error, "unknown section type");
-      abort();
-      break;
-  }
-
-  if ((prev = f2b_config_section_find(*s, section->name)) != NULL) {
-    /* found section with this name */
-    free(section);
-    return prev;
-  }
-
-  /* not found, append */
-  section->next = *s;
-  *s = section;
-  return section;
 }
