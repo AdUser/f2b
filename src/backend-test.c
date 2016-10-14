@@ -25,19 +25,19 @@ int main(int argc, char *argv[]) {
 
   memset(&config, 0x0, sizeof(config));
   if (f2b_config_load(&config, argv[1], false) != true) {
-    f2b_log_msg(log_error, "can't load config");
+    f2b_log_msg(log_fatal, "can't load config");
     return EXIT_FAILURE;
   }
 
   if (config.backends == NULL) {
-    f2b_log_msg(log_error, "no backends found in config");
+    f2b_log_msg(log_fatal, "no backends found in config");
     return EXIT_FAILURE;
   } else {
     section = config.backends;
   }
 
   if ((backend = f2b_backend_create(section, argv[2])) == NULL) {
-    f2b_log_msg(log_error, "can't create backend '%s' with id '%s'", section->name, argv[2]);
+    f2b_log_msg(log_fatal, "can't create backend '%s' with id '%s'", section->name, argv[2]);
     return EXIT_FAILURE;
   }
 

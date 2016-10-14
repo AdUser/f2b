@@ -26,24 +26,24 @@ int main(int argc, char *argv[]) {
 
   memset(&config, 0x0, sizeof(config));
   if (f2b_config_load(&config, argv[1], false) != true) {
-    f2b_log_msg(log_error, "can't load config");
+    f2b_log_msg(log_fatal, "can't load config");
     return EXIT_FAILURE;
   }
 
   if (config.sources == NULL) {
-    f2b_log_msg(log_error, "no sources found in config");
+    f2b_log_msg(log_fatal, "no sources found in config");
     return EXIT_FAILURE;
   } else {
     section = config.sources;
   }
 
   if ((source = f2b_source_create(section, argv[2], f2b_log_error_cb)) == NULL) {
-    f2b_log_msg(log_error, "can't create source '%s' with init '%s'", section->name, argv[2]);
+    f2b_log_msg(log_fatal, "can't create source '%s' with init '%s'", section->name, argv[2]);
     return EXIT_FAILURE;
   }
 
   if (f2b_source_start(source) == false) {
-    f2b_log_msg(log_error, "source start error: %s", f2b_source_error(source));
+    f2b_log_msg(log_fatal, "source start error: %s", f2b_source_error(source));
     exit(EXIT_FAILURE);
   }
 

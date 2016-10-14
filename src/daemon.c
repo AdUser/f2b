@@ -322,7 +322,7 @@ int main(int argc, char *argv[]) {
         const char *err = (errno == EWOULDBLOCK)
           ? "another instance already running"
           : strerror(errno);
-        f2b_log_msg(log_error, "can't lock pidfile: %s", err);
+        f2b_log_msg(log_fatal, "can't lock pidfile: %s", err);
         exit(EXIT_FAILURE);
       }
       fprintf(pidfile, "%d\n", getpid());
@@ -342,7 +342,7 @@ int main(int argc, char *argv[]) {
   f2b_config_free(&config);
 
   if (!jails) {
-    f2b_log_msg(log_warn, "no jails configured, exiting");
+    f2b_log_msg(log_fatal, "no jails configured, exiting");
     return EXIT_FAILURE;
   }
 
