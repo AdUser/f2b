@@ -108,14 +108,6 @@ f2b_csocket_rtimeout(int sock, float timeout) {
   f2b_log_msg(log_warn, "can't set recv timeout for csocket: %s", strerror(errno));
 }
 
-/**
- * @brief Recieve and unpack control message
- * @param csock Opened socket fd
- * @param cmsg  Control message pointer
- * @param addr  Pointer for sender address store
- * @param addrlen  Size of address storage
- * @return >0 on success, 0 on no avalilable messages, <0 on error
- */
 int
 f2b_csocket_recv(int csock, f2b_cmsg_t *cmsg, struct sockaddr_storage *addr, socklen_t *addrlen) {
   struct msghdr msg;
@@ -174,14 +166,6 @@ f2b_csocket_recv(int csock, f2b_cmsg_t *cmsg, struct sockaddr_storage *addr, soc
   return ret;
 }
 
-/**
- * @brief Pack and send control message
- * @param csock Opened socket fd
- * @param cmsg  Control message pointer
- * @param addr  Pointer for destination address store
- * @param addrlen  Size of address storage
- * @return >0 on success
- */
 int
 f2b_csocket_send(int csock, f2b_cmsg_t *cmsg, struct sockaddr_storage *addr, socklen_t *addrlen) {
   struct msghdr msg;
@@ -214,9 +198,6 @@ f2b_csocket_send(int csock, f2b_cmsg_t *cmsg, struct sockaddr_storage *addr, soc
   return ret;
 }
 
-/**
- * @return -1 on error, 0 on no messages, and > 0 on some messages processed
- */
 int
 f2b_csocket_poll(int csock, void (*cb)(const f2b_cmsg_t *cmsg, char *res, size_t ressize)) {
   char res[DATA_LEN_MAX + 1];

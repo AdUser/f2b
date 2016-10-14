@@ -7,6 +7,11 @@
 #ifndef F2B_MATCHES_H_
 #define F2B_MATCHES_H_
 
+/**
+ * @file
+ * This file contains definition of ipaddr matches struct and related routines
+ */
+
 /** matches container */
 typedef struct {
   size_t hits;   /**< how many times this ip matched by filter */

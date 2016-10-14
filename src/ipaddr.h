@@ -11,6 +11,11 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+/**
+ * @file
+ * This file contains definition of ipaddr struct and related routines
+ */
+
 #include "matches.h"
 
 /**
@@ -19,10 +24,7 @@
  */
 #define IPADDR_MAX 48 /* 8 x "ffff" + 7 x "::" + '\0' */
 
-/**
- * @struct f2b_ipaddr_t
- * Describes ip-address and it's metadata
- */
+/** Describes ip-address and it's metadata */
 typedef struct f2b_ipaddr_t {
   struct f2b_ipaddr_t *next; /**< pointer to next addr */
   int type;                  /**< address type, AF_INET/AF_INET6 */
@@ -60,9 +62,33 @@ void f2b_ipaddr_destroy(f2b_ipaddr_t *ipaddr);
  */
 void f2b_ipaddr_status (f2b_ipaddr_t *ipaddr, char *res, size_t ressize);
 
+/**
+ * @brief Append address to list
+ * @param list Pointer to ipaddr list (can be NULL)
+ * @param ipaddr Pointer to ipaddr struct for adding to list
+ * @returns Pointer to new address list
+ */
 f2b_ipaddr_t * f2b_addrlist_append(f2b_ipaddr_t *list, f2b_ipaddr_t *ipaddr);
+/**
+ * @brief Search for given ipaddr in list
+ * @param list Pointer to ipaddr list (can be NULL)
+ * @param addr IP address for search
+ * @returns Pointer to found struct or NULL if not found
+ */
 f2b_ipaddr_t * f2b_addrlist_lookup(f2b_ipaddr_t *list, const char *addr);
+/**
+ * @brief Remove given address from list
+ * @param list Pointer to ipaddr list (can be NULL)
+ * @param addr IP address for remove
+ * @returns Pointer to new address list or NULL if new list is empty
+ */
 f2b_ipaddr_t * f2b_addrlist_remove(f2b_ipaddr_t *list, const char *addr);
+/**
+ * @brief Free all addresses in list
+ * @param list Pointer to ipaddr list (can be NULL)
+ * @returns NULL
+ * @note Return value not void to match other functions
+ */
 f2b_ipaddr_t * f2b_addrlist_destroy(f2b_ipaddr_t *list);
 
 #endif /* F2B_IPADDR_H_ */
