@@ -10,18 +10,29 @@
 #include "config.h"
 #include "log.h"
 
+/** filter module definition */
 typedef struct f2b_filter_t {
-  void *h;
-  void *cfg;
-  char file[PATH_MAX];
+  void *h;   /**< dlopen handler */
+  void *cfg; /**< opaque pointer of module config */
+  char file[PATH_MAX]; /**< path to file with patterns */
+  /* handlers */
+  /** dlsym pointer to handler of @a create command */
   void *(*create)  (const char *id);
+  /** dlsym pointer to handler of @a config command */
   bool  (*config)  (void *cfg, const char *key, const char *value);
+  /** dlsym pointer to handler of @a append command */
   bool  (*append)  (void *cfg, const char *pattern);
+  /** dlsym pointer to handler of @a error command */
   char *(*error)   (void *cfg);
+  /** dlsym pointer to handler of @a ready command */
   bool  (*ready)   (void *cfg);
+  /** dlsym pointer to handler of @a flush command */
   bool  (*flush)   (void *cfg);
+  /** dlsym pointer to handler of @a stats command */
   bool  (*stats)   (void *cfg, int *matches, char **pattern, bool reset);
+  /** dlsym pointer to handler of @a match command */
   bool  (*match)   (void *cfg, const char *line, char *buf, size_t buf_size);
+  /** dlsym pointer to handler of @a destroy command */
   void  (*destroy) (void *cfg);
 } f2b_filter_t;
 
