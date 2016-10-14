@@ -12,6 +12,7 @@
 #define CONFIG_KEY_MAX 32
 #define CONFIG_VAL_MAX 192
 
+/** Section types in config */
 typedef enum f2b_section_type {
   t_unknown = 0,
   t_main,
@@ -22,37 +23,60 @@ typedef enum f2b_section_type {
   t_jail,
 } f2b_section_type;
 
+/** Key-value line in config */
 typedef struct f2b_config_param_t {
-  struct f2b_config_param_t *next;
-  char name[CONFIG_KEY_MAX];
-  char value[CONFIG_VAL_MAX];
+  struct f2b_config_param_t *next; /**< pointer to next parameter of this section */
+  char name[CONFIG_KEY_MAX];  /**< parameter name  */
+  char value[CONFIG_VAL_MAX]; /**< parameter value */
 } f2b_config_param_t;
 
+/** Section of config */
 typedef struct f2b_config_section_t {
-  struct f2b_config_section_t *next;
-  char name[CONFIG_KEY_MAX];
-  f2b_section_type type;
-  f2b_config_param_t *param;
-  f2b_config_param_t *last;
+  struct f2b_config_section_t *next; /**< pointer to next section of same type */
+  char name[CONFIG_KEY_MAX]; /**< section name (eg [type:$NAME]) */
+  f2b_section_type type;     /**< section type */
+  f2b_config_param_t *param; /**< linked list of parameters */
+  f2b_config_param_t *last;  /**< tail of parameter list */
 } f2b_config_section_t;
 
+/** topmost f2b config struct */
 typedef struct f2b_config_t {
-  f2b_config_section_t *main;
-  f2b_config_section_t *defaults;
-  f2b_config_section_t *sources;
-  f2b_config_section_t *filters;
-  f2b_config_section_t *backends;
-  f2b_config_section_t *jails;
+  f2b_config_section_t *main;      /**< section [main] */
+  f2b_config_section_t *defaults;  /**< section [defaults]   */
+  f2b_config_section_t *sources;   /**< sections [source:*]  */
+  f2b_config_section_t *filters;   /**< sections [filter:*]  */
+  f2b_config_section_t *backends;  /**< sections [backend:*] */
+  f2b_config_section_t *jails;     /**< sections [jail:*]    */
 } f2b_config_t;
 
-f2b_config_param_t * f2b_config_param_create(const char *line);
-f2b_config_param_t * f2b_config_param_find  (f2b_config_param_t *param, const char *name);
-f2b_config_param_t * f2b_config_param_append(f2b_config_param_t *list, f2b_config_param_t *p, bool replace);
+/**
+ * @brief Find parameter with given name in list
+ * @param list Linked list of parameters
+ * @param name Name of wanted parameter
+ * @returns Pointer to found parameter or NULL if nothing found
+ */
+f2b_config_param_t * f2b_config_param_find (f2b_config_param_t *list, const char *name);
 
-f2b_config_section_t * f2b_config_section_create(const char *line);
-f2b_config_section_t * f2b_config_section_find  (f2b_config_section_t *s, const char *name);
-f2b_config_section_t * f2b_config_section_append(f2b_config_t *c, f2b_config_section_t *s);
+/**
+ * @brief Find section with given name in list
+ * @param list Linked list of sections
+ * @param name Name of wanted section
+ * @returns Pointer to found section or NULL if nothing found
+ */
+f2b_config_section_t * f2b_config_section_find (f2b_config_section_t *list, const char *name);
 
+/**
+ * @brief Load config from file
+ * @param c Config struct pointer
+ * @param path Path to config file
+ * @param recursion Process `include = <dir>` parameter
+ * @returns true on success, false if error(s) occured
+ */
 bool f2b_config_load(f2b_config_t *c, const char *path, bool recursion);
+/**
+ * @brief Destroy config and free all resources
+ * @param c Config pointer
+ */
 void f2b_config_free(f2b_config_t *c);
+
 #endif /* F2B_CONFIG_H_ */
