@@ -26,7 +26,6 @@ typedef struct f2b_jail_t {
   float incr_bantime;        /**< option: multiplier for bantime  */
   float incr_findtime;       /**< option: multiplier for finetime */
   char name[CONFIG_KEY_MAX]; /**< name of the jail */
-  char glob[PATH_MAX];       /**< deprecated */
   char backend_name[CONFIG_KEY_MAX]; /**< backend name from config (eg [backend:$NAME] section) */
   char backend_init[CONFIG_VAL_MAX]; /**< backend init string (eg `backend = NAME:$INIT_STRING` line from jail section) */
   char filter_name[CONFIG_KEY_MAX];  /**< filter name from config (eg [filter:$NAME] section) */
@@ -41,8 +40,6 @@ typedef struct f2b_jail_t {
 
 /** defined jails list */
 extern f2b_jail_t *jails;
-
-void f2b_jail_parse_compound_value(const char *value, char *name, char *init);
 
 /**
  * @brief Apply defaults to jail template (affects later f2b_jail_create())
@@ -84,10 +81,7 @@ size_t f2b_jail_process (f2b_jail_t *jail);
  */
 bool   f2b_jail_stop    (f2b_jail_t *jail);
 
-bool f2b_jail_ban   (f2b_jail_t *jail, f2b_ipaddr_t *addr);
-bool f2b_jail_unban (f2b_jail_t *jail, f2b_ipaddr_t *addr);
-
-/* handler for cmsg */
+/* handlers for cmsg */
 
 /**
  * @brief Get jail status
@@ -105,4 +99,5 @@ void f2b_jail_cmd_status (char *res, size_t ressize, f2b_jail_t *jail);
  * @param ip Ip address
  */
 void f2b_jail_cmd_ip_xxx (char *res, size_t ressize, f2b_jail_t *jail, int op, const char *ip);
+
 #endif /* F2B_JAIL_H_ */
