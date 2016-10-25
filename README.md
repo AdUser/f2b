@@ -13,6 +13,7 @@ Features:
 Docs:
 
 * docs/install.md -- generic installation instructions
+* docs/configuration.md -- config file description and configuration notes
 
 Similar software:
 
