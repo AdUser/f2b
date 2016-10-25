@@ -69,6 +69,11 @@ redis
     * database -- database number on redis server (see SELECT redis command)
     * password -- password for redis auth after connect (see AUTH redis command)
 
+portknock
+:   Init string is ignored. Only option is `listen` -- set address/port for tcp honeypot.
+    Address is optional, eg "23" and "0.0.0.0:23" is the same.
+    For ipv6 address use square brackets like this: "[fe80::fe14:a87c]:23".
+
 Filter-modules
 --------------
 
