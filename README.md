@@ -10,6 +10,10 @@ Features:
 * minimum dependencies (req: libc, libdl; optional: pcre, redis)
 * pluggable sources / filters / backends (you may write custom one)
 
+Docs:
+
+* docs/install.md -- generic installation instructions
+
 Similar software:
 
 * [fail2ban](http://www.fail2ban.org)
