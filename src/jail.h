@@ -107,6 +107,15 @@ bool   f2b_jail_stop    (f2b_jail_t *jail);
  */
 void f2b_jail_cmd_status (char *res, size_t ressize, f2b_jail_t *jail);
 /**
+ * @brief Get jail status
+ * @param res Response buffer
+ * @param ressize Size of buffer above
+ * @param jail Jail pointer
+ * @param param Parameter name
+ * @param value Parameter value
+ */
+void f2b_jail_cmd_set    (char *res, size_t ressize, f2b_jail_t *jail, const char *param, const char *value);
+/**
  * @brief ipaddr manage routine in given jail
  * @param res Response buffer
  * @param ressize Size of buffer above

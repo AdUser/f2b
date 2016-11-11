@@ -132,6 +132,8 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
     }
   } else if (msg->type == CMD_JAIL_STATUS) {
     f2b_jail_cmd_status(res, ressize, jail);
+  } else if (msg->type == CMD_JAIL_SET) {
+    f2b_jail_cmd_set(res, ressize, jail, args[1], args[2]);
   } else if (msg->type == CMD_JAIL_IP_STATUS) {
     f2b_jail_cmd_ip_xxx(res, ressize, jail,  0, args[1]);
   } else if (msg->type == CMD_JAIL_IP_BAN) {

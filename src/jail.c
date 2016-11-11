@@ -447,6 +447,18 @@ f2b_jail_cmd_status(char *res, size_t ressize, f2b_jail_t *jail) {
     jail->bancount, jail->matchcount);
 }
 
+void
+f2b_jail_cmd_set(char *res, size_t ressize, f2b_jail_t *jail, const char *param, const char *value) {
+  assert(res   != NULL);
+  assert(jail  != NULL);
+  assert(param != NULL);
+  assert(value != NULL);
+
+  if (f2b_jail_set_param(jail, param, value))
+    return;
+  snprintf(res, ressize, "parameter not found: %s", param);
+}
+
 /**
  * @brief misc operations on ip in given jail
  * @param res  response buffer (don't change if no error)
