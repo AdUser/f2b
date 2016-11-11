@@ -45,6 +45,52 @@ f2b_jail_parse_compound_value(const char *value, char *name, char *init) {
   return;
 }
 
+bool
+f2b_jail_set_param(f2b_jail_t *jail, const char *param, const char *value) {
+  assert(jail != NULL);
+  assert(param != NULL);
+  assert(value != NULL);
+
+  if (strcmp(param, "enabled") == 0) {
+    if (strcmp(value, "yes") == 0)
+      jail->enabled = true;
+    return true;
+  }
+  if (strcmp(param, "bantime") == 0) {
+    jail->bantime = atoi(value);
+    if (jail->bantime <= 0)
+      jail->bantime = DEFAULT_BANTIME;
+    return true;
+  }
+  if (strcmp(param, "findtime") == 0) {
+    jail->findtime = atoi(value);
+    if (jail->findtime <= 0)
+      jail->findtime = DEFAULT_FINDTIME;
+    return true;
+  }
+  if (strcmp(param, "expiretime") == 0) {
+    jail->expiretime = atoi(value);
+    if (jail->expiretime <= 0)
+      jail->expiretime = DEFAULT_EXPIRETIME;
+    return true;
+  }
+  if (strcmp(param, "maxretry") == 0) {
+    jail->maxretry = atoi(value);
+    if (jail->maxretry == 0)
+      jail->maxretry = DEFAULT_MAXRETRY;
+    return true;
+  }
+  if (strcmp(param, "incr_bantime") == 0) {
+    jail->incr_bantime = atof(value);
+    return true;
+  }
+  if (strcmp(param, "incr_findtime") == 0) {
+    jail->incr_findtime = atof(value);
+    return true;
+  }
+  return false;
+}
+
 void
 f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
   f2b_config_param_t *param = NULL;
@@ -54,43 +100,6 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
   assert(section->type == t_jail || section->type == t_defaults);
 
   for (param = section->param; param != NULL; param = param->next) {
-    if (strcmp(param->name, "enabled") == 0) {
-      if (strcmp(param->value, "yes") == 0)
-        jail->enabled = true;
-      continue;
-    }
-    if (strcmp(param->name, "bantime") == 0) {
-      jail->bantime = atoi(param->value);
-      if (jail->bantime <= 0)
-        jail->bantime = DEFAULT_BANTIME;
-      continue;
-    }
-    if (strcmp(param->name, "findtime") == 0) {
-      jail->findtime = atoi(param->value);
-      if (jail->findtime <= 0)
-        jail->findtime = DEFAULT_FINDTIME;
-      continue;
-    }
-    if (strcmp(param->name, "expiretime") == 0) {
-      jail->expiretime = atoi(param->value);
-      if (jail->expiretime <= 0)
-        jail->expiretime = DEFAULT_EXPIRETIME;
-      continue;
-    }
-    if (strcmp(param->name, "maxretry") == 0) {
-      jail->maxretry = atoi(param->value);
-      if (jail->maxretry == 0)
-        jail->maxretry = DEFAULT_MAXRETRY;
-      continue;
-    }
-    if (strcmp(param->name, "incr_bantime") == 0) {
-      jail->incr_bantime = atof(param->value);
-      continue;
-    }
-    if (strcmp(param->name, "incr_findtime") == 0) {
-      jail->incr_findtime = atof(param->value);
-      continue;
-    }
     if (strcmp(param->name, "source") == 0) {
       f2b_jail_parse_compound_value(param->value, jail->source_name, jail->source_init);
       continue;
@@ -103,6 +112,9 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
       f2b_jail_parse_compound_value(param->value, jail->backend_name, jail->backend_init);
       continue;
     }
+    if (f2b_jail_set_param(jail, param->name, param->value))
+      continue;
+    f2b_log_msg(log_warn, "jail '%s': unrecognized parameter: %s", jail->name, param->name);
   }
 
   return;

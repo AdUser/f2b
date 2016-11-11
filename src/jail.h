@@ -68,7 +68,14 @@ f2b_jail_t *f2b_jail_create (f2b_config_section_t *section);
  * @returns Pointer to wanted jail or NULL if not found
  */
 f2b_jail_t *f2b_jail_find (f2b_jail_t *list, const char *name);
-
+/**
+ * @brief Set tunable parameter of jail
+ * @param jail Jail pointer
+ * @param param Parameter name
+ * @param value Parameter value
+ * @return true if parameter set, false if not found
+ */
+bool   f2b_jail_set_param(f2b_jail_t *jail, const char *param, const char *value);
 /**
  * @brief Setup source, filter and backend in jail
  * @param jail Jail pointer
