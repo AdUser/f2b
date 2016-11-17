@@ -31,6 +31,12 @@ struct _config {
   f2b_port_t *current;
 };
 
+static void
+errcb_stub(char *str) {
+  assert(str != NULL);
+  (void)(str);
+}
+
 static bool
 try_parse_listen_opt(f2b_port_t *port, const char *value) {
   char buf[256];
@@ -64,12 +70,6 @@ try_parse_listen_opt(f2b_port_t *port, const char *value) {
   }
 
   return false;
-}
-
-static void
-errcb_stub(char *str) {
-  assert(str != NULL);
-  (void)(str);
 }
 
 cfg_t *
