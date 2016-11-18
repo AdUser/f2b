@@ -11,18 +11,21 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <net/if.h>
 #include <netdb.h>
 
+#define DEFAULT_BIND_ADDR "0.0.0.0"
 #define DEFAULT_MCAST_ADDR "239.255.186.1"
-#define DEFAULT_MCAST_PORT 3370
+#define DEFAULT_MCAST_PORT "3370"
 
 struct _config {
   char name[32];
   char error[256];
   void (*errcb)(char *errstr);
-  char addr[INET_STRADDRLEN];
-  char iface[16];
-  uint16_t port;
+  char baddr[INET6_ADDRSTRLEN]; /**< bind address */
+  char maddr[INET_ADDRSTRLEN];  /**< multicast address */
+  char mport[6];                /**< multicast port */
+  char iface[IF_NAMESIZE];      /**< bind interface */
   int sock;
 };
 
@@ -39,8 +42,9 @@ create(const char *init) {
   if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
     return NULL;
   strlcpy(cfg->name, init, sizeof(cfg->name));
-  strlcpy(cfg->addr, DEFAULT_MCAST_ADDR, sizeof(cfg->addr));
-  cfg->port = DEFAULT_MCAST_PORT;
+  strlcpy(cfg->baddr, DEFAULT_BIND_ADDR,  sizeof(cfg->baddr));
+  strlcpy(cfg->maddr, DEFAULT_MCAST_ADDR, sizeof(cfg->maddr));
+  strlcpy(cfg->mport, DEFAULT_MCAST_PORT, sizeof(cfg->mport));
   cfg->errcb = &errcb_stub;
   return cfg;
 }
@@ -51,16 +55,20 @@ config(cfg_t *cfg, const char *key, const char *value) {
   assert(key   != NULL);
   assert(value != NULL);
 
-  if (strcmp(key, "address") == 0) {
+  if (strcmp(key, "group") == 0) {
     if (strncmp(value, "239.255.", 8) != 0) {
-      strlcpy(cfg->error, "mcast address should be inside 239.255.0.0/16 block");
+      strlcpy(cfg->error, "mcast group address should be inside 239.255.0.0/16 block", sizeof(cfg->error));
       return false;
     }
-    strlcpy(cfg->addr, value, sizeof(cfg->addr));
+    strlcpy(cfg->maddr, value, sizeof(cfg->maddr));
+    return true;
+  }
+  if (strcmp(key, "address") == 0) {
+    strlcpy(cfg->baddr, value, sizeof(cfg->baddr));
     return true;
   }
   if (strcmp(key, "port") == 0) {
-    cfg->port = atoi(value);
+    strlcpy(cfg->mport, value, sizeof(cfg->mport));
     return true;
   }
   if (strcmp(key, "iface") == 0) {
@@ -75,7 +83,7 @@ bool
 ready(cfg_t *cfg) {
   assert(cfg != NULL);
 
-  if (cfg->addr[0] != '\0')
+  if (cfg->maddr[0] && (cfg->iface[0] || cfg->baddr[0]))
     return true;
 
   return false;
@@ -100,7 +108,8 @@ bool
 start(cfg_t *cfg) {
   struct addrinfo hints;
   struct addrinfo *result;
-  int opt;
+  struct ip_mreq mreq;
+  int opt, ret;
 
   assert(cfg != NULL);
 
@@ -109,29 +118,67 @@ start(cfg_t *cfg) {
   hints.ai_socktype = SOCK_DGRAM;
   hints.ai_protocol = 0;
 
-  int ret = getaddrinfo(cfg->addr, cfg->port, &hints, &result);
-  for (struct addrinfo *rp = result; rp != NULL; rp = rp->ai_next) {
-    cfg->sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-    if (cfg->sock == -1)
-      continue;
-    if ((opt = fcntl(cfg->sock, F_GETFL, 0)) < 0)
-      continue;
-    fcntl(cfg->sock, F_SETFL, opt | O_NONBLOCK);
-    opt = 1;
-    setsockopt(cfg->sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-    if (connect(cfg->sock, rp->ai_addr, rp->ai_addrlen) == 0) {
-      break; /* success */
-  }
-  freeaddrinfo(result);
-
-  /* setsockopt -- socket(7) -- SO_BINDTODEVICE */
-
-  if (cfg->sock < 0) {
-    snprintf(cfg->error, sizeof(cfg->error), "can't bind to %s:%s", cfg->host, cfg->port);
+  if ((ret = getaddrinfo(cfg->baddr, cfg->mport, &hints, &result)) < 0) {
+    snprintf(cfg->error, sizeof(cfg->error), "can't create socket: %s", gai_strerror(ret));
     return false;
   }
 
-  /* TODO */
+  for (struct addrinfo *rp = result; rp != NULL; rp = rp->ai_next) {
+    /* create socket */
+    if ((cfg->sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol)) < 0) {
+      snprintf(cfg->error, sizeof(cfg->error), "can't create socket: %s", strerror(errno));
+      continue;
+    }
+    /* set non-blocking mode */
+    if ((opt = fcntl(cfg->sock, F_GETFL, 0)) < 0) {
+      close(cfg->sock);
+      continue;
+    }
+    fcntl(cfg->sock, F_SETFL, opt | O_NONBLOCK);
+    /* reuse address */
+    opt = 1;
+    setsockopt(cfg->sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    /* bind to interface if set */
+    if (cfg->iface[0]) {
+      if (setsockopt(cfg->sock, SOL_SOCKET, SO_BINDTODEVICE, cfg->iface, strlen(cfg->iface)) < 0) {
+        snprintf(cfg->error, sizeof(cfg->error), "can't bind socket to iface %s: %s",
+          cfg->iface, strerror(errno));
+        close(cfg->sock);
+        continue;
+      }
+    }
+    /* bind to given address */
+    if (bind(cfg->sock, rp->ai_addr, rp->ai_addrlen) < 0) {
+      snprintf(cfg->error, sizeof(cfg->error), "can't bind socket to addr %s: %s",
+        cfg->baddr, strerror(errno));
+      close(cfg->sock);
+      continue;
+    }
+    /* set out iface for mcast */
+    if (setsockopt(cfg->sock, IPPROTO_IP, IP_MULTICAST_IF, rp->ai_addr, rp->ai_addrlen) < 0) {
+      snprintf(cfg->error, sizeof(cfg->error), "can't set out iface for mcast: %s",
+        strerror(errno));
+      close(cfg->sock);
+      continue;
+    }
+    /* IP_MULTICAST_LOOP -- default: yes */
+    /* IP_MULTICAST_TTL  -- default: 1 */
+    /* join mcast group */
+    inet_pton(AF_INET, cfg->maddr, &mreq.imr_multiaddr);
+    memcpy(&mreq.imr_interface, rp->ai_addr, rp->ai_addrlen);
+    if (setsockopt(cfg->sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
+      snprintf(cfg->error, sizeof(cfg->error), "can't join mcast group: %s",
+        strerror(errno));
+      close(cfg->sock);
+      continue;
+    }
+    break; /* success */
+  }
+  freeaddrinfo(result);
+
+  if (cfg->sock < 0)
+    return false;
+
   return true;
 }
 
@@ -139,7 +186,10 @@ bool
 stop(cfg_t *cfg) {
   assert(cfg != NULL);
 
-  /* TODO */
+  /* mcast group will be leaved automatically */
+  close(cfg->sock);
+  cfg->sock = -1;
+
   return true;
 }
 
@@ -155,7 +205,6 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
 
 void
 destroy(cfg_t *cfg) {
-  f2b_port_t *next;
   assert(cfg != NULL);
 
   free(cfg);
