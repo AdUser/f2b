@@ -108,6 +108,21 @@ f2b_csocket_rtimeout(int sock, float timeout) {
   f2b_log_msg(log_warn, "can't set recv timeout for csocket: %s", strerror(errno));
 }
 
+const char *
+f2b_csocket_error(int retcode) {
+  const char *err = "no error";
+  switch (retcode) {
+    case -1 : err = strerror(errno); break;
+    case -2 : err = "damaged cmsg on socket: truncated"; break;
+    case -3 : err = "damaged cmsg on socket: no magic"; break;
+    case -4 : err = "damaged cmsg on socket: version mismatch"; break;
+    case -5 : err = "damaged cmsg on socket: unknown command type"; break;
+    case -6 : err = "damaged cmsg on socket: size mismatch"; break;
+    default : err = "unknown cmsg error"; break;
+  }
+  return err;
+}
+
 int
 f2b_csocket_recv(int csock, f2b_cmsg_t *cmsg, struct sockaddr_storage *addr, socklen_t *addrlen) {
   struct msghdr msg;

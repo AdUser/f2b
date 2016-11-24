@@ -51,6 +51,14 @@ void f2b_csocket_disconnect(int csock, const char *cpath);
 void f2b_csocket_rtimeout(int csock, float timeout);
 
 /**
+ * @brief Get error description for f2b_csocket_recv()
+ * @param retcode Return code fromf2b_csocket_recv()
+ * @returns Pointer to errro description
+ */
+const char *
+f2b_csocket_error(int retcode);
+
+/**
  * @brief Poll control socket for new messages
  * @param csock Control socket fd
  * @param cb Callback for handling message
