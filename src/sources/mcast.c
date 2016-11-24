@@ -14,6 +14,10 @@
 #include <net/if.h>
 #include <netdb.h>
 
+#include "../commands.h"
+#include "../cmsg.h"
+#include "../csocket.h"
+
 #define DEFAULT_BIND_ADDR "0.0.0.0"
 #define DEFAULT_MCAST_ADDR "239.255.186.1"
 #define DEFAULT_MCAST_PORT "3370"
@@ -195,11 +199,42 @@ stop(cfg_t *cfg) {
 
 bool
 next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
+  const char *args[DATA_ARGS_MAX];
+  struct sockaddr_storage addr;
+  socklen_t socklen;
+  f2b_cmsg_t cmsg;
+  int ret;
+
+  (void)(reset);
   assert(cfg != NULL);
   assert(buf != NULL);
   assert(bufsize > 0);
 
-  /* TODO */
+  memset(&cmsg, 0x0, sizeof(cmsg));
+  memset(&addr, 0x0, sizeof(addr));
+
+  while (1) {
+    ret = f2b_csocket_recv(cfg->sock, &cmsg, &addr, &socklen);
+    if (ret == 0)
+      break; /* no messages */
+    if (ret < 0) {
+      cfg->errcb(f2b_csocket_error(ret));
+      continue;
+    }
+    /* ret > 0 */
+    if (cmsg.type != CMD_JAIL_IP_BAN)
+      continue;
+    ret = f2b_cmsg_extract_args(&cmsg, args);
+    if (!f2b_cmd_check_argc(cmsg.type, ret)) {
+      cfg->errcb("received cmsg with wrong args count");
+      continue;
+    }
+    if (strcmp(cfg->name, args[0]) != 0)
+      continue; /* wrong group */
+    strlcpy(buf, args[1], bufsize);
+    return true;
+  }
+
   return false;
 }
 
