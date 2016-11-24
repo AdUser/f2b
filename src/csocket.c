@@ -151,31 +151,19 @@ f2b_csocket_recv(int csock, f2b_cmsg_t *cmsg, struct sockaddr_storage *addr, soc
   ret = recvmsg(csock, &msg, 0);
   if (ret < 0 && errno == EAGAIN)
     return 0; /* non-blocking mode & no messages */
-  if (ret < 0) {
-    f2b_log_msg(log_error, "recvmsg(): %s", strerror(errno));
-    return ret;
-  }
-  if (msg.msg_flags & MSG_TRUNC) {
-    f2b_log_msg(log_warn, "damaged cmsg on socket: truncated");
-    return -1;
-  }
-  if (memcmp(cmsg->magic, "F2B", 3) != 0) {
-    f2b_log_msg(log_warn, "damaged cmsg on socket: no magic");
-    return -1;
-  }
-  if (cmsg->version != F2B_PROTO_VER) {
-    f2b_log_msg(log_warn, "damaged cmsg on socket: version mismatch");
-    return -1;
-  }
-  if (cmsg->type >= CMD_MAX_NUMBER) {
-    f2b_log_msg(log_warn, "damaged cmsg on socket: unknown command type");
-    return -1;
-  }
+  if (ret < 0)
+    return -1; /* recvmsg() error, see errno */
+  if (msg.msg_flags & MSG_TRUNC)
+    return -2; /* truncated */
+  if (memcmp(cmsg->magic, "F2B", 3) != 0)
+    return -3; /* no magic */
+  if (cmsg->version != F2B_PROTO_VER)
+    return -4; /* version mismatch */
+  if (cmsg->type >= CMD_MAX_NUMBER)
+    return -5; /* unknown command */
   cmsg->size = ntohs(size);
-  if (ret != (cmsg->size + 16)) {
-    f2b_log_msg(log_warn, "damaged cmsg on socket: expected %u bytes, got %u", cmsg->size + 16, ret);
-    return -1;
-  }
+  if (ret != (cmsg->size + 16))
+    return -6; /* size mismatch */
   *addrlen = msg.msg_namelen;
 
   return ret;
@@ -229,8 +217,11 @@ f2b_csocket_poll(int csock, void (*cb)(const f2b_cmsg_t *cmsg, char *res, size_t
     memset(&addr, 0x0, sizeof(addr));
     addrlen = sizeof(addr);
     ret = f2b_csocket_recv(csock, &cmsg, &addr, &addrlen);
-    if (ret <= 0)
-      break; /* no messages or error */
+    if (ret == 0)
+      break; /* no messages */
+    if (ret < 0) {
+      f2b_log_msg(log_error, "%s", f2b_csocket_error(ret));
+    }
     /* TODO: check auth */
     cb(&cmsg, res, sizeof(res));
     if (cmsg.flags & CMSG_FLAG_NEED_REPLY) {
