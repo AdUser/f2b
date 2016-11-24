@@ -104,7 +104,7 @@ extern char   *error(cfg_t *cfg);
  * @param cb Error callback
  * @note Optional, if this function is not called, processing errors will be suppressed
  */
-extern void    errcb(cfg_t *cfg, void (*cb)(char *errstr));
+extern void    errcb(cfg_t *cfg, void (*cb)(const char *errstr));
 /**
  * @brief Allocate resources and start processing
  * @param cfg Module handler
