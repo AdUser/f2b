@@ -196,7 +196,7 @@ f2b_csocket_send(int csock, f2b_cmsg_t *cmsg, struct sockaddr_storage *addr, soc
   msg.msg_iovlen  = 7;
 
   if ((ret = sendmsg(csock, &msg, 0)) <= 0)
-    f2b_log_msg(log_error, "sendmsg(): %s", strerror(errno));
+    return -1; /* see errno */
 
   return ret;
 }
