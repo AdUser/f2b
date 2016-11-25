@@ -40,6 +40,8 @@ struct _config {
   char mport[6];                /**< multicast port */
   char iface[IF_NAMESIZE];      /**< bind interface */
   int sock;
+  struct sockaddr_storage sa;
+  socklen_t sa_len;
 };
 
 cfg_t *
@@ -107,12 +109,44 @@ error(cfg_t *cfg) {
 
 bool
 start(cfg_t *cfg) {
+  struct addrinfo hints;
+  struct addrinfo *result;
   assert(cfg != NULL);
+  int ret, sock = -1;
 
   if (cfg->shared && usage_inc(cfg->name) > 1)
     return true;
 
-  /* TODO */
+  memset(&hints, 0, sizeof(struct addrinfo));
+  hints.ai_family = AF_INET;
+  hints.ai_socktype = SOCK_DGRAM;
+  hints.ai_protocol = 0;
+
+  if ((ret = getaddrinfo(cfg->maddr, cfg->mport, &hints, &result)) < 0) {
+    snprintf(cfg->error, sizeof(cfg->error), "can't create socket: %s", gai_strerror(ret));
+    return false;
+  }
+
+  for (struct addrinfo *rp = result; rp != NULL; rp = rp->ai_next) {
+    if (sock >= 0) {
+      close(sock); /* from prev iteration */
+      sock = -1;
+    }
+    if ((sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol)) < 0) {
+      snprintf(cfg->error, sizeof(cfg->error), "can't create socket: %s", strerror(errno));
+      continue;
+    }
+    memcpy(&cfg->sa, rp->ai_addr, rp->ai_addrlen);
+    cfg->sa_len = rp->ai_addrlen;
+    break;
+  }
+  freeaddrinfo(result);
+
+  if (sock < 0)
+    return false;
+
+  cfg->sock = sock;
+  return true;
 
   return true;
 }
