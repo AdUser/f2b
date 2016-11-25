@@ -166,11 +166,29 @@ stop(cfg_t *cfg) {
 
 bool
 ban(cfg_t *cfg, const char *ip) {
+  f2b_cmsg_t cmsg;
+  int ret;
+
   assert(cfg != NULL);
 
-  /* TODO */
+  memset(&cmsg, 0x0, sizeof(cmsg));
 
-  return false;
+  strncpy(cmsg.magic, "F2B", sizeof(cmsg.magic));
+  cmsg.version = F2B_PROTO_VER;
+  cmsg.type = CMD_JAIL_IP_BAN;
+  f2b_cmd_append_arg(cmsg.data, sizeof(cmsg.data), cfg->name);
+  f2b_cmd_append_arg(cmsg.data, sizeof(cmsg.data), ip);
+  cmsg.size = strlen(cmsg.data);
+  cmsg.data[cmsg.size] = '\0';
+  f2b_cmsg_convert_args(&cmsg);
+
+  ret = f2b_csocket_send(cfg->sock, &cmsg, &cfg->sa, &cfg->sa_len);
+  if (ret <= 0) {
+    strlcpy(cfg->error, f2b_csocket_error(ret), sizeof(cfg->error));
+    return false;
+  }
+
+  return true;
 }
 
 bool
