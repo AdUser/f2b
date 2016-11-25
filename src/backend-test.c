@@ -14,6 +14,52 @@ void usage() {
   exit(EXIT_FAILURE);
 }
 
+/* returns -1 on error, 0 for 'ban', 1 for 'check' and 3 for 'unban'
+ * also fills buf with second arg after command name
+ */
+int
+parse_input(char *line, char *buf, size_t bufsize) {
+  const char *ops[] = { "ban", "check", "unban", NULL };
+  int code = 0;
+
+  assert(line != NULL);
+  assert(buf  != NULL);
+
+  while (isspace(*line))
+    line++;
+  if (*line == '\0')
+    return -1; /* empty line */
+
+  for (size_t i = 0; ops[i] != NULL; i++) {
+    size_t len = strlen(ops[i]);
+    if (strncmp(line, ops[i], len) != 0)
+      continue;
+    code = i;
+    line += len;
+    break;
+  }
+
+  while (isspace(*line))
+    line++;
+  if (*line == '\0')
+    return -1; /* missing second arg */
+
+  for (char *p = line; *p != '\0'; p++) {
+    if ((*p >= 'a' && *p <= 'f') || *p == '.' || *p == ':' ||
+        (*p >= 'A' && *p <= 'F') || isdigit(*p))
+      continue; /* valid ipaddr char */
+    /* everything else */
+    *p = '\0';
+    break;
+  }
+
+  if (*line == '\0')
+    return -1; /* garbled second arg */
+
+  strlcpy(buf, line, bufsize);
+  return code;
+}
+
 int main(int argc, char *argv[]) {
   const char *ip = "127.0.0.17";
   f2b_config_t          config;
