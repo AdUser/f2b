@@ -61,10 +61,12 @@ parse_input(char *line, char *buf, size_t bufsize) {
 }
 
 int main(int argc, char *argv[]) {
-  const char *ip = "127.0.0.17";
   f2b_config_t          config;
   f2b_config_section_t *section = NULL;
   f2b_backend_t        *backend = NULL;
+  bool (*handler)(f2b_backend_t *, const char *) = NULL;
+  char line[256];
+  char addr[64];
 
   if (argc < 3)
     usage();
@@ -92,23 +94,37 @@ int main(int argc, char *argv[]) {
     goto cleanup;
   }
 
-  if (!f2b_backend_ban(backend, ip)) {
-    f2b_log_msg(log_error, "action 'ban' failed: %s", f2b_backend_error(backend));
-    goto cleanup;
-  }
-
-  if (f2b_backend_check(backend, ip)) {
-    f2b_log_msg(log_info, "action 'check' failed returned true");
-  } else {
-    f2b_log_msg(log_info, "action 'check' failed returned false");
-  }
-
-  if (!f2b_backend_unban(backend, ip)) {
-    f2b_log_msg(log_error, "action 'unban' failed: %s", f2b_backend_error(backend));
-    goto cleanup;
-  }
-
-  f2b_log_msg(log_info, "all tests passed");
+  fputs("usage: <cmd> <ipaddr>\n", stdout);
+  fputs("press Ctrl-D for exit\n", stdout);
+  while (1) {
+    fputs("test >> ", stdout);
+    if (!fgets(line, sizeof(line) - 1, stdin)) {
+      if (feof(stdin)) {
+        fputc('\n', stdout);
+      } else {
+        fputs("read error\n", stdout);
+      }
+      break;
+    }
+    if (line[0] == '\n')
+      continue;
+    switch (parse_input(line, addr, sizeof(addr))) {
+      case 0 : handler = f2b_backend_ban;   break;
+      case 1 : handler = f2b_backend_check; break;
+      case 2 : handler = f2b_backend_unban; break;
+      default :
+        f2b_log_msg(log_error, "can't parse input");
+        continue;
+        break;
+    } /* switch */
+    if (handler(backend, addr)) {
+      fputs("ok\n", stdout);
+    } else {
+      fputs("failure: ", stdout);
+      fputs(f2b_backend_error(backend), stdout);
+      fputc('\n', stdout);
+    }
+  } /* while */
 
   cleanup:
   f2b_backend_stop(backend);
