@@ -17,7 +17,7 @@ struct _config {
   char name[ID_MAX + 1];
   char hash[ID_MAX * 2];
   char error[256];
-  void (*errcb)(char *errstr);
+  void (*errcb)(const char *errstr);
   time_t timeout;
   uint8_t database;
   char password[32];
@@ -27,7 +27,7 @@ struct _config {
 };
 
 static void
-errcb_stub(char *str) {
+errcb_stub(const char *str) {
   assert(str != NULL);
   (void)(str);
 }
@@ -166,7 +166,7 @@ error(cfg_t *cfg) {
 }
 
 void
-errcb(cfg_t *cfg, void (*cb)(char *errstr)) {
+errcb(cfg_t *cfg, void (*cb)(const char *errstr)) {
   assert(cfg != NULL);
   assert(cb  != NULL);
 
