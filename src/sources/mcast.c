@@ -113,7 +113,7 @@ start(cfg_t *cfg) {
   struct addrinfo hints;
   struct addrinfo *result;
   struct ip_mreq mreq;
-  int opt, ret;
+  int opt, ret, sock = -1;
 
   assert(cfg != NULL);
 
@@ -128,41 +128,41 @@ start(cfg_t *cfg) {
   }
 
   for (struct addrinfo *rp = result; rp != NULL; rp = rp->ai_next) {
+    if (sock >= 0) {
+      close(sock); /* from prev iteration */
+      sock = -1;
+    }
     /* create socket */
-    if ((cfg->sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol)) < 0) {
+    if ((sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol)) < 0) {
       snprintf(cfg->error, sizeof(cfg->error), "can't create socket: %s", strerror(errno));
       continue;
     }
     /* set non-blocking mode */
-    if ((opt = fcntl(cfg->sock, F_GETFL, 0)) < 0) {
-      close(cfg->sock);
+    if ((opt = fcntl(sock, F_GETFL, 0)) < 0) {
       continue;
     }
-    fcntl(cfg->sock, F_SETFL, opt | O_NONBLOCK);
+    fcntl(sock, F_SETFL, opt | O_NONBLOCK);
     /* reuse address */
     opt = 1;
-    setsockopt(cfg->sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     /* bind to interface if set */
     if (cfg->iface[0]) {
-      if (setsockopt(cfg->sock, SOL_SOCKET, SO_BINDTODEVICE, cfg->iface, strlen(cfg->iface)) < 0) {
+      if (setsockopt(sock, SOL_SOCKET, SO_BINDTODEVICE, cfg->iface, strlen(cfg->iface)) < 0) {
         snprintf(cfg->error, sizeof(cfg->error), "can't bind socket to iface %s: %s",
           cfg->iface, strerror(errno));
-        close(cfg->sock);
         continue;
       }
     }
     /* bind to given address */
-    if (bind(cfg->sock, rp->ai_addr, rp->ai_addrlen) < 0) {
+    if (bind(sock, rp->ai_addr, rp->ai_addrlen) < 0) {
       snprintf(cfg->error, sizeof(cfg->error), "can't bind socket to addr %s: %s",
         cfg->baddr, strerror(errno));
-      close(cfg->sock);
       continue;
     }
     /* set out iface for mcast */
-    if (setsockopt(cfg->sock, IPPROTO_IP, IP_MULTICAST_IF, rp->ai_addr, rp->ai_addrlen) < 0) {
+    if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF, rp->ai_addr, rp->ai_addrlen) < 0) {
       snprintf(cfg->error, sizeof(cfg->error), "can't set out iface for mcast: %s",
         strerror(errno));
-      close(cfg->sock);
       continue;
     }
     /* IP_MULTICAST_LOOP -- default: yes */
@@ -170,19 +170,19 @@ start(cfg_t *cfg) {
     /* join mcast group */
     inet_pton(AF_INET, cfg->maddr, &mreq.imr_multiaddr);
     memcpy(&mreq.imr_interface, rp->ai_addr, rp->ai_addrlen);
-    if (setsockopt(cfg->sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
+    if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
       snprintf(cfg->error, sizeof(cfg->error), "can't join mcast group: %s",
         strerror(errno));
-      close(cfg->sock);
       continue;
     }
     break; /* success */
   }
   freeaddrinfo(result);
 
-  if (cfg->sock < 0)
+  if (sock < 0)
     return false;
 
+  cfg->sock = sock;
   return true;
 }
 
