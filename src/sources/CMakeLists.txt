@@ -7,7 +7,8 @@ list(APPEND SOURCES "f2b_source_files")
 add_library("f2b_source_portknock" MODULE "portknock.c" "../strlcpy.c")
 list(APPEND SOURCES "f2b_source_portknock")
 
-add_library("f2b_source_mcast" MODULE "mcast.c" "../strlcpy.c")
+add_library("f2b_source_mcast" MODULE "mcast.c" "../strlcpy.c"
+  "../commands.c" "../cmsg.c" "../csocket.c")
 list(APPEND SOURCES "f2b_source_mcast")
 
 find_library(REDIS_FOUND "hiredis")
