@@ -51,7 +51,8 @@ redis_connect(cfg_t *cfg) {
       break;
     }
     if (cfg->password[0]) {
-      reply = redisCommand(conn, "AUTH %s", cfg->password);
+      if ((reply = redisCommand(conn, "AUTH %s", cfg->password)) == NULL)
+        break;
       if (reply->type == REDIS_REPLY_ERROR) {
         snprintf(cfg->error, sizeof(cfg->error), "auth error: %s", reply->str);
         break;
@@ -59,7 +60,8 @@ redis_connect(cfg_t *cfg) {
       freeReplyObject(reply);
     }
     if (cfg->database) {
-      reply = redisCommand(conn, "SELECT %d", cfg->database);
+      if ((reply = redisCommand(conn, "SELECT %d", cfg->database)) == NULL)
+        break;
       if (reply->type == REDIS_REPLY_ERROR) {
         snprintf(cfg->error, sizeof(cfg->error), "auth error: %s", reply->str);
         break;
@@ -72,7 +74,8 @@ redis_connect(cfg_t *cfg) {
       strlcpy(cfg->error, "can't enable nonblocking mode", sizeof(cfg->error));
       break;
     }
-    reply = redisCommand(conn, "SUBSCRIBE %s", cfg->hash);
+    if ((reply = redisCommand(conn, "SUBSCRIBE %s", cfg->hash)) == NULL)
+      break;
     if (reply->type == REDIS_REPLY_ERROR) {
       snprintf(cfg->error, sizeof(cfg->error), "can't subscribe: %s", reply->str);
       break;

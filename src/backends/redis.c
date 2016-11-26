@@ -56,7 +56,8 @@ redis_connect(cfg_t *cfg) {
       break;
     }
     if (cfg->password[0]) {
-      reply = redisCommand(conn, "AUTH %s", cfg->password);
+      if ((reply = redisCommand(conn, "AUTH %s", cfg->password)) == NULL)
+        break;
       if (reply->type == REDIS_REPLY_ERROR) {
         snprintf(cfg->error, sizeof(cfg->error), "auth error: %s", reply->str);
         break;
@@ -64,7 +65,8 @@ redis_connect(cfg_t *cfg) {
       freeReplyObject(reply);
     }
     if (cfg->database) {
-      reply = redisCommand(conn, "SELECT %d", cfg->database);
+      if ((reply = redisCommand(conn, "SELECT %d", cfg->database)) == NULL)
+        break;
       if (reply->type == REDIS_REPLY_ERROR) {
         snprintf(cfg->error, sizeof(cfg->error), "auth error: %s", reply->str);
         break;
@@ -193,14 +195,16 @@ ban(cfg_t *cfg, const char *ip) {
 
   redisReply *reply;
   do {
-    reply = redisCommand(cfg->conn, "HINCRBY %s %s %d", cfg->hash, ip, 1);
-    if (reply && reply->type == REDIS_REPLY_ERROR) {
+    if ((reply = redisCommand(cfg->conn, "HINCRBY %s %s %d", cfg->hash, ip, 1)) == NULL)
+      break;
+    if (reply->type == REDIS_REPLY_ERROR) {
       snprintf(cfg->error, sizeof(cfg->error), "HINCRBY: %s", reply->str);
       break;
     }
     freeReplyObject(reply);
-    reply = redisCommand(cfg->conn, "PUBLISH %s %s",    cfg->hash, ip);
-    if (reply && reply->type == REDIS_REPLY_ERROR) {
+    if ((reply = redisCommand(cfg->conn, "PUBLISH %s %s",    cfg->hash, ip)) == NULL)
+      break;
+    if (reply->type == REDIS_REPLY_ERROR) {
       snprintf(cfg->error, sizeof(cfg->error), "PUBLISH: %s", reply->str);
       break;
     }
