@@ -4,8 +4,10 @@ set(BACKENDS "")
 add_library("f2b_backend_exec" MODULE "exec.c" "../strlcpy.c")
 list(APPEND BACKENDS "f2b_backend_exec")
 
-add_library("f2b_backend_mcast" MODULE "mcast.c" "../strlcpy.c"
-  "../commands.c" "../cmsg.c" "../csocket.c")
+if (WITH_MCAST)
+  add_library("f2b_backend_mcast" MODULE "mcast.c" "../strlcpy.c"
+    "../commands.c" "../cmsg.c" "../csocket.c")
+endif ()
 
 find_library(REDIS_FOUND "hiredis")
 if (WITH_REDIS AND REDIS_FOUND)
