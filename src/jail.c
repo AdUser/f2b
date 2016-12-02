@@ -7,7 +7,6 @@
 #include "common.h"
 #include "jail.h"
 
-#define DEFAULT_STATE    false
 #define DEFAULT_BANTIME  3600 /* in seconds, 1 hour */
 #define DEFAULT_FINDTIME  300 /* in seconds, 5 min */
 #define DEFAULT_EXPIRETIME 14400 /* in seconds, 4 hours */
@@ -16,7 +15,6 @@
 f2b_jail_t *jails = NULL;
 
 static f2b_jail_t defaults = {
-  .enabled  = DEFAULT_STATE,
   .bantime  = DEFAULT_BANTIME,
   .findtime = DEFAULT_FINDTIME,
   .maxretry = DEFAULT_MAXRETRY,
@@ -53,7 +51,7 @@ f2b_jail_set_param(f2b_jail_t *jail, const char *param, const char *value) {
 
   if (strcmp(param, "enabled") == 0) {
     if (strcmp(value, "yes") == 0)
-      jail->enabled = true;
+      jail->flags |= JAIL_ENABLED;
     return true;
   }
   if (strcmp(param, "bantime") == 0) {
@@ -425,7 +423,8 @@ void
 f2b_jail_cmd_status(char *res, size_t ressize, f2b_jail_t *jail) {
   const char *fmt =
     "name: %s\n"
-    "enabled: %s\n"
+    "flags:\n"
+    "  enabled: %s\n"
     "maxretry: %d\n"
     "times:\n"
     "  bantime: %d\n"
@@ -441,7 +440,9 @@ f2b_jail_cmd_status(char *res, size_t ressize, f2b_jail_t *jail) {
   assert(res  != NULL);
   assert(jail != NULL);
 
-  snprintf(res, ressize, fmt, jail->name, jail->enabled ? "yes" : "no", jail->maxretry,
+  snprintf(res, ressize, fmt, jail->name,
+    jail->flags & JAIL_ENABLED     ? "yes" : "no",
+    jail->maxretry,
     jail->bantime, jail->findtime, jail->expiretime,
     jail->incr_bantime, jail->incr_findtime,
     jail->bancount, jail->matchcount);

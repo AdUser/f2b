@@ -19,10 +19,13 @@
  * This header describes jail definition and related routines
  */
 
+/* jail flags */
+#define JAIL_ENABLED       0x01
+
 /** jail metadata struct */
 typedef struct f2b_jail_t {
   struct f2b_jail_t *next;   /**< pointer to next jail */
-  bool enabled;              /**< option: is jail enabled */
+  int flags;                 /**< jail flags, see above */
   time_t bantime;            /**< option: ban host for this time if maxretry exceeded */
   time_t findtime;           /**< option: time period for counting matches */
   time_t expiretime;         /**< option: forget about host after this time with on activity (not including bantime) */
