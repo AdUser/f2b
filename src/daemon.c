@@ -100,8 +100,8 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
   } else if (msg->type == CMD_SHUTDOWN) {
     state = stop;
   } else if (msg->type == CMD_STATUS) {
-    snprintf(line, sizeof(line), "pid: %u\npidfile: %s\ncsocket: %s\njails:\n",
-      getpid(), appconfig.pidfile_path, appconfig.csocket_path);
+    snprintf(line, sizeof(line), "pid: %u\npidfile: %s\ncsocket: %s\nstatedir: %s\njails:\n",
+      getpid(), appconfig.pidfile_path, appconfig.csocket_path, appconfig.statedir_path);
     strlcpy(res, line, ressize);
     for (jail = jails; jail != NULL; jail = jail->next) {
       snprintf(line, sizeof(line), "- %s\n", jail->name);
