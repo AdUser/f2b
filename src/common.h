@@ -43,6 +43,10 @@
  */
 #define DEFAULT_CSOCKET_PATH "/var/run/f2b.sock"
 /**
+ * Default path of directory to store ip states for jails
+ */
+#define DEFAULT_STATEDIR_PATH "/var/db/f2b"
+/**
  * Template for making path for client side of connection to control socket
  */
 #define DEFAULT_CSOCKET_CPATH "/tmp/f2bc-sock-XXXXXX"
