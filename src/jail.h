@@ -21,6 +21,7 @@
 
 /* jail flags */
 #define JAIL_ENABLED       0x01
+#define JAIL_HAS_STATE     0x02
 
 /** jail metadata struct */
 typedef struct f2b_jail_t {

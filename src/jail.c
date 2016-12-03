@@ -113,6 +113,14 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
       f2b_jail_parse_compound_value(param->value, jail->backend_name, jail->backend_init);
       continue;
     }
+    if (strcmp(param->name, "state") == 0) {
+      if (strcmp(param->value, "yes") == 0) {
+        jail->flags |= JAIL_HAS_STATE;
+      } else {
+        jail->flags &= ~JAIL_HAS_STATE;
+      }
+      continue;
+    }
     if (f2b_jail_set_param(jail, param->name, param->value))
       continue;
     f2b_log_msg(log_warn, "jail '%s': unrecognized parameter: %s", jail->name, param->name);
