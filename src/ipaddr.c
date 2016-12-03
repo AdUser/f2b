@@ -51,12 +51,13 @@ f2b_ipaddr_status(f2b_ipaddr_t *addr, char *res, size_t ressize) {
   const char *fmt =
     "ipaddr: %s\n"
     "banned: %s\n"
-    "bancount: %d\n"
-    "lastseen: %d\n"
-    "banned_at: %d\n"
-    "release_at: %d\n";
+    "bancount: %u\n"
+    "matches: %u\n"
+    "lastseen: %u\n"
+    "banned_at: %u\n"
+    "release_at: %u\n";
   snprintf(res, ressize, fmt, addr->text, addr->banned ? "yes" : "no",
-    addr->bancount, addr->lastseen, addr->banned_at, addr->release_at);
+    addr->bancount, addr->matches.used, addr->lastseen, addr->banned_at, addr->release_at);
 }
 
 f2b_ipaddr_t *
