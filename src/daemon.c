@@ -141,7 +141,7 @@ jails_start(f2b_config_t *config) {
       f2b_log_msg(log_error, "can't create jail '%s'", jail_config->name);
       continue;
     }
-    if (jail->flags & JAIL_ENABLED) {
+    if (!(jail->flags & JAIL_ENABLED)) {
       f2b_log_msg(log_debug, "ignoring disabled jail '%s'", jail->name);
       free(jail);
       continue;
