@@ -29,21 +29,19 @@ f2b_appconfig_update(f2b_config_section_t *section) {
   if (!section)
     return;
 
-  /* set uid & gid. note: set only once if root */
-  if (appconfig.uid == 0 && (pa = f2b_config_param_find(section->param, "user")) != NULL) {
+  if ((pa = f2b_config_param_find(section->param, "user")) != NULL) {
     struct passwd *pw;
     if ((pw = getpwnam(pa->value)) != NULL)
       appconfig.uid = pw->pw_uid, appconfig.gid = pw->pw_gid;
   }
-  if (appconfig.gid == 0 && (pa = f2b_config_param_find(section->param, "group")) != NULL) {
+  if ((pa = f2b_config_param_find(section->param, "group")) != NULL) {
     struct group *grp;
     if ((grp = getgrnam(pa->value)) != NULL)
       appconfig.gid = grp->gr_gid;
   }
 
-  if (appconfig.daemon == false && (pa = f2b_config_param_find(section->param, "daemon")) != NULL) {
-    if (strcmp(pa->value, "yes") == 0)
-      appconfig.daemon = true;
+  if ((pa = f2b_config_param_find(section->param, "daemon")) != NULL) {
+    appconfig.daemon = (strcmp(pa->value, "yes") == 0) ? true : false;
   }
 
   if ((pa = f2b_config_param_find(section->param, "pidfile")) != NULL)
