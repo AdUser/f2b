@@ -56,7 +56,7 @@ f2b_statefile_load(f2b_statefile_t *sf, size_t matches) {
   const char *format = "%48s %lu %lu"; /* 48 == IPADDR_MAX == sizeof(addr) */
   f2b_ipaddr_t *addrlist = NULL, *ipaddr = NULL;
   char buf[256], addr[IPADDR_MAX], *p;
-  int banned, release;
+  time_t banned_at, release_at;
   FILE *f = NULL;
 
   assert(sf != NULL);
@@ -72,7 +72,7 @@ f2b_statefile_load(f2b_statefile_t *sf, size_t matches) {
       p++; /* skip leading spaces */
     if (*p == '#')
       continue; /* is comment */
-    if (sscanf(buf, format, addr, &banned, &release) != fields) {
+    if (sscanf(p, format, addr, &banned_at, &release_at) != fields) {
       f2b_log_msg(log_warn, "can't parse, ignoring line: %s", buf);
       continue;
     }
@@ -81,8 +81,8 @@ f2b_statefile_load(f2b_statefile_t *sf, size_t matches) {
       continue;
     }
     ipaddr->banned = true;
-    ipaddr->banned_at  = banned;
-    ipaddr->release_at = release;
+    ipaddr->banned_at  = banned_at;
+    ipaddr->release_at = release_at;
     ipaddr->next = addrlist;
     addrlist = ipaddr;
   }
