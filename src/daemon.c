@@ -258,6 +258,20 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  if (appconfig.statedir_path[0] != '\0') {
+    struct stat st;
+    if (stat(appconfig.statedir_path, &st) < 0) {
+      if (errno == ENOENT) {
+        mode_t mode = S_IRWXU | S_IRGRP | S_IXGRP; /* 0750 */
+        mkdir(appconfig.statedir_path, mode);
+      } else {
+        f2b_log_msg(log_error, "statedir not exists or unaccessible: %s", strerror(errno));
+      }
+    } else if (!S_ISDIR(st.st_mode)) {
+      f2b_log_msg(log_error, "statedir not a directory: %s", strerror(errno));
+    }
+  }
+
   if (appconfig.csocket_path[0] != '\0')
     appconfig.csock = f2b_csocket_create(appconfig.csocket_path);
 
