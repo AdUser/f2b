@@ -410,7 +410,7 @@ f2b_jail_start(f2b_jail_t *jail) {
   assert(jail != NULL);
 
   if (jail->flags & JAIL_HAS_STATE) {
-    jail->sfile = f2b_statefile_create(jail->name, appconfig.statedir_path);
+    jail->sfile = f2b_statefile_create(appconfig.statedir_path, jail->name);
     if (jail->sfile == NULL) {
       /* error occured, must be already logged, just drop flag */
       jail->flags &= ~JAIL_HAS_STATE;
