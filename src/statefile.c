@@ -53,10 +53,10 @@ f2b_statefile_destroy(f2b_statefile_t *sf) {
 f2b_ipaddr_t *
 f2b_statefile_load(f2b_statefile_t *sf, size_t matches) {
   const int fields = 3;
-  const char *format = "%48s %lu %lu"; /* 48 == IPADDR_MAX == sizeof(addr) */
+  const char *format = "%48s %u %u"; /* 48 == IPADDR_MAX == sizeof(addr) */
   f2b_ipaddr_t *addrlist = NULL, *ipaddr = NULL;
   char buf[256], addr[IPADDR_MAX], *p;
-  time_t banned_at, release_at;
+  unsigned int banned_at, release_at;
   FILE *f = NULL;
 
   assert(sf != NULL);
