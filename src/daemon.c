@@ -151,6 +151,9 @@ jails_start(f2b_config_t *config) {
       free(jail);
       continue;
     }
+
+    f2b_jail_start(jail);
+
     jail->next = jails;
     jails = jail;
   }

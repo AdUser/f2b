@@ -10,6 +10,8 @@
 #include "log.h"
 #include "ipaddr.h"
 #include "config.h"
+#include "appconfig.h"
+#include "statefile.h"
 #include "source.h"
 #include "filter.h"
 #include "backend.h"
@@ -42,6 +44,7 @@ typedef struct f2b_jail_t {
   char filter_init[CONFIG_VAL_MAX];  /**< filter init string (eg `filter = NAME:$INIT_STRING` line from jail section) */
   char source_name[CONFIG_KEY_MAX];  /**< source name from config (eg [source:$NAME] section) */
   char source_init[CONFIG_VAL_MAX];  /**< source init string (eg `source = NAME:$INIT_STRING` line from jail section) */
+  f2b_statefile_t *sfile; /**< pointer to state file description */
   f2b_source_t  *source;  /**< pointer to source */
   f2b_filter_t  *filter;  /**< pointer to filter */
   f2b_backend_t *backend; /**< pointer to backend */
@@ -87,6 +90,12 @@ bool   f2b_jail_set_param(f2b_jail_t *jail, const char *param, const char *value
  * @return true on success, false on error
  */
 bool   f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config);
+/**
+ * @brief Load state file and restore bans
+ * @param jail Jail pointer
+ * @returns true on success, false on error
+ */
+bool   f2b_jail_start(f2b_jail_t *jail);
 /**
  * @brief Jail maintenance routine
  * Polls source for data, match against filter, manage matches,

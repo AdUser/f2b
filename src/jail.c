@@ -396,6 +396,47 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
 }
 
 bool
+f2b_jail_start(f2b_jail_t *jail) {
+  time_t now = time(NULL);
+  time_t remains;
+
+  assert(jail != NULL);
+
+  if (jail->flags & JAIL_HAS_STATE) {
+    jail->sfile = f2b_statefile_create(jail->name, appconfig.statedir_path);
+    if (jail->sfile == NULL) {
+      /* error occured, must be already logged, just drop flag */
+      jail->flags &= ~JAIL_HAS_STATE;
+    } else {
+      jail->ipaddrs = f2b_statefile_load(jail->sfile, jail->maxretry);
+    }
+  }
+
+  for (f2b_ipaddr_t *addr = jail->ipaddrs; addr != NULL; addr = addr->next) {
+    if (!addr->banned)
+      continue; /* if list NOW contains such addresses, it may be bug */
+    if (f2b_backend_check(jail->backend, addr->text))
+      continue; /* already banned or backend don't support check() */
+    if (now >= addr->release_at) {
+      addr->banned = false;
+      continue; /* ban time already expired */
+    }
+    if (f2b_backend_ban(jail->backend, addr->text)) {
+      remains = addr->release_at - now;
+      f2b_log_msg(log_note, "jail '%s': restored ban of ip %s (%.1fhrs remain)",
+        jail->name, addr->text, (float) remains / 3600);
+    } else {
+      f2b_log_msg(log_error, "jail '%s': can't ban ip %s -- %s",
+        jail->name, addr->text, f2b_backend_error(jail->backend));
+    }
+  }
+
+  f2b_log_msg(log_info, "jail '%s' started", jail->name);
+
+  return true;
+}
+
+bool
 f2b_jail_stop(f2b_jail_t *jail) {
   bool errors = false;
 
