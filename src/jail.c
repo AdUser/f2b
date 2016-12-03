@@ -149,6 +149,7 @@ f2b_jail_ban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
   addr->matches.used = 0;
   addr->banned  = true;
   addr->banned_at = addr->lastseen;
+
   if (jail->incr_bantime > 0) {
     bantime = jail->bantime + (int) (addr->bancount * (jail->bantime * jail->incr_bantime));
   } else {
@@ -550,6 +551,8 @@ f2b_jail_cmd_ip_xxx(char *res, size_t ressize, f2b_jail_t *jail, int op, const c
       addr->lastseen = now;
       f2b_matches_append(&addr->matches, now);
       jail->ipaddrs = f2b_addrlist_append(jail->ipaddrs, addr);
+      if (jail->flags & JAIL_HAS_STATE)
+        jail->sfile->need_save = true;
     } else {
       /* unban & status */
       snprintf(res, ressize, "can't find ip '%s' in jail '%s'", ip, jail->name);
