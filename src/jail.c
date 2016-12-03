@@ -50,8 +50,11 @@ f2b_jail_set_param(f2b_jail_t *jail, const char *param, const char *value) {
   assert(value != NULL);
 
   if (strcmp(param, "enabled") == 0) {
-    if (strcmp(value, "yes") == 0)
+    if (strcmp(value, "yes") == 0) {
       jail->flags |= JAIL_ENABLED;
+    } else {
+      jail->flags &= ~JAIL_ENABLED;
+    }
     return true;
   }
   if (strcmp(param, "bantime") == 0) {
