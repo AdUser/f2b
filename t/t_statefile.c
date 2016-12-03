@@ -11,6 +11,7 @@ int main() {
   struct stat st;
   time_t banned_at = 0, release_at = 0;
 
+  UNUSED(res);
   UNUSED(list);
 
   snprintf(jailname, sizeof(jailname), "%lu", time(NULL)); /* gen unique jailname */

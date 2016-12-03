@@ -117,7 +117,9 @@ int main(int argc, char *argv[]) {
   SA_REGISTER(SIGINT,  &signal_handler);
 
   /* prepare client side of socket */
-  mkstemp(opts.csocket_cpath);
+  ret = mkstemp(opts.csocket_cpath);
+  if (ret >= 0)
+    close(ret); /* suppress compiler warning */
   unlink(opts.csocket_cpath); /* remove regular file created by mkstemp() */
 
   if ((opts.csocket = f2b_csocket_connect(opts.csocket_spath, opts.csocket_cpath)) <= 0)

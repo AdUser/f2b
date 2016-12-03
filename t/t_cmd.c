@@ -5,6 +5,8 @@ int main() {
   char buf[1024];
   const char *line;
 
+  UNUSED(line);
+
   buf[0] = '\0';
   f2b_cmd_append_arg(buf, sizeof(buf), "42");
   assert(strcmp(buf, "42\n") == 0);

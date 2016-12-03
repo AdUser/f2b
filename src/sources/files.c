@@ -126,7 +126,12 @@ config(cfg_t *cfg, const char *key, const char *value) {
   assert(cfg != NULL);
   assert(key   != NULL);
   assert(value != NULL);
+
   /* no options */
+  (void)(cfg);   /* suppress warning for unused variable 'ip' */
+  (void)(key);   /* suppress warning for unused variable 'ip' */
+  (void)(value); /* suppress warning for unused variable 'ip' */
+
   return false;
 }
 
