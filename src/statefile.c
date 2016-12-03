@@ -25,7 +25,8 @@ f2b_statefile_create(const char *statedir, const char *jailname) {
       f2b_log_msg(log_error, "can't access statefile: %s", strerror(errno));
       return NULL;
     }
-    int fd = open(path, O_CREAT | O_WRONLY);
+    mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP; /* 0640 */
+    int fd = open(path, O_CREAT | O_WRONLY, mode);
     if (fd < 0) {
       f2b_log_msg(log_error, "can't create statefile: %s", strerror(errno));
       return NULL;
