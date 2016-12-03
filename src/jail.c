@@ -276,6 +276,8 @@ f2b_jail_process(f2b_jail_t *jail) {
     }
     /* limit reached, ban ip */
     f2b_jail_ban(jail, addr);
+    if (jail->flags & JAIL_HAS_STATE)
+      jail->sfile->need_save = true;
   }  /* while(1) */
 
   for (addr = jail->ipaddrs, prev = NULL; addr != NULL; ) {
@@ -310,6 +312,11 @@ f2b_jail_process(f2b_jail_t *jail) {
       f2b_ipaddr_destroy(addr);
       addr = prev->next;
     }
+  }
+
+  if (jail->flags & JAIL_HAS_STATE && jail->sfile->need_save) {
+    f2b_statefile_save(jail->sfile, jail->ipaddrs);
+    jail->sfile->need_save = false;
   }
 
   return processed;
