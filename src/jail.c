@@ -373,7 +373,7 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
     goto cleanup;
   }
 
-  f2b_log_msg(log_info, "jail '%s': started", jail->name);
+  f2b_log_msg(log_debug, "jail '%s' init complete", jail->name);
 
   return true;
 
