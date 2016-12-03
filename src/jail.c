@@ -477,6 +477,7 @@ f2b_jail_cmd_status(char *res, size_t ressize, f2b_jail_t *jail) {
     "name: %s\n"
     "flags:\n"
     "  enabled: %s\n"
+    "  state: %s\n"
     "maxretry: %d\n"
     "times:\n"
     "  bantime: %d\n"
@@ -494,6 +495,7 @@ f2b_jail_cmd_status(char *res, size_t ressize, f2b_jail_t *jail) {
 
   snprintf(res, ressize, fmt, jail->name,
     jail->flags & JAIL_ENABLED     ? "yes" : "no",
+    jail->flags & JAIL_HAS_STATE   ? "yes" : "no",
     jail->maxretry,
     jail->bantime, jail->findtime, jail->expiretime,
     jail->incr_bantime, jail->incr_findtime,
