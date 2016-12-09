@@ -27,7 +27,7 @@ struct _config {
   char error[256];
   void (*errcb)(const char *errstr);
   char baddr[INET6_ADDRSTRLEN]; /**< bind address */
-  char maddr[INET_ADDRSTRLEN];  /**< multicast address */
+  char maddr[INET6_ADDRSTRLEN]; /**< multicast address */
   char mport[6];                /**< multicast port */
   char iface[IF_NAMESIZE];      /**< bind interface */
   int sock;
@@ -111,30 +111,36 @@ errcb(cfg_t *cfg, void (*cb)(const char *errstr)) {
 bool
 start(cfg_t *cfg) {
   struct addrinfo hints;
-  struct addrinfo *result;
-  struct ip_mreq mreq;
+  struct addrinfo *maddr, *laddr;
   int opt, ret, sock = -1;
 
   assert(cfg != NULL);
 
   memset(&hints, 0, sizeof(struct addrinfo));
-  hints.ai_family = AF_INET;
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_flags  = AI_NUMERICHOST;
   hints.ai_socktype = SOCK_DGRAM;
   hints.ai_protocol = 0;
 
-  if ((ret = getaddrinfo(cfg->baddr, cfg->mport, &hints, &result)) < 0) {
-    snprintf(cfg->error, sizeof(cfg->error), "can't create socket: %s", gai_strerror(ret));
+  if ((ret = getaddrinfo(cfg->maddr, cfg->mport, &hints, &maddr)) < 0) {
+    snprintf(cfg->error, sizeof(cfg->error), "can't resolve mcast addr: %s", gai_strerror(ret));
     return false;
   }
 
-  cfg->sock = -1;
-  for (struct addrinfo *rp = result; rp != NULL; rp = rp->ai_next) {
-    if (sock >= 0) {
-      close(sock); /* from prev iteration */
-      sock = -1;
-    }
+  hints.ai_family = maddr->ai_family;
+  hints.ai_flags    = AI_PASSIVE;
+  hints.ai_socktype = SOCK_DGRAM;
+
+  if ((ret = getaddrinfo(cfg->baddr[0] != '\0' ? cfg->baddr : NULL, cfg->mport, &hints, &laddr)) < 0) {
+    snprintf(cfg->error, sizeof(cfg->error), "can't resolve local addr: %s", gai_strerror(ret));
+    freeaddrinfo(maddr);
+    return false;
+  }
+
+  do {
+    cfg->sock = -1;
     /* create socket */
-    if ((sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol)) < 0) {
+    if ((sock = socket(laddr->ai_family, laddr->ai_socktype, laddr->ai_protocol)) < 0) {
       snprintf(cfg->error, sizeof(cfg->error), "can't create socket: %s", strerror(errno));
       continue;
     }
@@ -146,41 +152,53 @@ start(cfg_t *cfg) {
     /* reuse address */
     opt = 1;
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-    /* bind to interface if set */
-    if (cfg->iface[0]) {
-      if (setsockopt(sock, SOL_SOCKET, SO_BINDTODEVICE, cfg->iface, strlen(cfg->iface)) < 0) {
-        snprintf(cfg->error, sizeof(cfg->error), "can't bind socket to iface %s: %s",
-          cfg->iface, strerror(errno));
-        continue;
-      }
-    }
     /* bind to given address */
-    if (bind(sock, rp->ai_addr, rp->ai_addrlen) < 0) {
+    if (bind(sock, laddr->ai_addr, laddr->ai_addrlen) < 0) {
       snprintf(cfg->error, sizeof(cfg->error), "can't bind socket to addr %s: %s",
         cfg->baddr, strerror(errno));
-      continue;
-    }
-    /* set out iface for mcast */
-    if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF, rp->ai_addr, rp->ai_addrlen) < 0) {
-      snprintf(cfg->error, sizeof(cfg->error), "can't set out iface for mcast: %s",
-        strerror(errno));
       continue;
     }
     /* IP_MULTICAST_LOOP -- default: yes */
     /* IP_MULTICAST_TTL  -- default: 1 */
     /* join mcast group */
-    inet_pton(AF_INET, cfg->maddr, &mreq.imr_multiaddr);
-    memcpy(&mreq.imr_interface, rp->ai_addr, rp->ai_addrlen);
-    if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
-      snprintf(cfg->error, sizeof(cfg->error), "can't join mcast group: %s",
-        strerror(errno));
+    if (maddr->ai_family == AF_INET) {
+      struct ip_mreq mreq;
+      struct in_addr *addr = NULL;
+      memset(&mreq, 0x0, sizeof(mreq));
+      addr = &((struct sockaddr_in *)(maddr->ai_addr))->sin_addr;
+      memcpy(&mreq.imr_multiaddr, addr, sizeof(mreq.imr_multiaddr));
+      addr = &((struct sockaddr_in *)(laddr->ai_addr))->sin_addr;
+      memcpy(&mreq.imr_interface, addr, sizeof(mreq.imr_interface));
+      if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
+        snprintf(cfg->error, sizeof(cfg->error), "can't join mcast group: %s",
+          strerror(errno));
+        continue;
+      }
+    } else if (maddr->ai_family == AF_INET6) {
+      struct ipv6_mreq mreq;
+      struct in6_addr *addr = NULL;
+      memset(&mreq, 0x0, sizeof(mreq));
+      addr = &((struct sockaddr_in6 *)(maddr->ai_addr))->sin6_addr;
+      memcpy(&mreq.ipv6mr_multiaddr, addr, sizeof(mreq.ipv6mr_multiaddr));
+      if (cfg->iface[0] != '\0') {
+        mreq.ipv6mr_interface = if_nametoindex(cfg->iface);
+      }
+      if (setsockopt(sock, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
+        snprintf(cfg->error, sizeof(cfg->error), "can't join mcast group: %s",
+          strerror(errno));
+        continue;
+      }
+    } else {
+      snprintf(cfg->error, sizeof(cfg->error), "unknown family for mcast addr: %d", laddr->ai_family);
       continue;
     }
+    /* all ok */
     cfg->sock = sock;
     sock = -1;
-    break; /* success */
-  }
-  freeaddrinfo(result);
+  } while (0);
+
+  freeaddrinfo(maddr);
+  freeaddrinfo(laddr);
 
   if (cfg->sock < 0)
     return false;
