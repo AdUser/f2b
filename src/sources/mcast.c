@@ -127,6 +127,7 @@ start(cfg_t *cfg) {
     return false;
   }
 
+  cfg->sock = -1;
   for (struct addrinfo *rp = result; rp != NULL; rp = rp->ai_next) {
     if (sock >= 0) {
       close(sock); /* from prev iteration */
@@ -175,14 +176,15 @@ start(cfg_t *cfg) {
         strerror(errno));
       continue;
     }
+    cfg->sock = sock;
+    sock = -1;
     break; /* success */
   }
   freeaddrinfo(result);
 
-  if (sock < 0)
+  if (cfg->sock < 0)
     return false;
 
-  cfg->sock = sock;
   return true;
 }
 
