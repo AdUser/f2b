@@ -28,14 +28,11 @@
 
 #define DEFAULT_MCAST_ADDR "239.255.186.1"
 #define DEFAULT_MCAST_PORT "3370"
-#define DEFAULT_PING_NUM 5
 
 struct _config {
   char name[ID_MAX + 1];
   char error[256];
   bool shared;
-  uint8_t ping_num; /*< current number of ping() call */
-  uint8_t ping_max; /*< max ping() calls before actually send CMD_PING packet */
   char maddr[INET_ADDRSTRLEN];  /**< multicast address */
   char mport[6];                /**< multicast port */
   char iface[IF_NAMESIZE];      /**< bind interface */
@@ -52,7 +49,6 @@ create(const char *id) {
 
   if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
     return NULL;
-  cfg->ping_max = DEFAULT_PING_NUM;
   strlcpy(cfg->name, id, sizeof(cfg->name));
   strlcpy(cfg->maddr, DEFAULT_MCAST_ADDR, sizeof(cfg->maddr));
   strlcpy(cfg->mport, DEFAULT_MCAST_PORT, sizeof(cfg->mport));
@@ -80,10 +76,6 @@ config(cfg_t *cfg, const char *key, const char *value) {
   }
   if (strcmp(key, "iface") == 0) {
     strlcpy(cfg->iface, value, sizeof(cfg->iface));
-    return true;
-  }
-  if (strcmp(key, "ping") == 0) {
-    cfg->ping_max = atoi(value);
     return true;
   }
 
@@ -211,15 +203,8 @@ bool
 ping(cfg_t *cfg) {
   assert(cfg != NULL);
 
-  cfg->ping_num++;
-  if (cfg->ping_num < cfg->ping_max)
-    return true; /* skip this try */
-
-  /* max empty calls reached, make real ping */
-  cfg->ping_num = 0;
-  /* TODO */
-
-  return false;
+  (void)(cfg); /* silence warning about unused variable */
+  return true;
 }
 
 void
