@@ -22,6 +22,11 @@
 #define DEFAULT_MCAST_ADDR "239.255.186.1"
 #define DEFAULT_MCAST_PORT "3370"
 
+#if defined(IPV6_JOIN_GROUP) && !defined(IPV6_ADD_MEMBERSHIP)
+  /* bsd-derivatives */
+  #define IPV6_ADD_MEMBERSHIP IPV6_JOIN_GROUP
+#endif
+
 struct _config {
   char name[32];
   char error[256];
