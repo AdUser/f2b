@@ -12,8 +12,8 @@ Features:
 
 Docs:
 
-* docs/install.md -- generic installation instructions
-* docs/configuration.md -- config file description and configuration notes
+* [Installation](docs/install.md) -- generic installation instructions
+* [Quickstart](docs/configuration.md) -- config file description and configuration notes
 
 Similar software:
 

@@ -43,6 +43,8 @@ Example:
     # search for backend named 'exec-ipset' and init it with string 'banned'
     # So <ID> token will be replaced with 'banned' string
 
+See *Teamwork* section for advanced samples.
+
 Module-specific settings
 ========================
 
@@ -73,6 +75,14 @@ portknock
 :   Init string is ignored. Only option is `listen` -- set address/port for tcp honeypot.
     Address is optional, eg "23" and "0.0.0.0:23" is the same.
     For ipv6 address use square brackets like this: "[fe80::fe14:a87c]:23".
+
+mcast
+:   Init string is name of group in multicast messages. Options are:
+    * group -- address of multicast group. Should be in net 239.255.0.0/16
+    * address -- bind address for socket (default: 0.0.0.0)
+    * port -- destination port for multicast messages (default: 3370, don't change unless you know what you doing)
+    * iface -- sets default interface for multicast messages (use system settings if not set)
+
 
 Filter-modules
 --------------
@@ -105,3 +115,87 @@ exec
 redis
 :   Init string is name of pubsub channel on redis server (will be prefixed with "f2b-")
     Options almost the same as source/redis. 'ping' option - for keeping connection alive (see PING redis command)
+
+mcast
+:   Init string is name of group in multicast messages. Options are:
+    * group -- address of multicast group. Should be in net 239.255.0.0/16
+    * port -- destination port for multicast messages (default: 3370, don't change unless you know what you doing)
+    * iface -- sets default interface for multicast messages (use system settings if not set)
+
+Teamwork
+========
+
+This section shows sample configurations of distributed f2b installations.
+
+In standalone install you have simple workflow:
+
+  * `jail/source`  gets the data
+  * `jail/filter`  decides is we need this data piece
+  * `jail/matches` decides should we ban this ip or not
+  * `jail/backend` directly bans/releases filtered IPs
+
+Now let's change the workflow:
+
+  * "sensor" jail
+    * `jail:sensor/source` gets the data (same as above)
+    * `jail:sensor/filter` decides is we need this data piece (same as above)
+    * `jail:sensor/matches` decides should we ban this ip or not
+    * `jail:sensor/backend`  sends filtered ip to some blackbox
+  * "actor" jail
+    * `jail:actor/source` gets the data from blackbox
+    * `jail:actor/filter` only checks is we get valid ip
+    * `jail:actor/matches` decides should we ban this ip or not
+    * `jail:actor/backend` bans/releases given IPs
+
+For now supported `blackbox` types is `multicast group` and `redis database`.
+
+Various jail types may be combined and omitted. Some possible variants:
+
+    [   HOST1   ]    [ HOST2 ]     [   HOST3   ]
+    jail:sensor1 --> [-------] <-- jail:sensor3
+    jail:sensor2 --> [ REDIS ] <-- jail:sensor4
+    jail:actor1  <-- [  DB   ] --> jail:actor2
+
+    [   HOST1   ]                  [   HOST2   ]
+    jail:actor1  <-- [ MCAST ] --> jail:actor2
+    jail:empty   --> [ GROUP ] <-- jail:sensor1
+    ^-- user@f2bc
+
+Now let's see real configs. This is modified sample from section `General notes`.
+
+    [source:redis]
+    server = 127.0.0.1
+    ;
+    [backend:redis]
+    server = 127.0.0.1
+    ;
+    [jail:sensor1]
+    enabled = yes
+    source = files:/var/log/messages
+    filter = preg:/etc/f2b/filters/ssh.preg
+    backend = redis:ssh
+    ;
+    [jail:actor1]
+    enabled = yes
+    source = redis:ssh
+    filter = preg:/etc/f2b/filters/empty.preg
+    backend = exec-ipset:banned
+
+Now, if "sensor1" detects some malicious activity it sends notify with redis PUBLISH command on channel f2b-banned-ssh.
+You may see this messages with the following commands:
+
+    # at host1
+    $ redis-cli -h 127.0.0.1
+    127.0.0.1:6379> SUBSCRIBE f2b-banned-ssh # <- "ssh" here is taken from init string of sensor1/source
+    ^C
+    $
+    $ redis-cli -h 127.0.0.1
+    127.0.0.1:6379> PUBLISH f2b-banned-ssh 1.2.3.4 # <- manually ban given ip
+
+!!! Important note
+
+This configuration for now is one-way street: it only distribute ban events, not release events.
+This means, if you execute the last command above, this ip will be banned on all configured f2b instance as quick as possible.
+But if you want to unban it, you'll need either wait for $bantime second(s) or manually release it at each configured f2b instance.
+
+This may change in future.
