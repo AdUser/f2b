@@ -187,7 +187,8 @@ bool
 unban(cfg_t *cfg, const char *ip) {
   assert(cfg != NULL);
 
-  (void)(ip); /* suppress warning for unused variable 'ip' */
+  (void)(cfg); /* suppress warning for unused variable 'cfg' */
+  (void)(ip);  /* suppress warning for unused variable 'ip' */
   return true;
 }
 
@@ -195,7 +196,8 @@ bool
 check(cfg_t *cfg, const char *ip) {
   assert(cfg != NULL);
 
-  (void)(ip); /* suppress warning for unused variable 'ip' */
+  (void)(cfg); /* suppress warning for unused variable 'cfg' */
+  (void)(ip);  /* suppress warning for unused variable 'ip' */
   return false;
 }
 
