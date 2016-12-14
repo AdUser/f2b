@@ -7,6 +7,7 @@ list(APPEND BACKENDS "f2b_backend_exec")
 if (WITH_MCAST)
   add_library("f2b_backend_mcast" MODULE "mcast.c" "../strlcpy.c"
     "../commands.c" "../cmsg.c" "../csocket.c")
+  list(APPEND BACKENDS "f2b_backend_mcast")
 endif ()
 
 find_library(REDIS_FOUND "hiredis")
