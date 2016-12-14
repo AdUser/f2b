@@ -4,6 +4,7 @@ set(VERSION 0.3)
 project(${CNAME} C)
 cmake_minimum_required(VERSION 2.6)
 
+include(CheckIncludeFiles)
 include(CTest)
 
 option(WITH_CLIENT    "Simple client for configuring daemon" ON)
@@ -35,6 +36,12 @@ if (WITH_HARDENING)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wformat -Wformat-security -Werror=format-security" )
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fstack-protector --param ssp-buffer-size=4" )
   add_definitions("-D_FORTIFY_SOURCE=2")
+endif ()
+
+check_include_files("pcre.h" HAS_PCRE)
+if (${WITH_PCRE} STREQUAL "ON" AND NOT ${HAS_PCRE})
+  set(WITH_PCRE "OFF")
+  message(WARNING "pcre headers not found, support disabled")
 endif ()
 
 message(STATUS "Compiler   : ${CMAKE_C_COMPILER} (${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION})")
