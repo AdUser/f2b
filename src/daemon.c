@@ -232,11 +232,14 @@ int main(int argc, char *argv[]) {
       perror("child: setuid()/setgid() failed");
       exit(EXIT_FAILURE);
     }
-    if (chdir("/") != 0 ||
-        (stdin  = freopen("/dev/null", "r", stdin))  == NULL ||
-        (stdout = freopen("/dev/null", "w", stdout)) == NULL ||
-        (stderr = freopen("/dev/null", "w", stderr)) == NULL) {
-      perror("child: freopen() failed");
+    if (chdir("/") != 0) {
+      perror("child: chdir('/') failed");
+      exit(EXIT_FAILURE);
+    }
+    if (freopen("/dev/null", "r", stdin)  == NULL ||
+        freopen("/dev/null", "w", stdout) == NULL ||
+        freopen("/dev/null", "w", stderr) == NULL) {
+      perror("child: freopen() on std streams failed");
       exit(EXIT_FAILURE);
     }
   }
