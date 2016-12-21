@@ -1,14 +1,24 @@
 Build process is quite simple:
 
-    cmake <OPTIONS> .
+    cmake .
     make
+    make test
+
+Then, if everything builds fine, you may install files in proper places.
+
+    sudo make install
+
+NOTE: This is old good "slackware-way" of installing programs.
+You may want use [checkinstall](http://checkinstall.izto.org) or something like this.
 
 Actual list of configurable options for first line can be found at top of `CMakeLists.txt`.
 It looks like this:
 
     option(SYMBOL "Option description" DEFAULT_VALUE)
 
-Option can be redefined with `-DSYMBOL=ON` or `-DSYMBOL=OFF` on cmake command line.
+Option can be (re)defined with `-DSYMBOL=ON` or `-DSYMBOL=OFF` on cmake command line:
+
+    cmake -D CMAKE_BUILD_TYPE=Release -DWIITH_HARDENING=ON .
 
 Other noticeable options are:
 
@@ -26,6 +36,7 @@ Default install layout is:
     /usr/sbin <- root binaries
     /usr/lib  <- loadable modules
     /usr/share/f2b <- patterns collection
+    /var/lib/f2b <- files with saved states of jails
 
 After install you need additional steps before configuring f2b.
 
