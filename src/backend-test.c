@@ -20,7 +20,7 @@ void usage() {
 int
 parse_input(char *line, char *buf, size_t bufsize) {
   const char *ops[] = { "ban", "check", "unban", NULL };
-  int code = 0;
+  int code = -1;
 
   assert(line != NULL);
   assert(buf  != NULL);
