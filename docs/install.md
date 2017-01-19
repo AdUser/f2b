@@ -9,7 +9,7 @@ Then, if everything builds fine, you may install files in proper places.
     sudo make install
 
 NOTE: This is old good "slackware-way" of installing programs.
-You may want use [checkinstall](http://checkinstall.izto.org) or something like this.
+You may want to use [checkinstall](http://checkinstall.izto.org) or something like this.
 
 Actual list of configurable options for first line can be found at top of `CMakeLists.txt`.
 It looks like this:

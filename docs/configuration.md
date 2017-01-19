@@ -2,7 +2,7 @@ General notes
 =============
 
 f2b config consists from main config `/etc/f2b/f2b.conf` and several config parts located in `/etc/f2b/conf-enabled/`.
-All config parts should ends with `.conf` and ill be sorted before processing.
+All config parts should ends with `.conf` and will be sorted before processing.
 
 Config consists from several sections of various types:
 
@@ -37,7 +37,7 @@ Example:
     filter = preg:/etc/f2b/filters/ssh.preg
     # search for filter named 'preg' and init it with path '/etc/f2b/filters/ssh.preg'
     # note '.preg' extension - it's a hint for you,
-    # that this file contains regexps compatible with posix syntax
+    # that this file contains regexps compatible with POSIX regex syntax
     # see regex(7) manpage
     backend = exec-ipset:banned
     # search for backend named 'exec-ipset' and init it with string 'banned'
