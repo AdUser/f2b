@@ -112,6 +112,10 @@ exec
     This options can be used more than once, commands will be executed in order they appers in config.
     Tokens <ID>/<IP> will be replaced with actual values.
 
+ipset
+:   Init string is ipset set name. The set should already exist, this module only add/del/check addresses.
+    Set creation/destroying is planned but not implemented yet.
+
 redis
 :   Init string is name of pubsub channel on redis server (will be prefixed with "f2b-")
     Options almost the same as source/redis. 'ping' option - for keeping connection alive (see PING redis command)
