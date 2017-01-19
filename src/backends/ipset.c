@@ -39,6 +39,9 @@ static bool
 my_ipset_cmd(cfg_t *cfg, enum ipset_cmd cmd, const char *ip) {
   const struct ipset_type *type = NULL;
 
+  if (ipset_parse_setname(cfg->sess, IPSET_SETNAME, cfg->name) < 0)
+    return my_ipset_error(cfg);
+
   if ((type = ipset_type_get(cfg->sess, cmd)) == NULL)
     return my_ipset_error(cfg);
 
@@ -103,15 +106,15 @@ start(cfg_t *cfg) {
 
   ipset_load_types();
 
-  if ((cfg->sess = ipset_session_init(printf)) == NULL) {
+  if ((cfg->sess = ipset_session_init(NULL)) == NULL) {
     strlcpy(cfg->error, "can't init ipset session", sizeof(cfg->error));
     return false;
   }
 
-  if (ipset_envopt_parse(cfg->sess, IPSET_ENV_EXIST, NULL) < 0)
+  if (ipset_session_output(cfg->sess, IPSET_LIST_NONE) < 0)
     return my_ipset_error(cfg);
 
-  if (ipset_parse_setname(cfg->sess, IPSET_SETNAME, cfg->name) < 0)
+  if (ipset_envopt_parse(cfg->sess, IPSET_ENV_EXIST, NULL) < 0)
     return my_ipset_error(cfg);
 
   return true;
