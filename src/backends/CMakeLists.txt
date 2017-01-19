@@ -17,6 +17,13 @@ if (WITH_REDIS AND REDIS_FOUND)
   list(APPEND BACKENDS "f2b_backend_redis")
 endif ()
 
+find_library(IPSET_FOUND "ipset")
+if (WITH_IPSET AND IPSET_FOUND)
+  add_library("f2b_backend_ipset" MODULE "ipset.c" "../strlcpy.c")
+  target_link_libraries("f2b_backend_ipset" "ipset")
+  list(APPEND BACKENDS "f2b_backend_ipset")
+endif ()
+
 message(STATUS "- Backends : ${BACKENDS}")
 
 install(TARGETS ${BACKENDS}
