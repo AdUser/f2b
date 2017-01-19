@@ -6,6 +6,34 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [0.5] - 2017-01-19
+### Added
+
+  + added 'fatal' log facility
+  + added empty filter for use with sources that providing bare ip address
+	+ added doxygen comments to all sources
+  + added some documentation: see  docs/install.md and docs/configuration.md
+	+ added ability to save and restore banned addresses on reload/restart
+	+ added 'portknock' source
+	+ added 'mcast' source/backend (not well tested yet)
+	+ added handler for 'jail <name> set' command
+	+ added interactive mode for backend test
+
+### Changed
+
+	* refactoring of f2b_cmsg_*(), f2b_csocket_*()
+
+### Fixed
+
+  * better error handling in 'redis' source & backend
+  * fix freopen() calls: std{in,out,err} may be read-only
+  * fix setting uid/git & daemon options
+  * fix compatibility with old pcre (< 8.20) in filter/pcre
+  * fixed f2b-backend-test cmdline parse
+	* fix setting uid/git & daemon options
+  * fix errcb in 'redis' source
+  * fix SIGUSR1 handler
+
 ## [0.4] - 2016-10-07
 ### Added
 
