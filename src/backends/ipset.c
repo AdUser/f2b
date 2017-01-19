@@ -30,8 +30,15 @@ struct _config {
 
 inline static bool
 my_ipset_error(cfg_t *cfg) {
+  struct ipset_data *data = NULL;
   snprintf(cfg->error, sizeof(cfg->error), "ipset: %s",
     ipset_session_error(cfg->sess));
+
+  ipset_session_report_reset(cfg->sess);
+
+  if ((data = ipset_session_data(cfg->sess)) != NULL)
+    ipset_data_reset(data);
+
   return false;
 }
 
