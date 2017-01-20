@@ -1,26 +1,30 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+unset(CMAKE_SHARED_MODULE_PREFIX)
 set(SOURCES "")
 
-add_library("f2b_source_files" MODULE "files.c" "../strlcpy.c")
-list(APPEND SOURCES "f2b_source_files")
+add_library("s_files" MODULE "files.c" "../strlcpy.c")
+list(APPEND SOURCES "files")
 
-add_library("f2b_source_portknock" MODULE "portknock.c" "../strlcpy.c")
-list(APPEND SOURCES "f2b_source_portknock")
+add_library("s_portknock" MODULE "portknock.c" "../strlcpy.c")
+list(APPEND SOURCES "portknock")
 
 if (WITH_MCAST)
-  add_library("f2b_source_mcast" MODULE "mcast.c" "../strlcpy.c"
+  add_library("s_mcast" MODULE "mcast.c" "../strlcpy.c"
     "../commands.c" "../cmsg.c" "../csocket.c")
-  list(APPEND SOURCES "f2b_source_mcast")
+  list(APPEND SOURCES "mcast")
 endif ()
 
 find_library(REDIS_FOUND "hiredis")
 if (WITH_REDIS AND REDIS_FOUND)
-  add_library("f2b_source_redis" MODULE "redis.c" "../strlcpy.c")
-  target_link_libraries("f2b_source_redis" "hiredis")
-  list(APPEND SOURCES "f2b_source_redis")
+  add_library("s_redis" MODULE "redis.c" "../strlcpy.c")
+  target_link_libraries("s_redis" "hiredis")
+  list(APPEND SOURCES "redis")
 endif ()
 
-message(STATUS "- Sources  : ${SOURCES}")
+set(LIB_PATH "${CMAKE_INSTALL_LIBDIR}/f2b/sources")
+foreach (SOURCE IN LISTS SOURCES)
+  set_target_properties("s_${SOURCE}" PROPERTIES OUTPUT_NAME ${SOURCE})
+  install(TARGETS "s_${SOURCE}" LIBRARY DESTINATION ${LIB_PATH})
+endforeach ()
 
-install(TARGETS ${SOURCES}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+message(STATUS "- Sources  : ${SOURCES}")

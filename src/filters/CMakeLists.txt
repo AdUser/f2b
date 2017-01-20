@@ -1,17 +1,21 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+unset(CMAKE_SHARED_MODULE_PREFIX)
 set(FILTERS "")
 
-add_library("f2b_filter_preg" MODULE "preg.c" "../strlcpy.c")
-list(APPEND FILTERS "f2b_filter_preg")
+add_library("f_preg" MODULE "preg.c" "../strlcpy.c")
+list(APPEND FILTERS "preg")
 
 find_library(PCRE_FOUND "pcre")
 if (WITH_PCRE AND PCRE_FOUND)
-  add_library("f2b_filter_pcre" MODULE "pcre.c" "../strlcpy.c")
-  target_link_libraries("f2b_filter_pcre" "pcre")
-  list(APPEND FILTERS "f2b_filter_pcre")
+  add_library("f_pcre" MODULE "pcre.c" "../strlcpy.c")
+  target_link_libraries("f_pcre" "pcre")
+  list(APPEND FILTERS "pcre")
 endif ()
 
-message(STATUS "- Filters  : ${FILTERS}")
+set(LIB_PATH "${CMAKE_INSTALL_LIBDIR}/f2b/filters")
+foreach (FILTER IN LISTS FILTERS)
+  set_target_properties("f_${FILTER}" PROPERTIES OUTPUT_NAME ${FILTER})
+  install(TARGETS "f_${FILTER}" LIBRARY DESTINATION ${LIB_PATH})
+endforeach ()
 
-install(TARGETS ${FILTERS}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+message(STATUS "- Filters  : ${FILTERS}")
