@@ -10,8 +10,7 @@ required_dirs="/var/run"
 required_files="/etc/f2b/f2b.conf"
 
 depend() {
-  need mountall
-  use net
+  use mountall net
   after bootmisc
   config "/etc/f2b/f2b.conf"
 }
