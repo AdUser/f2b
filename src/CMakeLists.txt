@@ -28,7 +28,7 @@ set(SOURCES "strlcpy.c" "backend-test.c" "log.c" "config.c" "backend.c")
 add_executable("f2b-backend-test" ${SOURCES})
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  target_link_libraries(f2b "dl")
+  target_link_libraries("f2b"              "dl")
   target_link_libraries("f2b-source-test"  "dl")
   target_link_libraries("f2b-filter-test"  "dl")
   target_link_libraries("f2b-backend-test" "dl")

@@ -21,7 +21,7 @@ if (WITH_REDIS AND REDIS_FOUND)
   list(APPEND SOURCES "redis")
 endif ()
 
-set(LIB_PATH "${CMAKE_INSTALL_LIBDIR}/f2b/sources")
+set(LIB_PATH "${CMAKE_INSTALL_LIBDIR}/${CNAME}/sources")
 foreach (SOURCE IN LISTS SOURCES)
   set_target_properties("s_${SOURCE}" PROPERTIES OUTPUT_NAME ${SOURCE})
   install(TARGETS "s_${SOURCE}" LIBRARY DESTINATION ${LIB_PATH})

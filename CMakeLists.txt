@@ -45,6 +45,7 @@ message(STATUS "- prefix   : ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "- configs  : ${CMAKE_INSTALL_FULL_SYSCONFDIR}")
 message(STATUS "- binary   : ${CMAKE_INSTALL_FULL_BINDIR}")
 message(STATUS "- binary   : ${CMAKE_INSTALL_FULL_SBINDIR}")
+message(STATUS "- plugins  : ${CMAKE_INSTALL_FULL_LIBDIR}/${CNAME}")
 message(STATUS "- data     : ${CMAKE_INSTALL_FULL_DATAROOTDIR}")
 message(STATUS "- state    : ${CMAKE_INSTALL_FULL_LOCALSTATEDIR}")
 message(STATUS "Build type : ${CMAKE_BUILD_TYPE}")
@@ -62,17 +63,17 @@ add_subdirectory(src)
 add_subdirectory(t)
 set_property(DIRECTORY "t" PROPERTY COMPILE_FLAGS "-g;-ggdb;-Wall;-Wextra;-pedantic;-O0")
 
-install(DIRECTORY "filters"  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/f2b")
+install(DIRECTORY "filters"  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/${CNAME}")
 file(GLOB_RECURSE CONFIGS "*.conf.in")
 foreach(CONFIG ${CONFIGS})
   string(REPLACE ".conf.in" ".conf" GENERATED ${CONFIG})
   configure_file(${CONFIG} ${GENERATED})
 endforeach()
-install(DIRECTORY "configs/" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/f2b"
+install(DIRECTORY "configs/"     DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/${CNAME}"
   FILES_MATCHING PATTERN "*.conf")
-install(DIRECTORY "configs/" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/f2b"
+install(DIRECTORY "configs/"     DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/${CNAME}"
   FILES_MATCHING PATTERN "README.txt")
-install(FILES "configs/f2b.conf" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/f2b"
+install(FILES "configs/f2b.conf" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/${CNAME}"
   RENAME "f2b.conf.sample")
 
 add_custom_target("dist" COMMAND

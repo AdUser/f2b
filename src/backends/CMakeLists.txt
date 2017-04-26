@@ -25,7 +25,7 @@ if (WITH_IPSET AND IPSET_FOUND)
   list(APPEND BACKENDS "ipset")
 endif ()
 
-set(LIB_PATH "${CMAKE_INSTALL_LIBDIR}/f2b/backends")
+set(LIB_PATH "${CMAKE_INSTALL_LIBDIR}/${CNAME}/backends")
 foreach (BACKEND IN LISTS BACKENDS)
   set_target_properties("b_${BACKEND}" PROPERTIES OUTPUT_NAME ${BACKEND})
   install(TARGETS "b_${BACKEND}" LIBRARY DESTINATION ${LIB_PATH})
