@@ -1,2 +1,2 @@
 etc/f2b/conf-available/*-*-ipset.conf
-usr/lib/*/libf2b_*_ipset.so*
+usr/lib/*/f2b/*/ipset.so
