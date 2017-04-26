@@ -38,6 +38,7 @@ endif ()
 install(TARGETS "f2b-source-test" "f2b-filter-test" "f2b-backend-test"
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
+set(PLUGINS_PATH "${CMAKE_INSTALL_LIBDIR}/${CNAME}")
 add_subdirectory("backends")
 add_subdirectory("filters")
 add_subdirectory("sources")

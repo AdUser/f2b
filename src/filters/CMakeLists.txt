@@ -12,10 +12,9 @@ if (WITH_PCRE AND PCRE_FOUND)
   list(APPEND FILTERS "pcre")
 endif ()
 
-set(LIB_PATH "${CMAKE_INSTALL_LIBDIR}/${CNAME}/filters")
 foreach (FILTER IN LISTS FILTERS)
-  set_target_properties("f_${FILTER}" PROPERTIES OUTPUT_NAME ${FILTER})
-  install(TARGETS "f_${FILTER}" LIBRARY DESTINATION ${LIB_PATH})
+  set_target_properties("f_${FILTER}" PROPERTIES OUTPUT_NAME "filter_${FILTER}")
+  install(TARGETS "f_${FILTER}" LIBRARY DESTINATION ${PLUGINS_PATH})
 endforeach ()
 
 message(STATUS "- Filters  : ${FILTERS}")
