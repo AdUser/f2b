@@ -364,7 +364,7 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
 
   /* init all */
   if ((jail->source = f2b_source_create(s_section, jail->source_init, f2b_log_error_cb)) == NULL) {
-    f2b_log_msg(log_error, "jail '%s': no regexps loaded from '%s'", jail->name, jail->source_init);
+    f2b_log_msg(log_error, "jail '%s': can't init source '%s' with %s", jail->name, jail->source_name, jail->source_init);
     goto cleanup;
   }
   if (!f2b_source_start(jail->source)) {
