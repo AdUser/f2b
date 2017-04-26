@@ -9,6 +9,7 @@ if (WITH_CSOCKET)
 endif ()
 
 add_executable("f2b" ${SOURCES})
+set_target_properties("f2b" PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}/${CNAME}")
 
 install(TARGETS "f2b" RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR})
 
