@@ -253,7 +253,7 @@ f2b_jail_process(f2b_jail_t *jail) {
     if (!addr) {
       addr = f2b_ipaddr_create(matchbuf, jail->maxretry);
       jail->ipaddrs = f2b_addrlist_append(jail->ipaddrs, addr);
-      f2b_log_msg(log_debug, "jail '%s': new ip found -- %s", jail->name, matchbuf);
+      f2b_log_msg(log_debug, "jail '%s': found new ip %s", jail->name, matchbuf);
     }
     addr->lastseen = now;
     if (addr->banned) {
@@ -271,7 +271,7 @@ f2b_jail_process(f2b_jail_t *jail) {
     f2b_matches_expire(&addr->matches, findtime);
     f2b_matches_append(&addr->matches, now);
     if (addr->matches.used < jail->maxretry) {
-      f2b_log_msg(log_info, "jail '%s': new ip match -- %s (%zu/%zu)",
+      f2b_log_msg(log_info, "jail '%s': new match for ip %s (%zu/%zu)",
         jail->name, matchbuf, addr->matches.used, addr->matches.max);
       continue;
     }
@@ -292,7 +292,7 @@ f2b_jail_process(f2b_jail_t *jail) {
       : addr->release_at;
     expiretime += jail->expiretime;
     if (now > expiretime) {
-      f2b_log_msg(log_info, "jail '%s': expired ip -- %s",
+      f2b_log_msg(log_info, "jail '%s': expired ip %s",
         jail->name, addr->text);
       remove = true;
     }

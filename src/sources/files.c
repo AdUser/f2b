@@ -221,7 +221,7 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
       file_close(file);
     if (!file->opened && !file_open(file, NULL)) {
       if (cfg->errcb) {
-        snprintf(cfg->error, sizeof(cfg->error), "can't open file -- %s", file->path);
+        snprintf(cfg->error, sizeof(cfg->error), "can't open file: %s", file->path);
         cfg->errcb(cfg->error);
       }
       continue;
