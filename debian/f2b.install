@@ -10,8 +10,8 @@ usr/bin/f2b-*-test
 usr/bin/f2bc
 usr/sbin/f2b
 usr/share/f2b
-usr/lib/*/f2b/sources/files.so
-usr/lib/*/f2b/sources/mcast.so
-usr/lib/*/f2b/sources/portknock.so
-usr/lib/*/f2b/filters/preg.so
-usr/lib/*/f2b/backends/exec.so
+usr/lib/*/f2b/source_files.so
+usr/lib/*/f2b/source_mcast.so
+usr/lib/*/f2b/source_portknock.so
+usr/lib/*/f2b/filter_preg.so
+usr/lib/*/f2b/backend_exec.so

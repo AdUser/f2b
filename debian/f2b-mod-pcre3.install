@@ -1,2 +1,2 @@
 etc/f2b/conf-available/*-*-pcre.conf
-usr/lib/*/f2b/*/pcre.so
+usr/lib/*/f2b/*_pcre.so

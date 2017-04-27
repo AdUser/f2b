@@ -1,2 +1,2 @@
 etc/f2b/conf-available/*-*-redis.conf
-usr/lib/*/f2b/*/redis.so
+usr/lib/*/f2b/*_redis.so
