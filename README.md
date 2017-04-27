@@ -7,7 +7,7 @@ Features:
 
 * written in pure C
 * small memory footprint
-* minimum dependencies (required: libc, libdl; optional: pcre, redis)
+* minimum dependencies (required: libc, libdl; optional: readline, pcre, redis, ipset)
 * fully modular: pluggable sources/filters/backends (you may easy write custom one)
 * support for distributed installs (teamwork)
 * stateful (can save/restore banned ips on restart)
