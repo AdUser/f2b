@@ -89,9 +89,35 @@ signal_handler(int signum) {
   }
 }
 
+#ifdef WITH_READLINE
+  #include <readline/readline.h>
+  #include <readline/history.h>
+#else
+char *
+readline(const char *prompt) {
+  char line[INPUT_LINE_MAX];
+
+  while (1) {
+    line[0] = '\0';
+    fputs(prompt, stdout);
+    if (!fgets(line, sizeof(line) - 1, stdin)) {
+      if (feof(stdin)) {
+        fputc('\n', stdout);
+      } else {
+        fputs("read error\n", stdout);
+      }
+      break;
+    }
+    if (line[0] == '\n')
+      continue;
+  }
+  return strdup(line);
+}
+#endif
+
 int main(int argc, char *argv[]) {
   struct sigaction act;
-  char line[INPUT_LINE_MAX] = "";
+  char *line = NULL;
   char opt = '\0';
   int ret;
 
@@ -99,7 +125,7 @@ int main(int argc, char *argv[]) {
     switch (opt) {
       case 'c':
         opts.mode = oneshot;
-        strlcpy(line, optarg, sizeof(line));
+        line = strndup(optarg, INPUT_LINE_MAX);
         break;
       case 's':
         strlcpy(opts.csocket_spath, optarg, sizeof(opts.csocket_spath));
@@ -133,19 +159,10 @@ int main(int argc, char *argv[]) {
     exit(ret);
   }
 
-  while (1) {
-    fputs("f2b >> ", stdout);
-    if (!fgets(line, sizeof(line) - 1, stdin)) {
-      if (feof(stdin)) {
-        fputc('\n', stdout);
-      } else {
-        fputs("read error\n", stdout);
-      }
-      break;
-    }
-    if (line[0] == '\n')
-      continue;
+  while ((line = readline("f2b >> ")) != NULL) {
     handle_cmd(line);
+    free(line);
+    line = NULL;
   }
 
   f2b_csocket_disconnect(opts.csocket, opts.csocket_cpath);
