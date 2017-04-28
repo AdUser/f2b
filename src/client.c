@@ -77,12 +77,18 @@ handle_cmd(const char *line) {
   return EXIT_SUCCESS;
 }
 
+void cleanup() {
+  f2b_csocket_disconnect(opts.csocket, opts.csocket_cpath);
+  unlink(opts.csocket_cpath);
+}
+
 void
 signal_handler(int signum) {
   switch (signum) {
     case SIGINT:
     case SIGTERM:
-      unlink(opts.csocket_cpath);
+      cleanup();
+      exit(EXIT_SUCCESS);
       break;
     default:
       break;
@@ -176,7 +182,7 @@ int main(int argc, char *argv[]) {
     line = NULL;
   }
 
-  f2b_csocket_disconnect(opts.csocket, opts.csocket_cpath);
+  cleanup();
 
   return EXIT_SUCCESS;
 }
