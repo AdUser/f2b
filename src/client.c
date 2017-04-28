@@ -113,6 +113,10 @@ readline(const char *prompt) {
   }
   return strdup(line);
 }
+
+/* stubs */
+#define add_history(x) (void)(x);
+#define using_history()
 #endif
 
 int main(int argc, char *argv[]) {
@@ -159,8 +163,12 @@ int main(int argc, char *argv[]) {
     exit(ret);
   }
 
+  using_history();
   while ((line = readline("f2b >> ")) != NULL) {
-    handle_cmd(line);
+    if (line[0] != '\n' && line[0] != '\0') {
+      add_history(line);
+      handle_cmd(line);
+    }
     free(line);
     line = NULL;
   }
