@@ -96,9 +96,11 @@ signal_handler(int signum) {
 char *
 readline(const char *prompt) {
   char line[INPUT_LINE_MAX];
+  char *p;
 
   while (1) {
     line[0] = '\0';
+    p = &line[0];
     fputs(prompt, stdout);
     if (!fgets(line, sizeof(line) - 1, stdin)) {
       if (feof(stdin)) {
@@ -106,12 +108,13 @@ readline(const char *prompt) {
       } else {
         fputs("read error\n", stdout);
       }
-      break;
+      return NULL;
     }
-    if (line[0] == '\n')
-      continue;
+    while (isspace(*p)) p++;
+    if (*p != '\n' && *p != '\0')
+      return strdup(p);
   }
-  return strdup(line);
+  return NULL;
 }
 
 /* stubs */
