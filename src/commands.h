@@ -28,9 +28,10 @@ enum f2b_cmd_type {
   CMD_HELP,      /**< show help for commands (used internally by client) */
   CMD_PING = 8,  /**< check connection */
   CMD_STATUS,    /**< show general status of f2b daemon */
-  CMD_ROTATE,    /**< reopen logfile. works only if set `logdest = file` */
+  CMD_LOG_ROTATE,/**< reopen logfile. works only if set `logdest = file` */
   CMD_RELOAD,    /**< reload all jails */
   CMD_SHUTDOWN,  /**< gracefull shutdown */
+  CMD_LOG_LEVEL, /**< change maximum level of logged messages */
   /* jail commands */
   CMD_JAIL_STATUS = 16,    /**< show status of given jail */
   CMD_JAIL_SET,            /**< set parameter of given jail */

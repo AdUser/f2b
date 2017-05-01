@@ -38,9 +38,9 @@ struct f2b_cmd_t {
     .tokens = { "status", NULL },
     .help = "Show general stats and jails list",
   },
-  [CMD_ROTATE] = {
-    .argc = 0, .tokenc = 1,
-    .tokens = { "rotate", NULL },
+  [CMD_LOG_ROTATE] = {
+    .argc = 0, .tokenc = 2,
+    .tokens = { "log", "rotate", NULL },
     .help = "Reopen daemon's own log file",
   },
   [CMD_RELOAD] = {
@@ -52,6 +52,11 @@ struct f2b_cmd_t {
     .argc = 0, .tokenc = 1,
     .tokens = { "shutdown", NULL },
     .help = "Gracefully terminate f2b daemon",
+  },
+  [CMD_LOG_LEVEL] = {
+    .argc = 1, .tokenc = 3,
+    .tokens = { "log", "level", "<level>",  NULL },
+    .help = "Change maximum level of logged messages",
   },
   [CMD_JAIL_STATUS] = {
     .argc = 1, .tokenc = 3,
@@ -146,7 +151,6 @@ f2b_cmd_parse(char *buf, size_t bufsize, const char *src) {
   if      (strcmp(line, "ping")     == 0) { return CMD_PING;     }
   else if (strcmp(line, "help")     == 0) { return CMD_HELP;     }
   else if (strcmp(line, "status")   == 0) { return CMD_STATUS;   }
-  else if (strcmp(line, "rotate")   == 0) { return CMD_ROTATE;   }
   else if (strcmp(line, "reload")   == 0) { return CMD_RELOAD;   }
   else if (strcmp(line, "shutdown") == 0) { return CMD_SHUTDOWN; }
 
@@ -189,6 +193,14 @@ f2b_cmd_parse(char *buf, size_t bufsize, const char *src) {
     }
     if (tokenc == 4 && strcmp(tokens[2], "filter") == 0 && strcmp(tokens[3], "reload") == 0) {
       return CMD_JAIL_FILTER_RELOAD;
+    }
+  } else if (strcmp(line, "log") == 0 && tokenc > 1) {
+    if (tokenc == 2 && strcmp(tokens[1], "rotate") == 0) {
+      return CMD_LOG_ROTATE;
+    }
+    if (tokenc == 3 && strcmp(tokens[1], "level") == 0) {
+      f2b_cmd_append_arg(buf, bufsize, tokens[2]);
+      return CMD_LOG_LEVEL;
     }
   }
 

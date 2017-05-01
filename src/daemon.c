@@ -95,8 +95,10 @@ f2b_cmsg_process(const f2b_cmsg_t *msg, char *res, size_t ressize) {
     /* nothing to do */
   } else if (msg->type == CMD_RELOAD) {
     state = reconfig;
-  } else if (msg->type == CMD_ROTATE) {
+  } else if (msg->type == CMD_LOG_ROTATE) {
     state = logrotate;
+  } else if (msg->type == CMD_LOG_LEVEL) {
+    f2b_log_set_level(args[0]);
   } else if (msg->type == CMD_SHUTDOWN) {
     state = stop;
   } else if (msg->type == CMD_STATUS) {
