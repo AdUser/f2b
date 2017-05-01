@@ -48,7 +48,7 @@ handle_cmd(const char *line) {
     f2b_cmd_help();
     return EXIT_SUCCESS;
   } else if (cmsg.type == CMD_NONE) {
-    f2b_log_msg(log_error, "unable to parse command line");
+    printf("! unable to parse command line\n");
     return EXIT_FAILURE;
   }
   /* fill other fields */
@@ -64,12 +64,12 @@ handle_cmd(const char *line) {
   memset(&cmsg, 0x0, sizeof(cmsg));
   addrlen = sizeof(addr);
   if ((ret = f2b_csocket_recv(opts.csocket, &cmsg, &addr, &addrlen)) < 0) {
-    f2b_log_msg(log_error, "%s", f2b_csocket_error(ret));
+    printf("! control sicket: %s\n", f2b_csocket_error(ret));
     return EXIT_FAILURE;
   }
 
   if (cmsg.type != CMD_RESP) {
-    f2b_log_msg(log_error, "recieved message not a 'response' type");
+    printf("! recieved message not a 'response' type\n");
     return EXIT_FAILURE;
   }
   fputs(cmsg.data, stdout);
