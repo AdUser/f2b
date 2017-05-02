@@ -57,6 +57,14 @@ f2b_jail_set_param(f2b_jail_t *jail, const char *param, const char *value) {
     }
     return true;
   }
+  if (strcmp(param->name, "state") == 0) {
+    if (strcmp(param->value, "yes") == 0) {
+      jail->flags |= JAIL_HAS_STATE;
+    } else {
+      jail->flags &= ~JAIL_HAS_STATE;
+    }
+    return true;
+  }
   if (strcmp(param, "bantime") == 0) {
     jail->bantime = atoi(value);
     if (jail->bantime <= 0)
@@ -111,14 +119,6 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
     }
     if (strcmp(param->name, "backend") == 0) {
       f2b_jail_parse_compound_value(param->value, jail->backend_name, jail->backend_init);
-      continue;
-    }
-    if (strcmp(param->name, "state") == 0) {
-      if (strcmp(param->value, "yes") == 0) {
-        jail->flags |= JAIL_HAS_STATE;
-      } else {
-        jail->flags &= ~JAIL_HAS_STATE;
-      }
       continue;
     }
     if (f2b_jail_set_param(jail, param->name, param->value))
