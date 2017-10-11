@@ -57,8 +57,8 @@ f2b_jail_set_param(f2b_jail_t *jail, const char *param, const char *value) {
     }
     return true;
   }
-  if (strcmp(param->name, "state") == 0) {
-    if (strcmp(param->value, "yes") == 0) {
+  if (strcmp(param, "state") == 0) {
+    if (strcmp(value, "yes") == 0) {
       jail->flags |= JAIL_HAS_STATE;
     } else {
       jail->flags &= ~JAIL_HAS_STATE;
