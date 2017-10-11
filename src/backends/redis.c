@@ -91,8 +91,10 @@ static bool
 redis_disconnect(cfg_t *cfg) {
   assert(cfg != NULL);
 
-  redisFree(cfg->conn);
-  cfg->conn = NULL;
+  if (cfg->conn) {
+    redisFree(cfg->conn);
+    cfg->conn = NULL;
+  }
   return true;
 }
 
@@ -170,10 +172,11 @@ bool
 start(cfg_t *cfg) {
   assert(cfg != NULL);
 
-  if (cfg->shared && usage_inc(cfg->name) > 1)
-    return true;
+  if (cfg->shared)
+    usage_inc(cfg->name);
 
-  return redis_connect(cfg);
+  redis_connect(cfg); /* may fail */
+  return true;
 }
 
 bool
@@ -181,9 +184,10 @@ stop(cfg_t *cfg) {
   assert(cfg != NULL);
 
   if (cfg->shared && usage_dec(cfg->name) > 0)
-    return true;
+    return true; /* skip disconnect, if not last user */
 
-  return redis_disconnect(cfg);
+  redis_disconnect(cfg);
+  return true;
 }
 
 bool

@@ -99,8 +99,10 @@ static bool
 redis_disconnect(cfg_t *cfg) {
   assert(cfg != NULL);
 
-  redisFree(cfg->conn);
-  cfg->conn = NULL;
+  if (cfg->conn) {
+    redisFree(cfg->conn);
+    cfg->conn = NULL;
+  }
   return true;
 }
 
@@ -180,14 +182,16 @@ bool
 start(cfg_t *cfg) {
   assert(cfg != NULL);
 
-  return redis_connect(cfg);
+  redis_connect(cfg); /* may fail */
+  return true;
 }
 
 bool
 stop(cfg_t *cfg) {
   assert(cfg != NULL);
 
-  return redis_disconnect(cfg);
+  redis_disconnect(cfg);
+  return true;
 }
 
 bool
