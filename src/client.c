@@ -181,6 +181,7 @@ int main(int argc, char *argv[]) {
     free(line);
     line = NULL;
   }
+  putc('\n');
 
   cleanup();
 
