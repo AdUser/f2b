@@ -1,0 +1,11 @@
+/var/log/f2b.log {
+  rotate 7
+  daily
+  missingok
+  notifempty
+  delaycompress
+  compress
+  postrotate
+    [ -e /var/run/f2b.pid ] && invoke-rc.d f2b rotate > /dev/null
+  endscript
+}

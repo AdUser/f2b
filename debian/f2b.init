@@ -77,6 +77,14 @@ do_stop()
 	return "$RETVAL"
 }
 
+#
+# Rotate log files
+#
+do_rotate() {
+	start-stop-daemon --stop --signal USR1 --quiet --pidfile $PIDFILE --name $NAME
+	return 0
+}
+
 case "$1" in
   start)
 	[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
@@ -115,8 +123,13 @@ case "$1" in
 		;;
 	esac
 	;;
+	rotate)
+		log_daemon_msg "Re-opening $DESC log files" "$NAME"
+		do_rotate
+		log_end_msg $?
+		;;
   *)
-	echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
+	echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload|rotate}" >&2
 	exit 3
 	;;
 esac
