@@ -11,14 +11,14 @@
 #include "filter.h"
 
 void usage() {
-  fprintf(stderr, "Usage: filter-test <library.so> <regexps-file.txt> [<file.log>]\n");
+  fprintf(stderr, "Usage: filter-test <filter.conf> <regexps.txt> [<file.log>]\n");
   exit(EXIT_FAILURE);
 }
 
 int main(int argc, char *argv[]) {
-  f2b_config_param_t  param = { .name = "load", .value = "", .next = 0x0 };
-  f2b_config_section_t config = { .name = "test", .type = t_filter, .param = 0x0, .next = 0x0 };
-  f2b_filter_t *filter = NULL;
+  f2b_config_t          config;
+  f2b_config_section_t *section = NULL;
+  f2b_filter_t         *filter  = NULL;
   char match[IPADDR_MAX] = "";
   char line[LOGLINE_MAX] = "";
   char stats[4096];
@@ -29,15 +29,29 @@ int main(int argc, char *argv[]) {
   if (argc < 3)
     usage();
 
-  config.param = &param;
-  snprintf(param.value, sizeof(param.value), "%s", argv[1]);
+  memset(&config, 0x0, sizeof(config));
+  if (f2b_config_load(&config, argv[1], false) != true) {
+    f2b_log_msg(log_fatal, "can't load config");
+    return EXIT_FAILURE;
+  }
 
-  if ((filter = f2b_filter_create(&config, argv[2])) == false)
-    usage();
+  if (config.filters == NULL) {
+    f2b_log_msg(log_fatal, "no filters found in config");
+    return EXIT_FAILURE;
+  } else {
+    section = config.filters;
+  }
+
+  if ((filter = f2b_filter_create(section, argv[2])) == false) {
+    f2b_log_msg(log_fatal, "can't create filter '%s' with file '%s'", section->name, argv[2]);
+    return EXIT_FAILURE;
+  }
 
   if (argc > 3) {
-    if ((file = fopen(argv[3], "r")) == NULL)
-      usage();
+    if ((file = fopen(argv[3], "r")) == NULL) {
+      f2b_log_msg(log_fatal, "can't open regexp file '%s': %s", argv[2], strerror(errno));
+      return EXIT_FAILURE;
+    }
   } else {
     file = stdin;
   }
@@ -46,20 +60,22 @@ int main(int argc, char *argv[]) {
     read++;
     if (f2b_filter_match(filter, line, match, sizeof(match))) {
       matched++;
-      fprintf(stderr, "+ %s\n", match);
+      fprintf(stdout, "+ %s\n", match);
       continue;
     }
     error = f2b_filter_error(filter);
     if (*error == '\0') {
-      fprintf(stderr, "- (no-match): %s", line);
+      fprintf(stdout, "- (no-match): %s", line);
     } else {
-      fprintf(stderr, "! (error) : %s\n", error);
+      fprintf(stdout, "! (error) : %s\n", error);
     }
   }
   fclose(file);
-  fprintf(stderr, "stats: %% lines read: %zu, matched: %zu\n", read, matched);
+
+  fputs("---\n", stdout);
+  fprintf(stdout, "stats: %zu lines read, %zu matched\n", read, matched);
   f2b_filter_cmd_stats(stats, sizeof(stats), filter);
-  fputs(stats, stderr);
+  fputs(stats, stdout);
 
   return EXIT_SUCCESS;
 }
