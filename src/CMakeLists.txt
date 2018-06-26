@@ -9,8 +9,6 @@ if (WITH_CSOCKET)
 endif ()
 
 add_executable("f2b" ${SOURCES})
-set_target_properties("f2b" PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}/${CNAME}")
-
 install(TARGETS "f2b" RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR})
 
 if (WITH_CLIENT)
@@ -38,6 +36,9 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   target_link_libraries("f2b-filter-test"  "dl")
   target_link_libraries("f2b-backend-test" "dl")
 endif ()
+
+set_target_properties("f2b" "f2b-source-test" "f2b-filter-test" "f2b-backend-test"
+  PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}/${CNAME}")
 
 install(TARGETS "f2b-source-test" "f2b-filter-test" "f2b-backend-test"
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
