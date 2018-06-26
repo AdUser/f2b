@@ -1,6 +1,25 @@
-<HOST> .* "(GET|HEAD|POST) (https?://[0-9a-z.-]+)?(:[0-9]*)?/+sqlite-?(manager)?
+# phpmyadmin and variations
+<HOST> .* "(GET|HEAD|POST) (https?://[0-9a-z.-]+)?(:[0-9]*)?/+(php|sqlite)-?(manager)?
 <HOST> .* "(GET|HEAD|POST) (https?://[0-9a-z.-]+)?(:[0-9]*)?/+(php|pg|sql)-?my-?admin
 <HOST> .* "(GET|HEAD|POST) (https?://[0-9a-z.-]+)?(:[0-9]*)?/+pma[0-9]*
-<HOST> .* "(GET|HEAD|POST) (https?://[0-9a-z.-]+)?(:[0-9]*)?/+((my|pg)sql|db)-?admin
-<HOST> .* "(GET|HEAD|POST) (https?://[0-9a-z.-]+)?(:[0-9]*)?/+php-?manager
+<HOST> .* "(GET|HEAD|POST) (https?://[0-9a-z.-]+)?(:[0-9]*)?/+((my|pg)(sql)?|db|msd?)-?(admin|dumper|dump|manager)
+# shit-coded php cms
 <HOST> .* "(GET|HEAD|POST) (https?://[0-9a-z.-]+)?(:[0-9]*)?/.*/wp-login.php
+<HOST> .* "(GET|HEAD|POST) (https?://[0-9a-z.-]+)?(:[0-9]*)?/+(joomla|cms)/administrator
+# h4x0rs
+<HOST> .* "(GET|HEAD|POST) (https?://[0-9a-z.-]+)?(:[0-9]*)?/w00tw00t
+<HOST> .* "(GET|HEAD|POST) (https?://[0-9a-z.-]+)?(:[0-9]*)?/+Ringing\.at\.your\.dorbell
+<HOST> .* "(GET|HEAD|POST) (https?://[0-9a-z.-]+)?(:[0-9]*)?/.*(wget|curl)(\\x|%)20https?://
+<HOST> .* "(GET|HEAD|POST) .*/bin/(ba|c|z)?sh( |\\x20|%20)-c
+<HOST> .* "(\\x[0-9a-z]{2,6})+" 400
+# open proxy search
+<HOST> .* "(GET|HEAD|POST) https?://[a-z-\.]+proxyradar\.com
+<HOST> .* "CONNECT [a-z-\.]*proxyradar\.com
+<HOST> .* "CONNECT [a-z-\.]*proxytest\.zmap\.io
+<HOST> .* "(GET|HEAD|POST) (https?://[0-9a-z.-]+)?(:[0-9]*)?/+testproxy\.php
+# search bots
+<HOST> .* "(GET|HEAD|POST) .* "python-(requests|urllib)/[0-9\.]+
+<HOST> .* "(GET|HEAD|POST) .* "AhrefsBot/[0-9a-z\.]+
+<HOST> .* "(GET|HEAD|POST) .* "DotBot/[0-9a-z\.]+
+<HOST> .* "(GET|HEAD|POST) .* "MauiBot
+<HOST> .* "(GET|HEAD|POST) .* SiteExplorer/[0-9a-z\.]+
