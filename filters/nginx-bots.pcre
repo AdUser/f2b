@@ -23,3 +23,5 @@
 <HOST> .* "(GET|HEAD|POST) .* "DotBot/[0-9a-z\.]+
 <HOST> .* "(GET|HEAD|POST) .* "MauiBot
 <HOST> .* "(GET|HEAD|POST) .* SiteExplorer/[0-9a-z\.]+
+<HOST> .* "(GET|HEAD|POST) .* MJ12bot
+<HOST> .* "(GET|HEAD|POST) .* WebIndex
