@@ -8,17 +8,17 @@ Config consists from several sections of various types:
 
 * [main] -- daemon settings
 * [defaults] -- jail defaults
-* [source:*] -- source module definitions
-* [filter:*] -- filter module definitions
-* [backend:*] -- backend module definitions
-* [jail:*] -- jail definitions
+* [source:%%] -- source module definitions
+* [filter:%%] -- filter module definitions
+* [backend:%%] -- backend module definitions
+* [jail:%%] -- jail definitions
 
 Options may be redefined by creating section with same name and option with changed value. Like this:
 
     # from f2b.conf
     [main]
     <skipped>
-    loglevel = info  # <- you want to redefine this
+    loglevel = info  # <- you may want to redefine this
     # from conf-enabled/99-local.conf
     [main]
     loglevel = error # <- this will be actual value
