@@ -56,6 +56,7 @@ void f2b_log_msg(log_msgtype_t l, const char *fmt, ...) {
     default:
     case log_stderr:
       logfile = stderr;
+      /* fallthru */
     case log_file:
       strftime(when, sizeof(when), "%F %H:%M:%S", localtime(&now));
       fprintf(logfile, "%s [%s] %s\n", when, loglevels[l], msg);
