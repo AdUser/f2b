@@ -3,7 +3,7 @@ enable_testing()
 set(SRC_DIR "../src")
 
 add_executable("t_buf"          "t_buf.c"     "${SRC_DIR}/strlcpy.c" "${SRC_DIR}/buf.c")
-add_executable("t_cmd"          "t_cmd.c"     "${SRC_DIR}/strlcpy.c" "${SRC_DIR}/commands.c")
+add_executable("t_cmd"          "t_cmd.c"     "${SRC_DIR}/strlcpy.c" "${SRC_DIR}/buf.c" "${SRC_DIR}/commands.c")
 add_executable("t_cmsg"         "t_cmsg.c"    "${SRC_DIR}/strlcpy.c" "${SRC_DIR}/cmsg.c")
 add_executable("t_matches"      "t_matches.c" "${SRC_DIR}/strlcpy.c" "${SRC_DIR}/matches.c")
 add_executable("t_ipaddr"       "t_ipaddr.c"  "${SRC_DIR}/strlcpy.c" "${SRC_DIR}/matches.c" "${SRC_DIR}/ipaddr.c")
