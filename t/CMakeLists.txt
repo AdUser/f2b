@@ -2,6 +2,7 @@ enable_testing()
 
 set(SRC_DIR "../src")
 
+add_executable("t_buf"          "t_buf.c"     "${SRC_DIR}/strlcpy.c" "${SRC_DIR}/buf.c")
 add_executable("t_cmd"          "t_cmd.c"     "${SRC_DIR}/strlcpy.c" "${SRC_DIR}/commands.c")
 add_executable("t_cmsg"         "t_cmsg.c"    "${SRC_DIR}/strlcpy.c" "${SRC_DIR}/cmsg.c")
 add_executable("t_matches"      "t_matches.c" "${SRC_DIR}/strlcpy.c" "${SRC_DIR}/matches.c")
@@ -10,6 +11,7 @@ add_executable("t_statefile"    "t_statefile.c"  "${SRC_DIR}/strlcpy.c" "${SRC_D
 add_executable("t_config_param" "t_config_param.c" "${SRC_DIR}/strlcpy.c" "${SRC_DIR}/config.c" "${SRC_DIR}/log.c")
 add_executable("t_backend_usage" "t_backend_usage.c" "${SRC_DIR}/strlcpy.c")
 
+add_test("tests/f2b_buf_*"     "t_buf")
 add_test("tests/f2b_cmd_*"     "t_cmd")
 add_test("tests/f2b_cmsg_*"    "t_cmsg")
 add_test("tests/f2b_matches_*" "t_matches")
