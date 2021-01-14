@@ -4,26 +4,22 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
-#include "common.h"
-#include "cmsg.h"
-#include "commands.h"
-#include "csocket.h"
-#include "client.h"
-#include "log.h"
-
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <signal.h>
+
+#include "common.h"
+#include "client.h"
 
 struct {
   enum { interactive = 0, oneshot } mode;
-  int  csocket;
-  float timeout;
-  char csocket_spath[PATH_MAX];
-  char csocket_cpath[PATH_MAX];
+  char spath[PATH_MAX];
 } opts = {
-  interactive, -1, 5.0,
+  interactive,
   DEFAULT_CSOCKET_PATH,
-  DEFAULT_CSOCKET_CPATH, /* template */
 };
+
+static int csock = -1;
 
 void usage(int exitcode) {
   fputs("Usage: f2bc [-h] [-s <path>] [-c <command>]\n", stdout);
@@ -35,63 +31,101 @@ void usage(int exitcode) {
 
 int
 handle_cmd(const char *line) {
-  f2b_cmsg_t cmsg;
-  struct sockaddr_storage addr;
-  socklen_t addrlen = 0;
-  int ret;
+  const char *p = NULL;
+  char buf[WBUF_SIZE] = ""; /* our "read" is server "write" */
+  int ret; int len;
 
-  memset(&addr, 0x0, sizeof(addr));
-  memset(&cmsg, 0x0, sizeof(cmsg));
+  assert(line != NULL);
 
-  cmsg.type = f2b_cmd_parse(&cmsg.data[0], sizeof(cmsg.data), line);
-  if (cmsg.type == CMD_HELP) {
-    f2b_cmd_help();
-    return EXIT_SUCCESS;
-  } else if (cmsg.type == CMD_NONE) {
-    printf("! unable to parse command line\n");
-    return EXIT_FAILURE;
-  }
-  /* fill other fields */
-  strncpy(cmsg.magic, "F2B", sizeof(cmsg.magic));
-  cmsg.version = F2B_PROTO_VER;
-  cmsg.size = strlen(cmsg.data);
-  cmsg.data[cmsg.size] = '\0';
-  f2b_cmsg_convert_args(&cmsg);
-  cmsg.flags |= CMSG_FLAG_NEED_REPLY;
-  if ((ret = f2b_csocket_send(opts.csocket, &cmsg, NULL,  &addrlen)) < 0)
-    return EXIT_FAILURE;
-
-  memset(&cmsg, 0x0, sizeof(cmsg));
-  addrlen = sizeof(addr);
-  if ((ret = f2b_csocket_recv(opts.csocket, &cmsg, &addr, &addrlen)) < 0) {
-    printf("! control sicket: %s\n", f2b_csocket_error(ret));
-    return EXIT_FAILURE;
+  snprintf(buf, sizeof(buf), "%s\n", line);
+  p = buf;
+  while (p && *p != '\0') {
+    len = strlen(p);
+    ret = send(csock, p, strlen(p), 0);
+    /* blocks only for a second, see timeouts */
+    if (ret < 0 && errno == EAGAIN) {
+      continue; /* try again */
+    } else if (ret < 0) {
+      perror("send()");
+      exit(EXIT_FAILURE);
+    } else if (ret == len){
+      break; /* all data sent */
+    } else /* ret > 0 */ {
+      p += ret;
+    }
   }
 
-  if (cmsg.type != CMD_RESP) {
-    printf("! recieved message not a 'response' type\n");
-    return EXIT_FAILURE;
+  while (1) {
+    ret = recv(csock, &buf, sizeof(buf), 0);
+    /* blocks only for a second, see timeouts */
+    if (ret > 0) {
+      write(fileno(stdout), buf, ret);
+      continue;
+    } else if (ret == 0) {
+      puts("connection closed");
+      exit(EXIT_SUCCESS); /* received EOF */
+    } else if (ret < 0 && errno == EAGAIN) {
+      break;
+    } else /* ret < 0 */ {
+      perror("recv()");
+      exit(EXIT_FAILURE);
+    }
   }
-  fputs(cmsg.data, stdout);
-  fputc('\n', stdout);
-  return EXIT_SUCCESS;
-}
 
-void cleanup() {
-  f2b_csocket_disconnect(opts.csocket, opts.csocket_cpath);
-  unlink(opts.csocket_cpath);
+  return 0;
 }
 
 void
-signal_handler(int signum) {
+handle_signal(int signum) {
   switch (signum) {
     case SIGINT:
     case SIGTERM:
-      cleanup();
       exit(EXIT_SUCCESS);
       break;
     default:
       break;
+  }
+}
+
+void
+setup_sigaction(int signum) {
+  struct sigaction act;
+  memset(&act, 0x0, sizeof(act));
+  act.sa_handler = &handle_signal;
+  if (sigaction(signum, &act, NULL) != 0) {
+    perror("sigaction()");
+    exit(EXIT_FAILURE);
+  }
+}
+
+void
+setup_socket() {
+  struct sockaddr_un saddr;
+  struct timeval tv;
+
+  if ((csock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
+    perror("socket()");
+    exit(EXIT_FAILURE);
+  }
+
+  tv.tv_sec = 1, tv.tv_usec = 0;
+  if (setsockopt(csock, SOL_SOCKET, SO_RCVTIMEO, (void *) &tv, sizeof(struct timeval)) < 0) {
+    perror("setsockopt() - recv");
+    exit(EXIT_FAILURE);
+  }
+
+  tv.tv_sec = 1, tv.tv_usec = 0;
+  if (setsockopt(csock, SOL_SOCKET, SO_SNDTIMEO, (void *) &tv, sizeof(struct timeval)) < 0) {
+    perror("setsockopt() - send");
+    exit(EXIT_FAILURE);
+  }
+
+  memset(&saddr, 0x0, sizeof(saddr));
+  saddr.sun_family = AF_UNIX;
+  strlcpy(saddr.sun_path, opts.spath, sizeof(saddr.sun_path) - 1);
+  if (connect(csock, (struct sockaddr *) &saddr, sizeof(struct sockaddr_un)) < 0) {
+    perror("connect()");
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -129,7 +163,6 @@ readline(const char *prompt) {
 #endif
 
 int main(int argc, char *argv[]) {
-  struct sigaction act;
   char *line = NULL;
   char opt = '\0';
   int ret;
@@ -138,10 +171,10 @@ int main(int argc, char *argv[]) {
     switch (opt) {
       case 'c':
         opts.mode = oneshot;
-        line = strndup(optarg, INPUT_LINE_MAX);
+        line = strndup(optarg, RBUF_SIZE);
         break;
       case 's':
-        strlcpy(opts.csocket_spath, optarg, sizeof(opts.csocket_spath));
+        strlcpy(opts.spath, optarg, sizeof(opts.spath));
         break;
       case 'h':
         usage(EXIT_SUCCESS);
@@ -152,23 +185,14 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  SA_REGISTER(SIGTERM, &signal_handler);
-  SA_REGISTER(SIGINT,  &signal_handler);
+  setup_sigaction(SIGTERM);
+  setup_sigaction(SIGINT);
 
-  /* prepare client side of socket */
-  ret = mkstemp(opts.csocket_cpath);
-  if (ret >= 0)
-    close(ret); /* suppress compiler warning */
-  unlink(opts.csocket_cpath); /* remove regular file created by mkstemp() */
-
-  if ((opts.csocket = f2b_csocket_connect(opts.csocket_spath, opts.csocket_cpath)) <= 0)
-    exit(EXIT_FAILURE);
-
-  f2b_csocket_rtimeout(opts.csocket, opts.timeout);
+  setup_socket();
 
   if (opts.mode == oneshot) {
     ret = handle_cmd(line);
-    f2b_csocket_disconnect(opts.csocket, opts.csocket_cpath);
+    shutdown(csock, SHUT_RDWR);
     exit(ret);
   }
 
@@ -182,8 +206,6 @@ int main(int argc, char *argv[]) {
     line = NULL;
   }
   putc('\n', stdout);
-
-  cleanup();
 
   return EXIT_SUCCESS;
 }

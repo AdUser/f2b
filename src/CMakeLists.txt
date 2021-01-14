@@ -12,7 +12,7 @@ add_executable("f2b" ${SOURCES})
 install(TARGETS "f2b" RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR})
 
 if (WITH_CLIENT)
-  set(SOURCES "strlcpy.c" "log.c" "client.c" "cmsg.c" "commands.c" "csocket.c")
+  set(SOURCES "strlcpy.c" "client.c")
   add_executable("f2bc" ${SOURCES})
   if (WITH_READLINE)
     add_definitions("-DWITH_READLINE")
