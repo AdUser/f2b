@@ -5,12 +5,6 @@ set(BACKENDS "")
 add_library("b_exec" MODULE "exec.c" "../strlcpy.c")
 list(APPEND BACKENDS "exec")
 
-if (WITH_MCAST)
-  add_library("b_mcast" MODULE "mcast.c" "../strlcpy.c"
-    "../commands.c" "../cmsg.c" "../csocket.c")
-  list(APPEND BACKENDS "mcast")
-endif ()
-
 find_library(REDIS_FOUND "hiredis")
 if (WITH_REDIS AND REDIS_FOUND)
   add_library("b_redis" MODULE "redis.c" "../strlcpy.c")
