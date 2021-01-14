@@ -17,6 +17,18 @@
 #include <getopt.h>
 #include <signal.h>
 
+/**
+ * @def SA_REGISTER
+ * Register signal handler
+ */
+#define SA_REGISTER(SIGNUM, HANDLER) \
+  memset(&act, 0x0, sizeof(act)); \
+  act.sa_handler = HANDLER; \
+  if (sigaction(SIGNUM, &act, NULL) != 0) { \
+    f2b_log_msg(log_fatal, "can't register handler for " #SIGNUM); \
+    return EXIT_FAILURE; \
+  }
+
 enum { stop = 0, run, reconfig, logrotate, test } state = run;
 
 void signal_handler(int signum) {
