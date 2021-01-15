@@ -16,16 +16,25 @@ cmd_handler(const f2b_cmd_t *cmd, f2b_buf_t *res) {
   return;
 }
 
-int main(void) {
+int main(int argc, const char **argv) {
   f2b_csock_t *csock = NULL;
 
-  if ((csock = f2b_csocket_create(DEFAULT_CSOCKET_PATH)) == NULL) {
+  if (argc < 2) {
+    puts("Usage: csocket-test <path>");
+    exit(EXIT_FAILURE);
+  }
+
+  f2b_log_set_level("debug");
+  f2b_log_to_stderr();
+
+  if ((csock = f2b_csocket_create(argv[1])) == NULL) {
     perror("f2b_csocket_create()");
+    exit(EXIT_FAILURE);
   }
 
   while (run) {
     f2b_csocket_poll(csock, cmd_handler);
-    /* TODO: sleep 0.1s */
+    sleep(1);
   }
   f2b_csocket_destroy(csock);
 
