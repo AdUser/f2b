@@ -124,7 +124,7 @@ setup_socket() {
 #ifdef WITH_READLINE
   #include <readline/readline.h>
   #include <readline/history.h>
-  rl_event_hook = &handle_recv;
+  rl_hook_func_t *rl_event_hook = &handle_recv;
 #else
 char *
 readline(const char *prompt) {
