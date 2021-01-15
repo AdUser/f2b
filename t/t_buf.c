@@ -5,6 +5,7 @@ int main() {
   f2b_buf_t buf;
   char *line;
   bool ret;
+  int len;
 
   memset(&buf, 0x0, sizeof(buf));
 
@@ -38,6 +39,25 @@ int main() {
   assert(line != NULL);
   assert(buf.used == 0);
   free(line);
+
+  f2b_buf_append(&buf, "test4\n\n", 6);
+  assert(buf.used == 6);
+  assert(strcmp(buf.data, "test4\n") == 0);
+
+  len = f2b_buf_splice(&buf, 0);
+  assert(len == 0);
+  assert(buf.used == 6);
+  assert(strcmp(buf.data, "test4\n") == 0);
+
+  len = f2b_buf_splice(&buf, 2);
+  assert(len == 2);
+  assert(buf.used == 4);
+  assert(strcmp(buf.data, "st4\n") == 0);
+
+  len = f2b_buf_splice(&buf, 6);
+  assert(len == 4);
+  assert(buf.used == 0);
+  assert(buf.data[0] == '\0');
 
   f2b_buf_free(&buf);
   assert(buf.used == 0);

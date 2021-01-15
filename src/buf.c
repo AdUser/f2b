@@ -40,7 +40,7 @@ f2b_buf_append(f2b_buf_t *buf, const char *str, size_t len) {
 }
 
 /**
- * @brief  Extracts line terminated by '\r', '\n'
+ * @brief  Extracts line terminated by delimiter
  * @return Pointer to extracted string on success or NULL otherwise
  * @note Use only with 'read' buffer type
  */
@@ -65,10 +65,23 @@ f2b_buf_extract(f2b_buf_t *buf, const char *end) {
 
   /* shift data inside buffer */
   len += strlen(end);
-  assert(buf->used >= len);
+  f2b_buf_splice(buf, len);
+
+  return s;
+}
+
+size_t
+f2b_buf_splice(f2b_buf_t *buf, size_t len) {
+  assert(buf != NULL);
+
+  if (len == 0)
+    return len;
+
+  if (buf->used <= len)
+    len = buf->used;
+
   buf->used -= len,
   memmove(buf->data, &buf->data[len], buf->used);
   buf->data[buf->used] = '\0';
-
-  return s;
+  return len;
 }
