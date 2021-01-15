@@ -30,6 +30,29 @@ void usage(int exitcode) {
 }
 
 int
+handle_recv() {
+  char buf[WBUF_SIZE] = ""; /* our "read" is server "write" */
+  int ret;
+
+  if (csock < 0)
+    return 0; /* not connected */
+
+  ret = recv(csock, &buf, sizeof(buf), MSG_DONTWAIT);
+  if (ret > 0) {
+    write(fileno(stdout), buf, ret);
+  } else if (ret == 0) {
+    puts("connection closed");
+    exit(EXIT_SUCCESS); /* received EOF */
+  } else if (ret < 0 && errno == EAGAIN) {
+    return 0;
+  } else /* ret < 0 */ {
+    perror("recv()");
+    exit(EXIT_FAILURE);
+  }
+  return 0;
+}
+
+int
 handle_cmd(const char *line) {
   const char *p = NULL;
   char buf[WBUF_SIZE] = ""; /* our "read" is server "write" */
@@ -42,7 +65,6 @@ handle_cmd(const char *line) {
   while (p && *p != '\0') {
     len = strlen(p);
     ret = send(csock, p, strlen(p), 0);
-    /* blocks only for a second, see timeouts */
     if (ret < 0 && errno == EAGAIN) {
       continue; /* try again */
     } else if (ret < 0) {
@@ -52,23 +74,6 @@ handle_cmd(const char *line) {
       break; /* all data sent */
     } else /* ret > 0 */ {
       p += ret;
-    }
-  }
-
-  while (1) {
-    ret = recv(csock, &buf, sizeof(buf), 0);
-    /* blocks only for a second, see timeouts */
-    if (ret > 0) {
-      write(fileno(stdout), buf, ret);
-      continue;
-    } else if (ret == 0) {
-      puts("connection closed");
-      exit(EXIT_SUCCESS); /* received EOF */
-    } else if (ret < 0 && errno == EAGAIN) {
-      break;
-    } else /* ret < 0 */ {
-      perror("recv()");
-      exit(EXIT_FAILURE);
     }
   }
 
@@ -101,22 +106,9 @@ setup_sigaction(int signum) {
 void
 setup_socket() {
   struct sockaddr_un saddr;
-  struct timeval tv;
 
   if ((csock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
     perror("socket()");
-    exit(EXIT_FAILURE);
-  }
-
-  tv.tv_sec = 1, tv.tv_usec = 0;
-  if (setsockopt(csock, SOL_SOCKET, SO_RCVTIMEO, (void *) &tv, sizeof(struct timeval)) < 0) {
-    perror("setsockopt() - recv");
-    exit(EXIT_FAILURE);
-  }
-
-  tv.tv_sec = 1, tv.tv_usec = 0;
-  if (setsockopt(csock, SOL_SOCKET, SO_SNDTIMEO, (void *) &tv, sizeof(struct timeval)) < 0) {
-    perror("setsockopt() - send");
     exit(EXIT_FAILURE);
   }
 
@@ -132,22 +124,21 @@ setup_socket() {
 #ifdef WITH_READLINE
   #include <readline/readline.h>
   #include <readline/history.h>
+  rl_event_hook = &handle_recv;
 #else
 char *
 readline(const char *prompt) {
-  char line[INPUT_LINE_MAX];
+  char line[RBUF_SIZE+1];
   char *p;
 
   while (1) {
     line[0] = '\0';
     p = &line[0];
+    handle_recv();
     fputs(prompt, stdout);
     if (!fgets(line, sizeof(line) - 1, stdin)) {
-      if (feof(stdin)) {
-        fputc('\n', stdout);
-      } else {
+      if (!feof(stdin))
         fputs("read error\n", stdout);
-      }
       return NULL;
     }
     while (isspace(*p)) p++;
