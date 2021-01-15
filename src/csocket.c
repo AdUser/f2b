@@ -70,7 +70,7 @@ f2b_conn_process(f2b_conn_t *conn, bool in, void (*cb)(const f2b_cmd_t *cmd, f2b
     char *line = NULL;
     ssize_t read = 0;
     read = recv(conn->sock, tmp, RBUF_SIZE, MSG_DONTWAIT);
-    if (read == 0) {
+    if (read == 0 || (read < 0 && errno == ECONNRESET)) {
       f2b_log_msg(log_debug, "received connection close on socket %d", conn->sock);
       return -1;
     }
@@ -82,13 +82,12 @@ f2b_conn_process(f2b_conn_t *conn, bool in, void (*cb)(const f2b_cmd_t *cmd, f2b
       tmp[read] = '\0';
       f2b_buf_append(&conn->recv, tmp, read);
       f2b_log_msg(log_debug, "received %zd bytes from socket %d", read, conn->sock);
-      /* TODO: properly handle empty lines */
-      while (conn->recv.data[0] == '\n') {
-        f2b_buf_splice(&conn->recv, 1);
-        break;
-      }
       /* extract message(s) */
       while ((line = f2b_buf_extract(&conn->recv, "\n")) != NULL) {
+        if (strlen(line) == 0) {
+          free(line);
+          continue;
+        }
         f2b_log_msg(log_debug, "extracted line: %s", line);
         if ((cmd = f2b_cmd_create(line)) != NULL) {
           cb(cmd, &conn->send); /* handle command */
