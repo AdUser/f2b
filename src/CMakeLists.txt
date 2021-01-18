@@ -1,6 +1,6 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set(SOURCES "daemon.c" "strlcpy.c" "config.c" "log.c" "matches.c" "ipaddr.c"
+set(SOURCES "daemon.c" "strlcpy.c" "config.c" "buf.c" "log.c" "matches.c" "ipaddr.c"
   "appconfig.c" "statefile.c" "source.c" "filter.c" "backend.c" "jail.c")
 
 if (WITH_CSOCKET)
