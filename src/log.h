@@ -41,6 +41,7 @@ void f2b_log_msg(log_msgtype_t l, const char *fmt, ...)
  * @param msg Log message string
  */
 void f2b_log_mod_cb(log_msgtype_t l, const char *msg);
+
 /**
  * @brief Limit logging messages by importance
  * @param level Min level of messages for logging

@@ -97,7 +97,7 @@ f2b_filter_create(f2b_config_section_t *config, const char *file) {
     goto cleanup;
   if ((*(void **) (&filter->append)  = dlsym(filter->h, "append"))  == NULL)
     goto cleanup;
-  if ((*(void **) (&filter->error)   = dlsym(filter->h, "error"))   == NULL)
+  if ((*(void **) (&filter->logcb)   = dlsym(filter->h, "logcb"))   == NULL)
     goto cleanup;
   if ((*(void **) (&filter->ready)   = dlsym(filter->h, "ready"))   == NULL)
     goto cleanup;
@@ -115,6 +115,8 @@ f2b_filter_create(f2b_config_section_t *config, const char *file) {
     f2b_log_msg(log_error, "filter create config failed");
     goto cleanup;
   }
+
+  filter->logcb(filter->cfg, f2b_log_mod_cb);
 
   /* try init */
   for (param = config->param; param != NULL; param = param->next) {
@@ -175,12 +177,6 @@ f2b_filter_match(f2b_filter_t *filter, const char *line, char *buf, size_t buf_s
   return filter->match(filter->cfg, line, buf, buf_size);
 }
 
-const char *
-f2b_filter_error(f2b_filter_t *filter) {
-  assert(filter != NULL);
-  return filter->error(filter->cfg);
-}
-
 void
 f2b_filter_cmd_stats(char *buf, size_t bufsize, f2b_filter_t *filter) {
   bool reset = true;
@@ -208,7 +204,7 @@ f2b_filter_cmd_reload(char *buf, size_t bufsize, f2b_filter_t *filter) {
   assert(filter != NULL);
 
   filter->flush(filter->cfg);
-  if (f2b_filter_load_file(filter, filter->file))
-    return;
-  strlcpy(buf, f2b_filter_error(filter), bufsize);
+  if (f2b_filter_load_file(filter, filter->file)) {
+    snprintf(buf, bufsize, "can't reload filter");
+  }
 }

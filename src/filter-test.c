@@ -23,7 +23,6 @@ int main(int argc, char *argv[]) {
   char line[LOGLINE_MAX] = "";
   char stats[4096];
   size_t read = 0, matched = 0;
-  const char *error;
   FILE *file = NULL;
 
   if (argc < 3)
@@ -62,12 +61,8 @@ int main(int argc, char *argv[]) {
       matched++;
       fprintf(stdout, "+ %s\n", match);
       continue;
-    }
-    error = f2b_filter_error(filter);
-    if (*error == '\0') {
-      fprintf(stdout, "- (no-match): %s", line);
     } else {
-      fprintf(stdout, "! (error) : %s\n", error);
+      fprintf(stdout, "- (no-match): %s", line);
     }
   }
   fclose(file);

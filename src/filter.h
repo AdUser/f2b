@@ -27,8 +27,8 @@ typedef struct f2b_filter_t {
   bool  (*config)  (void *cfg, const char *key, const char *value);
   /** dlsym pointer to handler of @a append command */
   bool  (*append)  (void *cfg, const char *pattern);
-  /** dlsym pointer to handler of @a error command */
-  char *(*error)   (void *cfg);
+  /** dlsym pointer to handler of @a logcb command */
+  void  (*logcb)   (void *cfg, void (*cb)(log_msgtype_t lvl, const char *msg));
   /** dlsym pointer to handler of @a ready command */
   bool  (*ready)   (void *cfg);
   /** dlsym pointer to handler of @a flush command */
@@ -55,17 +55,12 @@ f2b_filter_t * f2b_filter_create  (f2b_config_section_t *config, const char *id)
 void f2b_filter_destroy (f2b_filter_t *f);
 
 /**
- * @brief Get last filter error
- * @param f Pointer to filter struct
- * @returns Pointer to string with description of last error
- */
-const char * f2b_filter_error (f2b_filter_t *f);
-/**
  * @brief Append pattern to filter
  * @param f Pointer to filter struct
  * @param pattern Match pattern
- * @returns true on success, false on error with setting last error
+ * @returns true on success, false on error
  */
+
 bool f2b_filter_append(f2b_filter_t *f, const char *pattern);
 /**
  * @brief Match a line against given filter
@@ -80,6 +75,7 @@ bool f2b_filter_match (f2b_filter_t *f, const char *line, char *buf, size_t bufs
 /* handlers for csocket commands processing */
 /** handler of 'jail $JAIL filter reload' cmd */
 void f2b_filter_cmd_reload(char *buf, size_t bufsize, f2b_filter_t *f);
+
 /** handler of 'jail $JAIL filter stats' cmd */
 void f2b_filter_cmd_stats (char *buf, size_t bufsize, f2b_filter_t *f);
 
