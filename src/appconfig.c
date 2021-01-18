@@ -11,7 +11,6 @@
 
 f2b_appconfig_t appconfig = {
   .daemon = false,
-  .csock = -1,
   .uid = 0,
   .gid = 0,
   .logdest = "file",

@@ -8,12 +8,6 @@ list(APPEND SOURCES "files")
 add_library("s_portknock" MODULE "portknock.c" "../strlcpy.c")
 list(APPEND SOURCES "portknock")
 
-if (WITH_MCAST)
-  add_library("s_mcast" MODULE "mcast.c" "../strlcpy.c"
-    "../commands.c" "../cmsg.c" "../csocket.c")
-  list(APPEND SOURCES "mcast")
-endif ()
-
 find_library(REDIS_FOUND "hiredis")
 if (WITH_REDIS AND REDIS_FOUND)
   add_library("s_redis" MODULE "redis.c" "../strlcpy.c")

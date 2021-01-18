@@ -39,17 +39,13 @@
  */
 #define DEFAULT_PIDFILE_PATH "/var/run/f2b.pid"
 /**
- * Default path of unix control socket (server endpoint)
+ * Default path of unix control socket
  */
 #define DEFAULT_CSOCKET_PATH "/var/run/f2b.sock"
 /**
  * Default path of directory to store ip states for jails
  */
 #define DEFAULT_STATEDIR_PATH "/var/db/f2b"
-/**
- * Template for making path for client side of connection to control socket
- */
-#define DEFAULT_CSOCKET_CPATH "/tmp/f2bc-sock-XXXXXX"
 
 /**
  * @def UNUSED
@@ -57,16 +53,8 @@
  */
 #define UNUSED(x)  (void)(x)
 
-/**
- * @def SA_REGISTER
- * Register signal handler
- */
-#define SA_REGISTER(SIGNUM, HANDLER) \
-  memset(&act, 0x0, sizeof(act)); \
-  act.sa_handler = HANDLER; \
-  if (sigaction(SIGNUM, &act, NULL) != 0) { \
-    f2b_log_msg(log_fatal, "can't register handler for " #SIGNUM); \
-    return EXIT_FAILURE; \
-  }
+/* default size of buffers */
+#define RBUF_SIZE   256
+#define WBUF_SIZE 32768 /* 32Kb */
 
 #endif /* F2B_COMMON_H_ */

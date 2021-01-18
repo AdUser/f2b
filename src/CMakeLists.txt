@@ -1,10 +1,10 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set(SOURCES "daemon.c" "strlcpy.c" "config.c" "log.c" "matches.c" "ipaddr.c"
+set(SOURCES "daemon.c" "strlcpy.c" "config.c" "buf.c" "log.c" "matches.c" "ipaddr.c"
   "appconfig.c" "statefile.c" "source.c" "filter.c" "backend.c" "jail.c")
 
 if (WITH_CSOCKET)
-  list(APPEND SOURCES "commands.c" "csocket.c" "cmsg.c")
+  list(APPEND SOURCES "commands.c" "csocket.c")
   add_definitions("-DWITH_CSOCKET")
 endif ()
 
@@ -12,7 +12,7 @@ add_executable("f2b" ${SOURCES})
 install(TARGETS "f2b" RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR})
 
 if (WITH_CLIENT)
-  set(SOURCES "strlcpy.c" "log.c" "client.c" "cmsg.c" "commands.c" "csocket.c")
+  set(SOURCES "strlcpy.c" "client.c")
   add_executable("f2bc" ${SOURCES})
   if (WITH_READLINE)
     add_definitions("-DWITH_READLINE")
@@ -29,6 +29,9 @@ add_executable("f2b-filter-test" ${SOURCES})
 
 set(SOURCES "strlcpy.c" "backend-test.c" "log.c" "config.c" "backend.c")
 add_executable("f2b-backend-test" ${SOURCES})
+
+set(SOURCES "strlcpy.c" "csocket-test.c" "log.c" "buf.c" "commands.c" "csocket.c")
+add_executable("f2b-csocket-test" ${SOURCES})
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   target_link_libraries("f2b"              "dl")
