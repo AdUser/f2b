@@ -7,6 +7,7 @@
 <HOST> .* "(GET|HEAD|POST) (https?://[0-9a-z.-]+)?(:[0-9]*)?/.*/wp-login.php
 <HOST> .* "(GET|HEAD|POST) (https?://[0-9a-z.-]+)?(:[0-9]*)?/+(joomla|cms)/administrator
 # h4x0rs
+<HOST> .* "(GET|HEAD|POST) (https?://[0-9a-z.-]+)?(:[0-9]*)?/(shell|cmd|x)\.(php|cgi)
 <HOST> .* "(GET|HEAD|POST) (https?://[0-9a-z.-]+)?(:[0-9]*)?/w00tw00t
 <HOST> .* "(GET|HEAD|POST) (https?://[0-9a-z.-]+)?(:[0-9]*)?/+Ringing\.at\.your\.dorbell
 <HOST> .* "(GET|HEAD|POST) (https?://[0-9a-z.-]+)?(:[0-9]*)?/.*(wget|curl)(\\x|%)20https?://
