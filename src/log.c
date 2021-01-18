@@ -66,8 +66,8 @@ void f2b_log_msg(log_msgtype_t l, const char *fmt, ...) {
   return;
 }
 
-void f2b_log_error_cb(const char *errstr) {
-  f2b_log_msg(log_error, "%s", errstr);
+void f2b_log_mod_cb(log_msgtype_t l, const char *msg) {
+  f2b_log_msg(l, "%s", msg);
 }
 
 void f2b_log_set_level(const char *level) {

@@ -36,10 +36,11 @@ typedef enum {
 void f2b_log_msg(log_msgtype_t l, const char *fmt, ...)
   __attribute__ ((format (printf, 2, 3)));
 /**
- * @brief Logging wrapper for use in source module
- * @param errstr Error string
+ * @brief Logging callback function for use in modules
+ * @param l Level of message
+ * @param msg Log message string
  */
-void f2b_log_error_cb(const char *errstr);
+void f2b_log_mod_cb(log_msgtype_t l, const char *msg);
 /**
  * @brief Limit logging messages by importance
  * @param level Min level of messages for logging

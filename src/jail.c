@@ -363,13 +363,12 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
   }
 
   /* init all */
-  if ((jail->source = f2b_source_create(s_section, jail->source_init, f2b_log_error_cb)) == NULL) {
+  if ((jail->source = f2b_source_create(s_section, jail->source_init)) == NULL) {
     f2b_log_msg(log_error, "jail '%s': can't init source '%s' with %s", jail->name, jail->source_name, jail->source_init);
     goto cleanup;
   }
   if (!f2b_source_start(jail->source)) {
-    f2b_log_msg(log_warn, "jail '%s': source action 'start' failed -- %s",
-      jail->name, f2b_source_error(jail->source));
+    f2b_log_msg(log_warn, "jail '%s': source action 'start' failed", jail->name);
     goto cleanup;
   }
 
@@ -453,8 +452,7 @@ f2b_jail_stop(f2b_jail_t *jail) {
   f2b_log_msg(log_info, "jail '%s': gracefull shutdown", jail->name);
 
   if (!f2b_source_stop(jail->source)) {
-    f2b_log_msg(log_error, "jail '%s': action 'stop' for source failed: %s",
-      jail->name, f2b_source_error(jail->source));
+    f2b_log_msg(log_error, "jail '%s': action 'stop' for source failed", jail->name);
     errors = true;
   }
 

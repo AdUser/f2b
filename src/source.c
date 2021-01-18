@@ -10,7 +10,7 @@
 #define SOURCE_LIBRARY_PARAM "load"
 
 f2b_source_t *
-f2b_source_create(f2b_config_section_t *config, const char *init, void (*errcb)(const char *)) {
+f2b_source_create(f2b_config_section_t *config, const char *init) {
   f2b_config_param_t *param = NULL;
   f2b_source_t *source = NULL;
   int flags = RTLD_NOW | RTLD_LOCAL;
@@ -36,9 +36,7 @@ f2b_source_create(f2b_config_section_t *config, const char *init, void (*errcb)(
     goto cleanup;
   if ((*(void **) (&source->ready)   = dlsym(source->h, "ready"))   == NULL)
     goto cleanup;
-  if ((*(void **) (&source->error)   = dlsym(source->h, "error"))   == NULL)
-    goto cleanup;
-  if ((*(void **) (&source->errcb)   = dlsym(source->h, "errcb"))   == NULL)
+  if ((*(void **) (&source->logcb)   = dlsym(source->h, "logcb"))   == NULL)
     goto cleanup;
   if ((*(void **) (&source->start)   = dlsym(source->h, "start"))   == NULL)
     goto cleanup;
@@ -54,6 +52,8 @@ f2b_source_create(f2b_config_section_t *config, const char *init, void (*errcb)(
     goto cleanup;
   }
 
+  source->logcb(source->cfg, f2b_log_mod_cb);
+
   /* try init */
   for (param = config->param; param != NULL; param = param->next) {
     if (strcmp(param->name, SOURCE_LIBRARY_PARAM) == 0)
@@ -63,9 +63,6 @@ f2b_source_create(f2b_config_section_t *config, const char *init, void (*errcb)(
     f2b_log_msg(log_warn, "param pair not accepted by source '%s': %s=%s",
       config->name, param->name, param->value);
   }
-
-  if (errcb)
-    source->errcb(source->cfg, errcb);
 
   if (source->ready(source->cfg))
     return source;
@@ -107,7 +104,6 @@ f2b_source_ ## CMD(f2b_source_t *source) { \
   return source->CMD(source->cfg); \
 }
 
-SOURCE_CMD_ARG0(error, const char *)
 SOURCE_CMD_ARG0(start, bool)
 SOURCE_CMD_ARG0(stop,  bool)
 SOURCE_CMD_ARG0(ready, bool)
