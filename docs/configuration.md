@@ -76,13 +76,6 @@ portknock
     Address is optional, eg "23" and "0.0.0.0:23" is the same.
     For ipv6 address use square brackets like this: "[fe80::fe14:a87c]:23".
 
-mcast
-:   Init string is name of group in multicast messages. Options are:
-    * group -- address of multicast group. Should be in net 239.255.0.0/16
-    * address -- bind address for socket (default: 0.0.0.0)
-    * port -- destination port for multicast messages (default: 3370, don't change unless you know what you doing)
-    * iface -- sets default interface for multicast messages (use system settings if not set)
-
 
 Filter-modules
 --------------
@@ -120,12 +113,6 @@ redis
 :   Init string is name of pubsub channel on redis server (will be prefixed with "f2b-")
     Options almost the same as source/redis. 'ping' option - for keeping connection alive (see PING redis command)
 
-mcast
-:   Init string is name of group in multicast messages. Options are:
-    * group -- address of multicast group. Should be in net 239.255.0.0/16
-    * port -- destination port for multicast messages (default: 3370, don't change unless you know what you doing)
-    * iface -- sets default interface for multicast messages (use system settings if not set)
-
 Teamwork
 ========
 
@@ -151,7 +138,7 @@ Now let's change the workflow:
     * `jail:actor/matches` decides should we ban this ip or not
     * `jail:actor/backend` bans/releases given IPs
 
-For now supported `blackbox` types is `multicast group` and `redis database`.
+For now supported `blackbox` type is `redis database`.
 
 Various jail types may be combined and omitted. Some possible variants:
 
@@ -159,11 +146,6 @@ Various jail types may be combined and omitted. Some possible variants:
     jail:sensor1 --> [-------] <-- jail:sensor3
     jail:sensor2 --> [ REDIS ] <-- jail:sensor4
     jail:actor1  <-- [  DB   ] --> jail:actor2
-
-    [   HOST1   ]                  [   HOST2   ]
-    jail:actor1  <-- [ MCAST ] --> jail:actor2
-    jail:empty   --> [ GROUP ] <-- jail:sensor1
-    ^-- user@f2bc
 
 Now let's see real configs. This is modified sample from section `General notes`.
 

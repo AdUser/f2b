@@ -1,8 +1,6 @@
 etc/f2b/conf-available/*-source-files.conf
-etc/f2b/conf-available/*-source-mcast.conf
 etc/f2b/conf-available/*-source-portknock.conf
 etc/f2b/conf-available/*-filter-preg.conf
-etc/f2b/conf-available/*-backend-mcast.conf
 etc/f2b/conf-available/*-backend-exec-*.conf
 etc/f2b/conf-enabled
 etc/f2b/f2b.conf
@@ -11,7 +9,6 @@ usr/bin/f2bc
 usr/sbin/f2b
 usr/share/f2b
 usr/lib/*/f2b/source_files.so
-usr/lib/*/f2b/source_mcast.so
 usr/lib/*/f2b/source_portknock.so
 usr/lib/*/f2b/filter_preg.so
 usr/lib/*/f2b/backend_exec.so
