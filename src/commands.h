@@ -52,6 +52,20 @@ const char *
 f2b_cmd_help();
 
 /**
+ * @brief Creates new struct from user input
+ * @param line User input string
+ * @returns pointer to newly allocated struct or NULL on malloc()/parse error
+ */
+f2b_cmd_t *
+f2b_cmd_create(const char *line);
+
+/**
+ * @brief Frees memory
+ */
+void
+f2b_cmd_destroy(f2b_cmd_t *cmd);
+
+/**
  * @brief Try to parse user input
  * @param cmd pointer to preallocated f2b_cmd_t struct
  * @param src Line with user input

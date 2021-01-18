@@ -116,6 +116,32 @@ f2b_cmd_help() {
   return help;
 }
 
+f2b_cmd_t *
+f2b_cmd_create(const char *line) {
+  f2b_cmd_t *cmd = NULL;
+
+  assert(line != NULL);
+
+  if ((cmd = calloc(1, sizeof(f2b_cmd_t))) == NULL)
+    return NULL;
+
+  if (f2b_buf_alloc(&cmd->data, strlen(line))) {
+    if (f2b_cmd_parse(cmd, line))
+      return cmd;
+    free(cmd);
+    cmd = NULL;
+  }
+
+
+  return cmd;
+}
+
+void
+f2b_cmd_destroy(f2b_cmd_t *cmd) {
+  f2b_buf_free(&cmd->data);
+  free(cmd);
+}
+
 bool
 f2b_cmd_parse(f2b_cmd_t *cmd, const char *src) {
   char *p = NULL;
