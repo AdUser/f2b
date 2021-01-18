@@ -4,10 +4,10 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
-#include "filter.h"
-
 #include <pcre.h>
 
+#include "filter.h"
+#define MODNAME "pcre"
 #define HOST_REGEX "(?<host>[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})"
 
 typedef struct f2b_regex_t {
@@ -20,13 +20,15 @@ typedef struct f2b_regex_t {
 
 struct _config {
   char id[ID_MAX];
-  char error[256];
+  void (*logcb)(enum loglevel lvl, const char *msg);
   bool icase;
   bool study;
   bool usejit;
   f2b_regex_t *regexps;
   f2b_regex_t *statp;
 };
+
+#include "filter.c"
 
 cfg_t *
 create(const char *id) {
@@ -36,6 +38,7 @@ create(const char *id) {
     return NULL;
   strlcpy(cfg->id, id, sizeof(cfg->id));
 
+  cfg->logcb = &logcb_stub;
   return cfg;
 }
 
@@ -58,7 +61,7 @@ config(cfg_t *cfg, const char *key, const char *value) {
 #ifndef PCRE_CONFIG_JIT
     if (cfg->usejit) {
       cfg->usejit = false;
-      strlcpy(cfg->error, "seems like your pcre library doesn't support jit")
+      log_msg(cfg, error, "seems like your pcre library doesn't support jit");
       return false;
     }
 #endif
@@ -99,7 +102,7 @@ append(cfg_t *cfg, const char *pattern) {
     return false;
 
   if ((regex->regex = pcre_compile(buf, flags, &errptr, &erroffset, NULL)) == NULL) {
-    snprintf(cfg->error, sizeof(cfg->error), "regex compilation failed at %d: %s", erroffset, errptr);
+    log_msg(cfg, error, "regex compilation failed at %d: %s", erroffset, errptr);
     free(regex);
     return false;
   }
@@ -111,7 +114,7 @@ append(cfg_t *cfg, const char *pattern) {
       flags |= PCRE_STUDY_JIT_COMPILE;
 #endif
     if ((regex->data = pcre_study(regex->regex, 0, &errptr)) == NULL) {
-      snprintf(cfg->error, sizeof(cfg->error), "regex learn failed: %s", errptr);
+      log_msg(cfg, error, "regex learn failed: %s", errptr);
       pcre_free(regex->regex);
       free(regex);
       return false;
@@ -149,13 +152,6 @@ stats(cfg_t *cfg, int *matches, char **pattern, bool reset) {
   return false;
 }
 
-const char *
-error(cfg_t *cfg) {
-  assert(cfg != NULL);
-
-  return cfg->error;
-}
-
 bool
 match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
   f2b_regex_t *r = NULL;
@@ -173,7 +169,7 @@ match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
     if (rc < 0 && rc == PCRE_ERROR_NOMATCH)
       continue;
     if (rc < 0) {
-      snprintf(cfg->error, sizeof(cfg->error), "matched failed with error: %d", rc);
+      log_msg(cfg, error, "matched failed with error: %d", rc);
       continue;
     }
     /* matched */
@@ -181,7 +177,7 @@ match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
     sc = (rc) ? rc : OVECSIZE / 3;
     rc = pcre_copy_named_substring(r->regex, line, ovector, sc, "host", buf, buf_size);
     if (rc < 0) {
-      snprintf(cfg->error, sizeof(cfg->error), "can't copy matched string: %d", rc);
+      log_msg(cfg, error, "can't copy matched string: %d", rc);
       continue;
     }
     return true;

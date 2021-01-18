@@ -4,10 +4,11 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
-#include "filter.h"
-
 #include <regex.h>
 
+#include "filter.h"
+
+#define MODNAME "preg"
 /* draft */
 #define HOST_REGEX "([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})"
 
@@ -20,11 +21,13 @@ typedef struct f2b_regex_t {
 
 struct _config {
   char id[ID_MAX];
-  char error[256];
   bool icase;
+  void (*logcb)(enum loglevel lvl, const char *msg);
   f2b_regex_t *regexps;
   f2b_regex_t *statp;
 };
+
+#include "filter.c"
 
 cfg_t *
 create(const char *id) {
@@ -34,6 +37,7 @@ create(const char *id) {
     return NULL;
   strlcpy(cfg->id, id, sizeof(cfg->id));
 
+  cfg->logcb = &logcb_stub;
   return cfg;
 }
 
@@ -58,6 +62,7 @@ append(cfg_t *cfg, const char *pattern) {
   size_t bufsize;
   char *buf = NULL;
   char *token = NULL;
+  int ret;
 
   assert(pattern != NULL);
 
@@ -79,11 +84,15 @@ append(cfg_t *cfg, const char *pattern) {
   if ((regex = calloc(1, sizeof(f2b_regex_t))) == NULL)
     return false;
 
-  if (regcomp(&regex->regex, buf, flags) == 0) {
+  if ((ret = regcomp(&regex->regex, buf, flags)) == 0) {
     regex->next = cfg->regexps;
     cfg->regexps = regex;
     strlcpy(regex->pattern, pattern, sizeof(regex->pattern));
     return true;
+  } else {
+    char buf[256] = "";
+    regerror(ret, &regex->regex, buf, sizeof(buf));
+    log_msg(cfg, error, "regex compile error: %s", buf);
   }
 
   free(regex);
@@ -113,13 +122,6 @@ stats(cfg_t *cfg, int *matches, char **pattern, bool reset) {
   }
 
   return false;
-}
-
-const char *
-error(cfg_t *cfg) {
-  assert(cfg != NULL);
-
-  return cfg->error;
 }
 
 bool

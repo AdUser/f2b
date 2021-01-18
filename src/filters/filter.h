@@ -11,9 +11,19 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 
 #include "../strlcpy.h"
+
+enum loglevel {
+  debug  = 0,
+  info   = 1,
+  notice = 2,
+  warn   = 3,
+  error  = 4,
+  fatal  = 5,
+}; /* see log.h */
 
 /**
  * @file
@@ -31,16 +41,14 @@
  *   f2b =>  filter [label="config(cfg, param, value)"];
  *   f2b <<  filter [label="true"];
  *   f2b =>  filter [label="config(cfg, param, value)"];
+ *   f2b <<= filter [label="logcb(level, char *msg)"];
  *   f2b <<  filter [label="false"];
- *   f2b =>  filter [label="error(cfg)"];
- *   f2b <<  filter [label="const char *error"];
  *       ---        [label="filter is ready for append()"];
  *   f2b =>  filter [label="append(cfg, pattern)"];
  *   f2b <<  filter [label="true"];
  *   f2b =>  filter [label="append(cfg, pattern)"];
+ *   f2b <<= filter [label="logcb(level, char *msg)"];
  *   f2b <<  filter [label="false"];
- *   f2b =>  filter [label="error(cfg)"];
- *   f2b <<  filter [label="const char *error"];
  *       |||        [label="more calls of append()"];
  *   f2b =>  filter [label="ready(cfg)"];
  *   f2b <<  filter [label="true"];
@@ -93,26 +101,18 @@ typedef struct _config cfg_t;
  */
 extern cfg_t *create(const char *id);
 /**
- * @brief Returns last error description
- * @param cfg Module handler
- * @returns Pointer to string with description of last error
- * @note Returned pointer not marked with const, because libdl complains,
- *       but contents on pointer should not be modified or written in any way
- */
-extern const char *error(cfg_t *cfg);
-/**
  * @brief Contigure module instance
  * @param cfg Module handler
  * @param key Parameter name
  * @param value Parameter value
- * @returns true on success, false on error with setting intenal error buffer
+ * @returns true on success, false on error
  */
 extern bool   config(cfg_t *cfg, const char *key, const char *value);
 /**
  * @brief Add match pattern
  * @param cfg Module handler
  * @param pattern Regex expression
- * @returns true on success, false on error with setting intenal error buffer
+ * @returns true on success, false on error
  */
 extern bool   append(cfg_t *cfg, const char *pattern);
 /**
@@ -121,6 +121,13 @@ extern bool   append(cfg_t *cfg, const char *pattern);
  * @returns true if ready, false if not
  */
 extern bool    ready(cfg_t *cfg);
+/**
+ * @brief Sets the log callback
+ * @param cfg Module handler
+ * @param cb Logging callback
+ * @note Optional, if this function is not called, warnings/errors of module will be suppressed
+ */
+extern void    logcb(cfg_t *cfg, void (*cb)(enum loglevel l, const char *msg));
 /**
  * @brief Fetch match stats by-pattern
  * @param cfg Module handler
