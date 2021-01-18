@@ -4,13 +4,14 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
-#include "source.h"
-
 #include <limits.h>
 #include <sys/file.h>
 #include <sys/stat.h>
 
 #include <glob.h>
+
+#include "source.h"
+#define MODNAME "files"
 
 typedef struct f2b_file_t {
   struct f2b_file_t *next;
@@ -22,17 +23,12 @@ typedef struct f2b_file_t {
 
 struct _config {
   char path[256];
-  char error[256];
-  void (*errcb)(const char *errstr);
+  void (*logcb)(enum loglevel lvl, const char *msg);
   f2b_file_t *files;
   f2b_file_t *current;
 };
 
-static void
-errcb_stub(const char *str) {
-  assert(str != NULL);
-  (void)(str);
-}
+#include "source.c"
 
 static bool
 file_open(f2b_file_t *file, const char *path) {
@@ -77,21 +73,24 @@ file_close(f2b_file_t *file) {
 }
 
 static bool
-file_rotated(const f2b_file_t *file) {
+file_rotated(const cfg_t *cfg, const f2b_file_t *file) {
   struct stat st;
-
   assert(file != NULL);
 
   if (!file->opened)
     return true;
 
-  if (stat(file->path, &st) != 0)
+  if (stat(file->path, &st) != 0) {
+    log_msg(cfg, error, "file stat error: %s", strerror(errno));
     return true;
+  }
 
   if (file->st.st_dev  != st.st_dev ||
       file->st.st_ino  != st.st_ino ||
-      file->st.st_size  > st.st_size)
+      file->st.st_size  > st.st_size) {
+    log_msg(cfg, info, "file replaced: %s", file->path);
     return true;
+  }
 
   return false;
 }
@@ -117,7 +116,7 @@ create(const char *init) {
   if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
     return NULL;
   strlcpy(cfg->path, init, sizeof(cfg->path));
-  cfg->errcb = &errcb_stub;
+  cfg->logcb = &logcb_stub;
   return cfg;
 }
 
@@ -143,21 +142,6 @@ ready(cfg_t *cfg) {
   return true;
 }
 
-char *
-error(cfg_t *cfg) {
-  assert(cfg != NULL);
-
-  return cfg->error;
-}
-
-void
-errcb(cfg_t *cfg, void (*cb)(const char *errstr)) {
-  assert(cfg != NULL);
-  assert(cb  != NULL);
-
-  cfg->errcb = cb;
-}
-
 bool
 start(cfg_t *cfg) {
   f2b_file_t *file = NULL;
@@ -172,11 +156,7 @@ start(cfg_t *cfg) {
     if ((file = calloc(1, sizeof(f2b_file_t))) == NULL)
       continue;
     if (file_open(file, globbuf.gl_pathv[i]) == false) {
-      if (cfg->errcb) {
-        snprintf(cfg->error, sizeof(cfg->error), "can't open file: %s -- %s",
-          globbuf.gl_pathv[i], strerror(errno));
-        cfg->errcb(cfg->error);
-      }
+      log_msg(cfg, error, "can't open file: %s -- %s", globbuf.gl_pathv[i], strerror(errno));
       free(file);
       continue;
     }
@@ -217,13 +197,10 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
     cfg->current = cfg->files;
 
   for (f2b_file_t *file = cfg->current; file != NULL; file = file->next) {
-    if (file_rotated(file))
+    if (file_rotated(cfg, file))
       file_close(file);
     if (!file->opened && !file_open(file, NULL)) {
-      if (cfg->errcb) {
-        snprintf(cfg->error, sizeof(cfg->error), "can't open file: %s", file->path);
-        cfg->errcb(cfg->error);
-      }
+      log_msg(cfg, error, "can't open file: %s", file->path);
       continue;
     }
     if (file_getline(file, buf, bufsize))

@@ -9,10 +9,20 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
 
 #include "../strlcpy.h"
+
+enum loglevel {
+  debug  = 0,
+  info   = 1,
+  notice = 2,
+  warn   = 3,
+  error  = 4,
+  fatal  = 5,
+}; /* see log.h */
 
 /**
  * @file
@@ -24,17 +34,15 @@
  *   f2b, source;
  *   f2b =>  source [label="create(init)"];
  *   f2b <<  source [label="module handler, cfg_t *cfg"];
+ *   f2b =>  source [label="logcb(cfg, cb)"];
  *       |||;
  *   f2b =>  source [label="config(cfg, param, value)"];
  *   f2b <<  source [label="true"];
  *   f2b =>  source [label="config(cfg, param, value)"];
  *   f2b <<  source [label="true"];
  *   f2b =>  source [label="config(cfg, param, value)"];
+ *   f2b <<= source [label="logcb(level, char *msg)"];
  *   f2b <<  source [label="false"];
- *   f2b =>  source [label="error(cfg)"];
- *   f2b <<  source [label="const char *error"];
- *       |||;
- *   f2b =>  source [label="errcb(cfg, cb), optional"];
  *       |||;
  *   f2b =>  source [label="ready(cfg)"];
  *   f2b <<  source [label="true"];
@@ -48,7 +56,7 @@
  *   f2b =>  source [label="next(cfg, buf, sizeof(buf), true)"];
  *   f2b <<  source [label="true"];
  *   f2b =>  source [label="next(cfg, buf, sizeof(buf), false)"];
- *   f2b <<= source [label="errcb(char *error)"];
+ *   f2b <<= source [label="logcb(level, char *msg)"];
  *   f2b <<  source [label="true"];
  *   f2b =>  source [label="next(cfg, buf, sizeof(buf), false)"];
  *   f2b <<  source [label="false"];
@@ -81,7 +89,7 @@ extern cfg_t *create(const char *init);
  * @param cfg Module handler
  * @param key Parameter name
  * @param value Parameter value
- * @returns true on success, false on error with setting intenal error buffer
+ * @returns true on success, false on error
  */
 extern bool   config(cfg_t *cfg, const char *key, const char *value);
 /**
@@ -91,24 +99,16 @@ extern bool   config(cfg_t *cfg, const char *key, const char *value);
  */
 extern bool    ready(cfg_t *cfg);
 /**
- * @brief Returns last error description
+ * @brief Sets the log callback
  * @param cfg Module handler
- * @returns Pointer to string with description of last error
- * @note Returned pointer not marked with const, because libdl complains,
- *       but contents on pointer should not be modified or written in any way
+ * @param cb Logging callback
+ * @note Optional, if this function is not called, warnings/errors of module will be suppressed
  */
-extern char   *error(cfg_t *cfg);
-/**
- * @brief Sets the error callback for use in processing
- * @param cfg Module handler
- * @param cb Error callback
- * @note Optional, if this function is not called, processing errors will be suppressed
- */
-extern void    errcb(cfg_t *cfg, void (*cb)(const char *errstr));
+extern void    logcb(cfg_t *cfg, void (*cb)(enum loglevel l, const char *msg));
 /**
  * @brief Allocate resources and start processing
  * @param cfg Module handler
- * @returns true on success, false on error with setting intenal error buffer
+ * @returns true on success, false on error
  */
 extern bool    start(cfg_t *cfg);
 /**

@@ -4,8 +4,6 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
-#include "source.h"
-
 #include <ctype.h>
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -13,6 +11,8 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
+#include "source.h"
+#define MODNAME "portknock"
 #define HOST_MAX 48
 #define PORT_MAX 6
 
@@ -25,17 +25,12 @@ typedef struct f2b_port_t {
 
 struct _config {
   char name[32];
-  char error[256];
-  void (*errcb)(const char *errstr);
+  void (*logcb)(enum loglevel lvl, const char *msg);
   f2b_port_t *ports;
   f2b_port_t *current;
 };
 
-static void
-errcb_stub(const char *str) {
-  assert(str != NULL);
-  (void)(str);
-}
+#include "source.c"
 
 static bool
 try_parse_listen_opt(f2b_port_t *port, const char *value) {
@@ -79,7 +74,7 @@ create(const char *init) {
   if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
     return NULL;
   strlcpy(cfg->name, init, sizeof(cfg->name));
-  cfg->errcb = &errcb_stub;
+  cfg->logcb = &logcb_stub;
   return cfg;
 }
 
@@ -92,11 +87,11 @@ config(cfg_t *cfg, const char *key, const char *value) {
   if (strcmp(key, "listen") == 0) {
     f2b_port_t *port = NULL;
     if ((port = calloc(1, sizeof(f2b_port_t))) == NULL) {
-      strlcpy(cfg->error, "out of memory", sizeof(cfg->error));
+      log_msg(cfg, error, "out of memory");
       return false;
     }
     if (try_parse_listen_opt(port, value) == false) {
-      snprintf(cfg->error, sizeof(cfg->error), "can't parse: %s", value);
+      log_msg(cfg, error, "can't parse: %s", value);
       free(port);
       return false;
     }
@@ -116,21 +111,6 @@ ready(cfg_t *cfg) {
   return false;
 }
 
-char *
-error(cfg_t *cfg) {
-  assert(cfg != NULL);
-
-  return cfg->error;
-}
-
-void
-errcb(cfg_t *cfg, void (*cb)(const char *errstr)) {
-  assert(cfg != NULL);
-  assert(cb  != NULL);
-
-  cfg->errcb = cb;
-}
-
 bool
 start(cfg_t *cfg) {
   struct addrinfo hints;
@@ -148,8 +128,7 @@ start(cfg_t *cfg) {
     port->sock = -1;
     int ret = getaddrinfo(port->host, port->port, &hints, &result);
     if (ret != 0) {
-      snprintf(cfg->error, sizeof(cfg->error), "getaddrinfo: %s", gai_strerror(ret));
-      cfg->errcb(cfg->error);
+      log_msg(cfg, error, "getaddrinfo: %s", gai_strerror(ret));
       continue;
     }
     for (struct addrinfo *rp = result; rp != NULL; rp = rp->ai_next) {
@@ -169,10 +148,8 @@ start(cfg_t *cfg) {
       }
     }
     freeaddrinfo(result);
-    if (port->sock < 0) {
-      snprintf(cfg->error, sizeof(cfg->error), "can't bind/listen on %s:%s", port->host, port->port);
-      cfg->errcb(cfg->error);
-    }
+    if (port->sock < 0)
+      log_msg(cfg, error, "can't bind/listen on %s:%s", port->host, port->port);
   }
 
   return true;
@@ -208,8 +185,7 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
     if (sock < 0 && errno == EAGAIN)
       continue;
     if (sock < 0) {
-      snprintf(cfg->error, sizeof(cfg->error), "accept error: %s", strerror(errno));
-      cfg->errcb(cfg->error);
+      log_msg(cfg, error, "accept() error: %s", strerror(errno));
       continue;
     }
     close(sock);
@@ -221,7 +197,7 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
       inet_ntop(AF_INET6, &(((struct sockaddr_in6 *) &addr)->sin6_addr), buf, bufsize);
       return true;
     }
-    cfg->errcb("can't convert sockaddr to string: unknown AF");
+    cfg->logcb(error, "can't convert sockaddr to string: unknown AF");
   }
 
   return false;

@@ -4,20 +4,20 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
-#include "source.h"
-
 #include <stdint.h>
 #include <hiredis/hiredis.h>
 
 #include "../strlcpy.h"
 
+#include "source.h"
+
+#define MODNAME "redis"
 #define ID_MAX 32
 
 struct _config {
   char name[ID_MAX + 1];
   char hash[ID_MAX * 2];
-  char error[256];
-  void (*errcb)(const char *errstr);
+  void (*logcb)(enum loglevel lvl, const char *msg);
   time_t timeout;
   uint8_t database;
   char password[32];
@@ -26,11 +26,7 @@ struct _config {
   redisContext *conn;
 };
 
-static void
-errcb_stub(const char *str) {
-  assert(str != NULL);
-  (void)(str);
-}
+#include "source.c"
 
 static bool
 redis_connect(cfg_t *cfg) {
@@ -47,14 +43,14 @@ redis_connect(cfg_t *cfg) {
     if (!conn)
       break;
     if (conn->err) {
-      snprintf(cfg->error, sizeof(cfg->error), "Connection error: %s", conn->errstr);
+      log_msg(cfg, error, "connection error: %s", conn->errstr);
       break;
     }
     if (cfg->password[0]) {
       if ((reply = redisCommand(conn, "AUTH %s", cfg->password)) == NULL)
         break;
       if (reply->type == REDIS_REPLY_ERROR) {
-        snprintf(cfg->error, sizeof(cfg->error), "auth error: %s", reply->str);
+        log_msg(cfg, error, "auth error: %s", reply->str);
         break;
       }
       freeReplyObject(reply);
@@ -63,7 +59,7 @@ redis_connect(cfg_t *cfg) {
       if ((reply = redisCommand(conn, "SELECT %d", cfg->database)) == NULL)
         break;
       if (reply->type == REDIS_REPLY_ERROR) {
-        snprintf(cfg->error, sizeof(cfg->error), "auth error: %s", reply->str);
+        log_msg(cfg, error, "reply error: %s", reply->str);
         break;
       }
       freeReplyObject(reply);
@@ -71,13 +67,13 @@ redis_connect(cfg_t *cfg) {
     timeout.tv_sec  = 0;
     timeout.tv_usec = 10000; /* 0.01s */
     if (redisSetTimeout(conn, timeout) != REDIS_OK) {
-      strlcpy(cfg->error, "can't enable nonblocking mode", sizeof(cfg->error));
+      log_msg(cfg, error, "can't enable nonblocking mode");
       break;
     }
     if ((reply = redisCommand(conn, "SUBSCRIBE %s", cfg->hash)) == NULL)
       break;
     if (reply->type == REDIS_REPLY_ERROR) {
-      snprintf(cfg->error, sizeof(cfg->error), "can't subscribe: %s", reply->str);
+      log_msg(cfg, error, "can't subscribe: %s", reply->str);
       break;
     }
     freeReplyObject(reply);
@@ -118,7 +114,7 @@ create(const char *init) {
   strlcpy(cfg->name, init, sizeof(cfg->name));
   strlcpy(cfg->hash, "f2b-banned-", sizeof(cfg->hash));
   strlcat(cfg->hash, init, sizeof(cfg->hash));
-  cfg->errcb = &errcb_stub;
+  cfg->logcb = &logcb_stub;
 
   return cfg;
 }
@@ -163,21 +159,6 @@ ready(cfg_t *cfg) {
   return true;
 }
 
-char *
-error(cfg_t *cfg) {
-  assert(cfg != NULL);
-
-  return cfg->error;
-}
-
-void
-errcb(cfg_t *cfg, void (*cb)(const char *errstr)) {
-  assert(cfg != NULL);
-  assert(cb  != NULL);
-
-  cfg->errcb = cb;
-}
-
 bool
 start(cfg_t *cfg) {
   assert(cfg != NULL);
@@ -209,7 +190,7 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
     return false; /* reconnect failure */
 
   if (cfg->conn->err) {
-    snprintf(cfg->error, sizeof(cfg->error), "connection error: %s", cfg->conn->errstr);
+    log_msg(cfg, error, "connection error: %s", cfg->conn->errstr);
     return false;
   }
 
@@ -221,18 +202,16 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
         strlcpy(buf, reply->element[2]->str, bufsize);
         gotit = true;
       } else {
-        cfg->errcb(cfg->error);
+        log_msg(cfg, error, "wrong redis message type: %s", reply->element[0]->str);
       }
     } else {
-      strlcpy(cfg->error, "reply is not a array type",  sizeof(cfg->error));
-      cfg->errcb(cfg->error);
+      log_msg(cfg, error, "reply is not a array type");
     }
     freeReplyObject(reply);
   } else if (cfg->conn->err == REDIS_ERR_IO && errno == EAGAIN) {
     cfg->conn->err = 0; /* reset error to prevent reconnecting */
   } else {
-    snprintf(cfg->error, sizeof(cfg->error),  "can't get reply from server %s: %s", cfg->host, cfg->conn->errstr);
-    cfg->errcb(cfg->error);
+    log_msg(cfg, error, "can't get reply from server %s: %s", cfg->host, cfg->conn->errstr);
   }
 
   return gotit;
