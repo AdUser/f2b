@@ -170,8 +170,7 @@ f2b_jail_ban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
     return true;
   }
 
-  f2b_log_msg(log_error, "jail '%s': can't ban ip %s -- %s",
-    jail->name, addr->text, f2b_backend_error(jail->backend));
+  f2b_log_msg(log_error, "jail '%s': can't ban ip %s", jail->name, addr->text);
   return false;
 }
 
@@ -189,8 +188,7 @@ f2b_jail_unban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
     return true;
   }
 
-  f2b_log_msg(log_error, "jail '%s': can't release ip %s -- %s",
-    jail->name, addr->text, f2b_backend_error(jail->backend));
+  f2b_log_msg(log_error, "jail '%s': can't release ip %s", jail->name, addr->text);
   return false;
 }
 
@@ -383,8 +381,7 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
     goto cleanup;
   }
   if (!f2b_backend_start(jail->backend)) {
-    f2b_log_msg(log_warn, "jail '%s': backend action 'start' failed -- %s",
-      jail->name, f2b_backend_error(jail->backend));
+    f2b_log_msg(log_warn, "jail '%s': backend action 'start' failed", jail->name);
     goto cleanup;
   }
 
@@ -433,8 +430,7 @@ f2b_jail_start(f2b_jail_t *jail) {
       f2b_log_msg(log_note, "jail '%s': restored ban of ip %s (%.1fhrs remain)",
         jail->name, addr->text, (float) remains / 3600);
     } else {
-      f2b_log_msg(log_error, "jail '%s': can't ban ip %s -- %s",
-        jail->name, addr->text, f2b_backend_error(jail->backend));
+      f2b_log_msg(log_error, "jail '%s': can't ban ip %s", jail->name, addr->text);
     }
   }
 
@@ -469,8 +465,7 @@ f2b_jail_stop(f2b_jail_t *jail) {
   f2b_addrlist_destroy(jail->ipaddrs);
 
   if (!f2b_backend_stop(jail->backend)) {
-    f2b_log_msg(log_error, "jail '%s': action 'stop' for backend failed: %s",
-      jail->name, f2b_backend_error(jail->backend));
+    f2b_log_msg(log_error, "jail '%s': action 'stop' for backend failed", jail->name);
     errors = true;
   }
 

@@ -27,7 +27,7 @@ typedef struct f2b_backend_t {
   /** dlsym pointer to handler of @a ready command */
   bool  (*ready)   (void *cfg);
   /** dlsym pointer to handler of @a error command */
-  char *(*error)   (void *cfg);
+  void  (*logcb)   (void *cfg, void (*cb)(log_msgtype_t lvl, const char *msg));
   /** dlsym pointer to handler of @a start command */
   bool  (*start)   (void *cfg);
   /** dlsym pointer to handler of @a stop command */
@@ -58,13 +58,6 @@ f2b_backend_t * f2b_backend_create (f2b_config_section_t *config, const char *id
 void f2b_backend_destroy(f2b_backend_t *b);
 
 /* helpers */
-/**
- * @brief Get last backend error
- * @param b Pointer to backend struct
- * @returns Pointer to string with description of last error
- */
-const char *
-     f2b_backend_error (f2b_backend_t *b);
 /**
  * @brief Start given backend
  * @param b Pointer to backend struct

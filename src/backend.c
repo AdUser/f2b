@@ -36,7 +36,7 @@ f2b_backend_create(f2b_config_section_t *config, const char *id) {
     goto cleanup;
   if ((*(void **) (&backend->ready)   = dlsym(backend->h, "ready"))   == NULL)
     goto cleanup;
-  if ((*(void **) (&backend->error)   = dlsym(backend->h, "error"))   == NULL)
+  if ((*(void **) (&backend->logcb)   = dlsym(backend->h, "logcb"))   == NULL)
     goto cleanup;
   if ((*(void **) (&backend->start)   = dlsym(backend->h, "start"))   == NULL)
     goto cleanup;
@@ -57,6 +57,8 @@ f2b_backend_create(f2b_config_section_t *config, const char *id) {
     f2b_log_msg(log_error, "backend create config failed");
     goto cleanup;
   }
+
+  backend->logcb(backend->cfg, f2b_log_mod_cb);
 
   /* try init */
   for (param = config->param; param != NULL; param = param->next) {
@@ -109,7 +111,6 @@ f2b_backend_ ## CMD(f2b_backend_t *backend, const char *ip) { \
   return backend->CMD(backend->cfg, ip); \
 }
 
-BACKEND_CMD_ARG0(error, const char *)
 BACKEND_CMD_ARG0(start, bool)
 BACKEND_CMD_ARG0(stop,  bool)
 BACKEND_CMD_ARG0(ping,  bool)

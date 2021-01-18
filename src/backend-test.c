@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (!f2b_backend_start(backend)) {
-    f2b_log_msg(log_error, "action 'ban' failed: %s", f2b_backend_error(backend));
+    f2b_log_msg(log_error, "action 'ban' failed");
     goto cleanup;
   }
 
@@ -120,9 +120,7 @@ int main(int argc, char *argv[]) {
     if (handler(backend, addr)) {
       fputs("ok\n", stdout);
     } else {
-      fputs("failure: ", stdout);
-      fputs(f2b_backend_error(backend), stdout);
-      fputc('\n', stdout);
+      fputs("failure\n", stdout);
     }
   } /* while */
 
