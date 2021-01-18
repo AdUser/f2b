@@ -22,21 +22,22 @@ f2b_buf_free(f2b_buf_t *buf) {
   memset(buf, 0x0, sizeof(f2b_buf_t));
 }
 
-bool
+size_t
 f2b_buf_append(f2b_buf_t *buf, const char *str, size_t len) {
-
   assert(buf != NULL);
   assert(str != NULL);
 
   if (len == 0)
     len = strlen(str);
-  if (buf->size < (buf->used + len))
-    return false; /* not enough space */
+  if ((buf->used + len) > buf->size) {
+    /* not enough space, append as much as possible */
+    len = buf->size - buf->used;
+  }
 
   memcpy(&buf->data[buf->used], str, len);
   buf->used += len;
   buf->data[buf->used] = '\0';
-  return true;
+  return len;
 }
 
 /**
