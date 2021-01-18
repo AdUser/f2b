@@ -110,7 +110,7 @@ size_t f2b_jail_process (f2b_jail_t *jail);
  */
 bool   f2b_jail_stop    (f2b_jail_t *jail);
 
-/* handlers for cmsg */
+/* handlers for csocket commands processing */
 
 /**
  * @brief Get jail status

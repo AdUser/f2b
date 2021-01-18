@@ -64,7 +64,8 @@ f2b_csocket_error(int retcode);
  * @param cb Callback for handling message
  * @returns -1 on error, 0 on no messages, and > 0 on some messages processed
  */
-int f2b_csocket_poll(int csock, void (*cb)(const f2b_cmsg_t *cmsg, char *res, size_t ressize));
+int f2b_csocket_poll(int csock, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t *res));
+
 /**
  * @brief Pack and send control message
  * @param csock Opened socket fd
@@ -74,6 +75,7 @@ int f2b_csocket_poll(int csock, void (*cb)(const f2b_cmsg_t *cmsg, char *res, si
  * @returns >0 on success
  */
 int f2b_csocket_send(int csock, f2b_cmsg_t *cmsg, struct sockaddr_storage *addr, socklen_t *addrlen);
+
 /**
  * @brief Recieve and unpack control message
  * @param csock Opened socket fd

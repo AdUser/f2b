@@ -6,7 +6,6 @@
  */
 #include "common.h"
 #include "commands.h"
-#include "cmsg.h"
 #include "csocket.h"
 #include "log.h"
 
@@ -202,7 +201,7 @@ f2b_csocket_send(int csock, f2b_cmsg_t *cmsg, struct sockaddr_storage *addr, soc
 }
 
 int
-f2b_csocket_poll(int csock, void (*cb)(const f2b_cmsg_t *cmsg, char *res, size_t ressize)) {
+f2b_csocket_poll(int csock, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t *res)) {
   char res[DATA_LEN_MAX + 1];
   f2b_cmsg_t cmsg;
   struct sockaddr_storage addr;

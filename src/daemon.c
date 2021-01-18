@@ -11,7 +11,6 @@
 #include "backend.h"
 #include "appconfig.h"
 #include "commands.h"
-#include "cmsg.h"
 #include "csocket.h"
 
 #include <getopt.h>
