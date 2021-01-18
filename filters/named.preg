@@ -1,0 +1,2 @@
+<HOST>#[0-9]+ .* query \(cache\) '[0-9.]+.in-addr.arpa/PTR/IN' denied
+<HOST>#[0-9]+ .* query \(cache\) './ANY/IN' denied
