@@ -5,6 +5,16 @@
  * published by the Free Software Foundation.
  */
 #include <stdbool.h>
+#include <stdarg.h>
+
+enum loglevel {
+  debug  = 0,
+  info   = 1,
+  notice = 2,
+  warn   = 3,
+  error  = 4,
+  fatal  = 5,
+}; /* see log.h */
 
 /**
  * @file
@@ -22,9 +32,8 @@
  *   f2b =>  backend [label="config(cfg, param, value)"];
  *   f2b <<  backend [label="true"];
  *   f2b =>  backend [label="config(cfg, param, value)"];
+ *   f2b <<= backend [label="logcb(level, char *msg)"];
  *   f2b <<  backend [label="false"];
- *   f2b =>  backend [label="error(cfg)"];
- *   f2b <<  backend [label="const char *error"];
  *       |||;
  *   f2b =>  backend [label="ready(cfg)"];
  *   f2b <<  backend [label="true"];
@@ -40,9 +49,8 @@
  *   f2b =>  backend [label="ban(cfg, ip)"];
  *   f2b <<  backend [label="true"];
  *   f2b =>  backend [label="ban(cfg, ip)"];
+ *   f2b <<= backend [label="logcb(level, char *msg)"];
  *   f2b <<  backend [label="false"];
- *   f2b =>  backend [label="error(cfg)"];
- *   f2b <<  backend [label="const char *error"];
  *       ...         [label="time passed"];
  *   f2b =>  backend [label="ping(cfg)"];
  *   f2b <<  backend [label="true"];
@@ -89,7 +97,7 @@ extern cfg_t *create(const char *id);
  * @param cfg Module handler
  * @param key Parameter name
  * @param value Parameter value
- * @returns true on success, false on error with setting intenal error buffer
+ * @returns true on success, false on error
  */
 extern bool   config(cfg_t *cfg, const char *key, const char *value);
 /**
@@ -101,17 +109,9 @@ extern bool   config(cfg_t *cfg, const char *key, const char *value);
  */
 extern bool    ready(cfg_t *cfg);
 /**
- * @brief Returns last error description
- * @param cfg Module handler
- * @returns Pointer to string with description of last error
- * @note Returned pointer not marked with const, because libdl complains,
- *       but contents on pointer should not be modified or written in any way
- */
-extern char   *error(cfg_t *cfg);
-/**
  * @brief Allocate resources and start processing
  * @param cfg Module handler
- * @returns true on success, false on error with setting intenal error buffer
+ * @returns true on success, false on error
  */
 extern bool    start(cfg_t *cfg);
 /**
@@ -127,17 +127,24 @@ extern bool     stop(cfg_t *cfg);
  */
 extern bool     ping(cfg_t *cfg);
 /**
+ * @brief Sets the log callback
+ * @param cfg Module handler
+ * @param cb Logging callback
+ * @note Optional, if this function is not called, warnings/errors of module will be suppressed
+ */
+extern void    logcb(cfg_t *cfg, void (*cb)(enum loglevel l, const char *msg));
+/**
  * @brief Make a rabbit disappear
  * @param cfg Module handler
  * @param ip IP address
- * @returns true on success, false on error with setting intenal error buffer
+ * @returns true on success, false on error
  */
 extern bool      ban(cfg_t *cfg, const char *ip);
 /**
  * @brief Check is some ip already banned
  * @param cfg Module handler
  * @param ip IP address
- * @returns true on success, false on error with setting intenal error buffer
+ * @returns true on success, false on error
  * @note If this action is meaningless for backend it should return true
  */
 extern bool    check(cfg_t *cfg, const char *ip);
@@ -145,7 +152,7 @@ extern bool    check(cfg_t *cfg, const char *ip);
  * @brief Make a rabbit appear again
  * @param cfg Module handler
  * @param ip IP address
- * @returns true on success, false on error with setting intenal error buffer
+ * @returns true on success, false on error
  * @note If this action is meaningless for backend it should return true
  */
 extern bool    unban(cfg_t *cfg, const char *ip);

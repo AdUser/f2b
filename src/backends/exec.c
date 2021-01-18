@@ -16,10 +16,11 @@
 #include "../strlcpy.h"
 
 #include "backend.h"
-#include "shared.c"
+#define MODNAME "exec"
 
 typedef struct cmd_t {
   struct cmd_t *next;
+  char  *orig;   /**< stores original command, used in log messages */
   char  *args;   /**< stores path of cmd & args, delimited by '\0' */
   char **argv;   /**< stores array of pointers to args + NULL */
   size_t argc;   /**< args count */
@@ -29,7 +30,7 @@ typedef struct cmd_t {
 
 struct _config {
   char name[ID_MAX + 1];
-  char error[256];
+  void (*logcb)(enum loglevel lvl, const char *msg);
   time_t timeout;
   bool  shared;
   cmd_t *start;
@@ -38,6 +39,8 @@ struct _config {
   cmd_t *unban;
   cmd_t *check;
 };
+
+#include "backend.c"
 
 static cmd_t *
 cmd_from_str(const char *str) {
@@ -50,6 +53,8 @@ cmd_from_str(const char *str) {
   if ((cmd = calloc(1, sizeof(cmd_t))) == NULL)
     return NULL;
 
+  if ((cmd->orig = strdup(str)) == NULL)
+    goto cleanup;
   if ((cmd->args = strdup(str)) == NULL)
     goto cleanup;
 
@@ -77,6 +82,7 @@ cmd_from_str(const char *str) {
   return cmd;
 
   cleanup:
+  free(cmd->orig);
   free(cmd->args);
   free(cmd->argv);
   free(cmd);
@@ -104,6 +110,7 @@ cmd_list_destroy(cmd_t *list) {
 
   for (; list != NULL; list = next) {
     next = list->next;
+    free(list->orig);
     free(list->args);
     free(list->argv);
     free(list);
@@ -132,17 +139,14 @@ cmd_list_exec(cfg_t *cfg, cmd_t *list, const char *ip) {
       if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
         continue;
       if (WIFEXITED(status)) {
-        snprintf(cfg->error, sizeof(cfg->error),
-          "cmd '%s' terminated with code %d",
-          cmd->args, WEXITSTATUS(status));
+        log_msg(cfg, error, "cmd '%s' terminated with code %d", cmd->orig, WEXITSTATUS(status));
       } else if (WIFSIGNALED(status)) {
-        snprintf(cfg->error, sizeof(cfg->error),
-          "cmd '%s' terminated by signal %d", cmd->args, WTERMSIG(status));
+        log_msg(cfg, error, "cmd '%s' terminated by signal %d", cmd->orig, WTERMSIG(status));
       }
       return false;
     } else {
       /* parent, fork error */
-      snprintf(cfg->error, sizeof(cfg->error), "can't fork(): %s", strerror(errno));
+      log_msg(cfg, error, "can't fork(): %s", strerror(errno));
       return false;
     }
   }
@@ -161,6 +165,7 @@ create(const char *id) {
     return NULL;
   strlcpy(cfg->name, id, sizeof(cfg->name));
 
+  cfg->logcb = &logcb_stub;
   return cfg;
 }
 
@@ -208,13 +213,6 @@ ready(cfg_t *cfg) {
     return true;
 
   return false;
-}
-
-char *
-error(cfg_t *cfg) {
-  assert(cfg != NULL);
-
-  return cfg->error;
 }
 
 bool

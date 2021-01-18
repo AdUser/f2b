@@ -20,12 +20,12 @@
 #include "../strlcpy.h"
 
 #include "backend.h"
-#include "shared.c"
+#define MODNAME "redis"
 
 struct _config {
   char name[ID_MAX + 1];
   char hash[ID_MAX * 2];
-  char error[256];
+  void (*logcb)(enum loglevel lvl, const char *msg);
   bool shared;
   time_t timeout;
   uint8_t ping_num; /*< current number of ping() call */
@@ -36,6 +36,8 @@ struct _config {
   uint16_t port;
   redisContext *conn;
 };
+
+#include "backend.c"
 
 static bool
 redis_connect(cfg_t *cfg) {
@@ -52,14 +54,14 @@ redis_connect(cfg_t *cfg) {
     if (!conn)
       break;
     if (conn->err) {
-      snprintf(cfg->error, sizeof(cfg->error), "Connection error: %s", conn->errstr);
+      log_msg(cfg, error, "Connection error: %s", conn->errstr);
       break;
     }
     if (cfg->password[0]) {
       if ((reply = redisCommand(conn, "AUTH %s", cfg->password)) == NULL)
         break;
       if (reply->type == REDIS_REPLY_ERROR) {
-        snprintf(cfg->error, sizeof(cfg->error), "auth error: %s", reply->str);
+        log_msg(cfg, error, "auth error: %s", reply->str);
         break;
       }
       freeReplyObject(reply);
@@ -68,7 +70,7 @@ redis_connect(cfg_t *cfg) {
       if ((reply = redisCommand(conn, "SELECT %d", cfg->database)) == NULL)
         break;
       if (reply->type == REDIS_REPLY_ERROR) {
-        snprintf(cfg->error, sizeof(cfg->error), "auth error: %s", reply->str);
+        log_msg(cfg, error, "auth error: %s", reply->str);
         break;
       }
       freeReplyObject(reply);
@@ -110,6 +112,7 @@ create(const char *id) {
   strlcpy(cfg->hash, "f2b-banned-", sizeof(cfg->hash));
   strlcat(cfg->hash, id, sizeof(cfg->hash));
 
+  cfg->logcb = &logcb_stub;
   return cfg;
 }
 
@@ -161,13 +164,6 @@ ready(cfg_t *cfg) {
   return false;
 }
 
-char *
-error(cfg_t *cfg) {
-  assert(cfg != NULL);
-
-  return cfg->error;
-}
-
 bool
 start(cfg_t *cfg) {
   assert(cfg != NULL);
@@ -202,14 +198,14 @@ ban(cfg_t *cfg, const char *ip) {
     if ((reply = redisCommand(cfg->conn, "HINCRBY %s %s %d", cfg->hash, ip, 1)) == NULL)
       break;
     if (reply->type == REDIS_REPLY_ERROR) {
-      snprintf(cfg->error, sizeof(cfg->error), "HINCRBY: %s", reply->str);
+      log_msg(cfg, error, "HINCRBY: %s", reply->str);
       break;
     }
     freeReplyObject(reply);
     if ((reply = redisCommand(cfg->conn, "PUBLISH %s %s",    cfg->hash, ip)) == NULL)
       break;
     if (reply->type == REDIS_REPLY_ERROR) {
-      snprintf(cfg->error, sizeof(cfg->error), "PUBLISH: %s", reply->str);
+      log_msg(cfg, error, "PUBLISH: %s", reply->str);
       break;
     }
     freeReplyObject(reply);
@@ -252,7 +248,7 @@ ping(cfg_t *cfg) {
     return false; /* reconnect failure */
 
   if (cfg->conn->err) {
-    snprintf(cfg->error, sizeof(cfg->error), "connection error: %s", cfg->conn->errstr);
+    log_msg(cfg, error, "connection error: %s", cfg->conn->errstr);
     return false;
   }
 
@@ -266,7 +262,7 @@ ping(cfg_t *cfg) {
   if (reply) {
     bool result = true;
     if (reply->type == REDIS_REPLY_ERROR) {
-      strlcpy(cfg->error, reply->str, sizeof(cfg->error));
+      log_msg(cfg, error, "%s", reply->str);
       result = false;
     }
     freeReplyObject(reply);

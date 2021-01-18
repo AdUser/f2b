@@ -19,20 +19,25 @@
 #include "../strlcpy.h"
 
 #include "backend.h"
-#include "shared.c"
+#define MODNAME "ipset"
 
 struct _config {
   char name[ID_MAX + 1];
-  char error[256];
+  void (*logcb)(enum loglevel lvl, const char *msg);
   bool shared;
   struct ipset_session *sess;
 };
 
+#include "backend.c"
+
 inline static bool
-my_ipset_error(cfg_t *cfg) {
+my_ipset_error(cfg_t *cfg, const char *func) {
   struct ipset_data *data = NULL;
-  snprintf(cfg->error, sizeof(cfg->error), "ipset: %s",
-    ipset_session_error(cfg->sess));
+  if (ipset_session_error(cfg->sess)) {
+    log_msg(cfg, error, "%s: %s", func, ipset_session_error(cfg->sess));
+  } else /* IPSET_WARNING */ {
+    log_msg(cfg, warn, "%s: %s", func, ipset_session_warning(cfg->sess));
+  }
 
   ipset_session_report_reset(cfg->sess);
 
@@ -47,16 +52,19 @@ my_ipset_cmd(cfg_t *cfg, enum ipset_cmd cmd, const char *ip) {
   const struct ipset_type *type = NULL;
 
   if (ipset_parse_setname(cfg->sess, IPSET_SETNAME, cfg->name) < 0)
-    return my_ipset_error(cfg);
+    return my_ipset_error(cfg, "ipset_parse_setname())");
 
   if ((type = ipset_type_get(cfg->sess, cmd)) == NULL)
-    return my_ipset_error(cfg);
+    return my_ipset_error(cfg, "ipset_type_get()");
 
   if (ipset_parse_elem(cfg->sess, type->last_elem_optional, ip) < 0)
-    return my_ipset_error(cfg);
+    return my_ipset_error(cfg, "ipset_parse_elem()");
 
-  if (ipset_cmd(cfg->sess, cmd, 0) < 0)
-    return my_ipset_error(cfg);
+  if (ipset_cmd(cfg->sess, cmd, 0) < 0) {
+    if (cmd == IPSET_CMD_TEST && ipset_session_error(cfg->sess) == NULL)
+      return false; /* "ip is NOT in list" */
+    return my_ipset_error(cfg, "ipset_cmd()");
+  }
 
   return true;
 }
@@ -71,6 +79,7 @@ create(const char *id) {
     return NULL;
   strlcpy(cfg->name, id, sizeof(cfg->name));
 
+  cfg->logcb = &logcb_stub;
   return cfg;
 }
 
@@ -97,13 +106,6 @@ ready(cfg_t *cfg) {
   return false;
 }
 
-char *
-error(cfg_t *cfg) {
-  assert(cfg != NULL);
-
-  return cfg->error;
-}
-
 bool
 start(cfg_t *cfg) {
   assert(cfg != NULL);
@@ -114,15 +116,15 @@ start(cfg_t *cfg) {
   ipset_load_types();
 
   if ((cfg->sess = ipset_session_init(NULL)) == NULL) {
-    strlcpy(cfg->error, "can't init ipset session", sizeof(cfg->error));
+    log_msg(cfg, error, "can't init ipset session");
     return false;
   }
 
   if (ipset_session_output(cfg->sess, IPSET_LIST_NONE) < 0)
-    return my_ipset_error(cfg);
+    return my_ipset_error(cfg, "ipset_session_output()");
 
   if (ipset_envopt_parse(cfg->sess, IPSET_ENV_EXIST, NULL) < 0)
-    return my_ipset_error(cfg);
+    return my_ipset_error(cfg, "ipset_envopt_parse()");
 
   return true;
 }
