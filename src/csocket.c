@@ -65,11 +65,11 @@ f2b_conn_process(f2b_conn_t *conn, bool in, void (*cb)(const f2b_cmd_t *cmd, f2b
 
   /* handle incoming data */
   if (in) {
-    f2b_log_msg(log_debug, "some incoming data on socket %d", conn->sock);
     char tmp[RBUF_SIZE] = "";
     char *line = NULL;
     ssize_t read = 0;
-    read = recv(conn->sock, tmp, RBUF_SIZE, MSG_DONTWAIT);
+    size_t avail = conn->recv.size - conn->recv.used;
+    read = recv(conn->sock, tmp, avail, MSG_DONTWAIT);
     if (read == 0 || (read < 0 && errno == ECONNRESET)) {
       f2b_log_msg(log_debug, "received connection close on socket %d", conn->sock);
       return -1;
@@ -80,8 +80,14 @@ f2b_conn_process(f2b_conn_t *conn, bool in, void (*cb)(const f2b_cmd_t *cmd, f2b
     }
     if (read > 0) {
       tmp[read] = '\0';
-      f2b_buf_append(&conn->recv, tmp, read);
-      f2b_log_msg(log_debug, "received %zd bytes from socket %d", read, conn->sock);
+      for (const char *p = tmp; *p != '\0'; p++) {
+        if (isgraph(*p) || isspace(*p))
+          continue;
+        f2b_log_msg(log_error, "non-printable character in data on sock %d", conn->sock);
+        return -1;
+      }
+      retval = f2b_buf_append(&conn->recv, tmp, read);
+      f2b_log_msg(log_debug, "received %zd bytes from socket %d, append %d to buf", read, conn->sock, retval);
       /* extract message(s) */
       while ((line = f2b_buf_extract(&conn->recv, "\n")) != NULL) {
         if (strlen(line) == 0) {
@@ -106,7 +112,7 @@ f2b_conn_process(f2b_conn_t *conn, bool in, void (*cb)(const f2b_cmd_t *cmd, f2b
   /* handle outgoing data */
   if (conn->send.used > 0) {
     f2b_log_msg(log_debug, "sending %zu bytes to socket %d", conn->send.used, conn->sock);
-    retval = send(conn->sock, conn->send.data, conn->send.used, MSG_DONTWAIT);
+    retval = send(conn->sock, conn->send.data, conn->send.used, MSG_DONTWAIT | MSG_NOSIGNAL);
     if (retval > 0) {
       f2b_buf_splice(&conn->send, retval);
       f2b_log_msg(log_debug, "sent %d bytes to socket %d (%zu remains)", retval, conn->sock, conn->send.used);
@@ -183,6 +189,8 @@ f2b_csocket_destroy(f2b_csock_t *csock) {
 void
 f2b_csocket_poll(f2b_csock_t *csock, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t *res)) {
   struct timeval tv = { .tv_sec = 0, .tv_usec = 0 };
+  struct ucred peer;
+  socklen_t peerlen = 0;
   fd_set rfds, wfds;
   f2b_conn_t *conn = NULL;
   int retval, nfds;
@@ -234,8 +242,11 @@ f2b_csocket_poll(f2b_csock_t *csock, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t 
     if ((sock = accept(csock->sock, NULL, NULL)) < 0) {
       f2b_log_msg(log_error, "can't accept() new connection: %s", strerror(errno));
     } else if (cnum < MAXCONNS) {
+      peerlen = sizeof(peer);
+      if (getsockopt(sock, SOL_SOCKET, SO_PEERCRED, &peer, &peerlen) < 0)
+        f2b_log_msg(log_error, "can't get remote peer credentials: %s", strerror(errno));
       if ((conn = f2b_conn_create(RBUF_SIZE, WBUF_SIZE)) != NULL) {
-        f2b_log_msg(log_debug, "new connection accept()ed, socket %d", sock);
+        f2b_log_msg(log_debug, "new connection accept()ed, socket %d from uid %d", sock, peer.uid);
         conn->sock = sock;
         csock->clients[cnum] = conn;
       } else {
@@ -252,6 +263,7 @@ f2b_csocket_poll(f2b_csock_t *csock, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t 
       continue;
     retval = f2b_conn_process(conn, FD_ISSET(conn->sock, &rfds), cb);
     if (retval < 0) {
+      f2b_log_msg(log_debug, "closing connection on socket %d", conn->sock);
       shutdown(conn->sock, SHUT_RDWR);
       f2b_conn_destroy(conn);
       csock->clients[cnum] = NULL;
