@@ -1,0 +1,2 @@
+pop3-login: Disconnected \(auth failed, [0-9]+ attempts in [0-9]+ secs\): .* rip=<HOST>
+imap-login: Disconnected \(auth failed, [0-9]+ attempts in [0-9]+ secs\): .* rip=<HOST>
