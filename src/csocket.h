@@ -35,6 +35,6 @@ void f2b_csocket_destroy(f2b_csock_t *csock);
  * @param cb Callback for handling message
  * @returns -1 on error, 0 on no messages, and > 0 on some messages processed
  */
-int f2b_csocket_poll(f2b_csock_t *csock, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t *res));
+void f2b_csocket_poll(f2b_csock_t *csock, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t *res));
 
 #endif /* F2B_CSOCKET_H_ */
