@@ -23,6 +23,7 @@ struct _config {
   char password[32];
   char host[32];
   uint16_t port;
+  uint32_t received;
   redisContext *conn;
 };
 
@@ -196,6 +197,7 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
 
   redisReply *reply = NULL;
   if (redisGetReply(cfg->conn, (void **) &reply) == REDIS_OK) {
+    cfg->received++;
     if (reply->type == REDIS_REPLY_ARRAY) {
       if (strcmp(reply->element[0]->str, "message") == 0 ||
           strcmp(reply->element[1]->str, cfg->hash) == 0) {
@@ -215,6 +217,28 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
   }
 
   return gotit;
+}
+
+bool
+stats(cfg_t *cfg, char *buf, size_t bufsize) {
+  const char *fmt =
+    "connected: %s\n"
+    "last error: %d (%s)\n"
+    "messages: %u\n";
+
+  assert(cfg != NULL);
+
+  if (buf == NULL || bufsize == 0)
+    return false;
+
+  if (cfg->conn) {
+    const char *err = cfg->conn->errstr[0] == '\0' ? cfg->conn->errstr : "---";
+    snprintf(buf, bufsize, fmt, "yes", cfg->conn->err, err, cfg->received);
+  } else {
+    snprintf(buf, bufsize, fmt, "no", "0", "---", cfg->received);
+  }
+
+  return true;
 }
 
 void

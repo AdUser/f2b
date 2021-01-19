@@ -20,6 +20,7 @@ typedef struct f2b_port_t {
   struct f2b_port_t *next;
   char host[HOST_MAX];
   char port[PORT_MAX];
+  unsigned int accepts;
   int sock;
 } f2b_port_t;
 
@@ -188,7 +189,8 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
       log_msg(cfg, error, "accept() error: %s", strerror(errno));
       continue;
     }
-    close(sock);
+    port->accepts++;
+    shutdown(sock, SHUT_RDWR);
     if (addr.ss_family == AF_INET) {
       inet_ntop(AF_INET,  &(((struct sockaddr_in *) &addr)->sin_addr), buf, bufsize);
       return true;
@@ -201,6 +203,25 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
   }
 
   return false;
+}
+
+bool
+stats(cfg_t *cfg, char *buf, size_t bufsize) {
+  char tmp[256];
+  const char *fmt =
+    "- listen: %s:%s\n"
+    "  accepts: %u\n";
+  assert(cfg != NULL);
+
+  if (buf == NULL || bufsize == 0)
+    return false;
+
+  for (f2b_port_t *p = cfg->ports; p != NULL; p = p->next) {
+    snprintf(tmp, sizeof(tmp), fmt, p->host, p->port, p->accepts);
+    strlcat(buf, tmp, bufsize);
+  }
+
+  return true;
 }
 
 void

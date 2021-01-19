@@ -9,16 +9,17 @@
 #include <sys/stat.h>
 
 #include <glob.h>
+#include <time.h>
 
 #include "source.h"
 #define MODNAME "files"
 
 typedef struct f2b_file_t {
   struct f2b_file_t *next;
-  bool opened;
-  char path[PATH_MAX];
   FILE *fd;
+  char path[PATH_MAX];
   struct stat st;
+  unsigned int lines;
 } f2b_file_t;
 
 struct _config {
@@ -32,6 +33,7 @@ struct _config {
 
 static bool
 file_open(f2b_file_t *file, const char *path) {
+  FILE *fd;
   struct stat st;
   char buf[PATH_MAX] = "";
 
@@ -48,15 +50,17 @@ file_open(f2b_file_t *file, const char *path) {
   if (!(S_ISREG(st.st_mode) || S_ISFIFO(st.st_mode)))
     return false;
 
-  if ((file->fd = fopen(buf, "r")) == NULL)
+  if ((fd = fopen(buf, "r")) == NULL)
     return false;
 
-  if (S_ISREG(st.st_mode) && fseek(file->fd, 0, SEEK_END) < 0)
+  if (S_ISREG(st.st_mode) && fseek(fd, 0, SEEK_END) < 0) {
+    fclose(fd);
     return false;
+  }
 
   memcpy(&file->st, &st, sizeof(st));
   strlcpy(file->path, buf, sizeof(file->path));
-  file->opened = true;
+  file->fd = fd;
 
   return true;
 }
@@ -65,19 +69,21 @@ static void
 file_close(f2b_file_t *file) {
   assert(file != NULL);
 
-  if (file->fd)
-    fclose(file->fd);
+  if (file->fd == NULL)
+    return;
 
-  file->opened = false;
+  fclose(file->fd);
   file->fd = NULL;
+  file->lines = 0;
+  memset(&file->st, 0, sizeof(struct stat));
 }
 
 static bool
-file_rotated(const cfg_t *cfg, const f2b_file_t *file) {
+file_rotated(const cfg_t *cfg, f2b_file_t *file) {
   struct stat st;
   assert(file != NULL);
 
-  if (!file->opened)
+  if (file->fd == NULL)
     return true;
 
   if (stat(file->path, &st) != 0) {
@@ -90,21 +96,25 @@ file_rotated(const cfg_t *cfg, const f2b_file_t *file) {
       file->st.st_size  > st.st_size) {
     log_msg(cfg, info, "file replaced: %s", file->path);
     return true;
+  } else if (file->st.st_size < st.st_size) {
+    memcpy(&file->st, &st, sizeof(struct stat));
   }
 
   return false;
 }
 
 static bool
-file_getline(const f2b_file_t *file, char *buf, size_t bufsize) {
+file_getline(f2b_file_t *file, char *buf, size_t bufsize) {
   assert(file != NULL);
   assert(buf != NULL);
 
   if (feof(file->fd))
     clearerr(file->fd);
   /* fread()+EOF set is implementation defined */
-  if (fgets(buf, bufsize, file->fd) != NULL)
+  if (fgets(buf, bufsize, file->fd) != NULL) {
+    file->lines++;
     return true;
+  }
 
   return false;
 }
@@ -199,7 +209,7 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
   for (f2b_file_t *file = cfg->current; file != NULL; file = file->next) {
     if (file_rotated(cfg, file))
       file_close(file);
-    if (!file->opened && !file_open(file, NULL)) {
+    if (file->fd == NULL && !file_open(file, NULL)) {
       log_msg(cfg, error, "can't open file: %s", file->path);
       continue;
     }
@@ -208,6 +218,40 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
   }
 
   return false;
+}
+
+bool
+stats(cfg_t *cfg, char *buf, size_t bufsize) {
+  struct tm tm;
+  char tmp[PATH_MAX + 512];
+  char mtime[30];
+  const char *fmt =
+    "- path: %s\n"
+    "  mtime: %s\n"
+    "  fstat: fd=%d inode=%d size=%ld pos=%ld\n"
+    "  read: %lu lines\n";
+  int fd, ino; off_t sz; long pos;
+  assert(cfg != NULL);
+  assert(buf != NULL);
+  assert(bufsize > 0);
+
+  if (buf == NULL || bufsize == 0)
+    return false;
+
+  for (f2b_file_t *f = cfg->files; f != NULL; f = f->next) {
+    if (f->fd) {
+      fd = fileno(f->fd), ino = f->st.st_ino, sz = f->st.st_size, pos = ftell(f->fd);
+      localtime_r(&f->st.st_mtime, &tm);
+      strftime(mtime, sizeof(mtime), "%Y-%m-%d %H:%M:%S", &tm);
+    } else {
+      fd = -1, ino = -1, sz = 0, pos = -1;
+      strlcpy(mtime, "-", sizeof(mtime));
+    }
+    snprintf(tmp, sizeof(tmp), fmt, f->path, mtime, fd, ino, sz, pos, f->lines);
+    strlcat(buf, tmp, bufsize);
+  }
+
+  return true;
 }
 
 void

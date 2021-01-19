@@ -121,6 +121,14 @@ extern bool    start(cfg_t *cfg);
  */
 extern bool     next(cfg_t *cfg, char *buf, size_t bufsize, bool reset);
 /**
+ * @brief Get statistics for source
+ * @param cfg Module handler
+ * @param buf Pointer to buffer for stats report
+ * @param bufsize Size of buffer above (in bytes)
+ * @returns true on success, false on error
+ */
+extern bool    stats(cfg_t *cfg, char *buf, size_t bufsize);
+/**
  * @brief Deallocate resources, prepare for module destroy
  * @param cfg Module handler
  * @returns true on success
