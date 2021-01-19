@@ -93,6 +93,7 @@ enum loglevel {
  * Opaque module handler, contains module internal structs
  */
 typedef struct _config cfg_t;
+typedef struct _regexp rx_t;
 
 /**
  * @brief Create instance of module
@@ -129,14 +130,13 @@ extern bool    ready(cfg_t *cfg);
  */
 extern void    logcb(cfg_t *cfg, void (*cb)(enum loglevel l, const char *msg));
 /**
- * @brief Fetch match stats by-pattern
+ * @brief Fetch filter match stats
  * @param cfg Module handler
- * @param matches Pointer to storage for matches count
- * @param pattern Associated pattern
- * @param reset Reset to start of statistics (for later calls)
- * @returns false on no more stats or true otherwise with filling @a matches and @a pattern
+ * @param buf Pointer to storage for stats report
+ * @param bufsize Available size for report on @a buf pointer
+ * @returns true on success, false on error
  */
-extern bool    stats(cfg_t *cfg, int *matches, char **pattern, bool reset);
+extern bool    stats(cfg_t *cfg, char *buf, size_t bufsize);
 /**
  * @brief Match given line against configured regexps
  * @param cfg Module handler

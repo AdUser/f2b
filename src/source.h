@@ -32,6 +32,8 @@ typedef struct f2b_source_t {
   bool  (*start)   (void *cfg);
   /** dlsym pointer to handler of @a next command */
   bool  (*next)    (void *cfg, char *buf, size_t bufsize, bool reset);
+  /** dlsym pointer to handler of @a stats command */
+  bool  (*stats)   (void *cfg, char *buf, size_t bufsize);
   /** dlsym pointer to handler of @a stop command */
   bool  (*stop)    (void *cfg);
   /** dlsym pointer to handler of @a destroy command */

@@ -34,7 +34,7 @@ typedef struct f2b_filter_t {
   /** dlsym pointer to handler of @a flush command */
   bool  (*flush)   (void *cfg);
   /** dlsym pointer to handler of @a stats command */
-  bool  (*stats)   (void *cfg, int *matches, char **pattern, bool reset);
+  bool  (*stats)   (void *cfg, char *buf, size_t bufsize);
   /** dlsym pointer to handler of @a match command */
   bool  (*match)   (void *cfg, const char *line, char *buf, size_t buf_size);
   /** dlsym pointer to handler of @a destroy command */

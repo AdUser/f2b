@@ -179,23 +179,10 @@ f2b_filter_match(f2b_filter_t *filter, const char *line, char *buf, size_t buf_s
 
 void
 f2b_filter_cmd_stats(char *buf, size_t bufsize, f2b_filter_t *filter) {
-  bool reset = true;
-  char *pattern;
-  char tmp[256];
-  const char *fmt =
-    "- pattern: %s\n"
-    "  matches: %d\n";
-  int matches;
-
   assert(filter != NULL);
   assert(buf    != NULL);
 
-  buf[0] = '\0';
-  while (filter->stats(filter->cfg, &matches, &pattern, reset)) {
-    snprintf(tmp, sizeof(tmp), fmt, pattern, matches);
-    strlcat(buf, tmp, bufsize);
-    reset = false;
-  }
+  filter->stats(filter->cfg, buf, bufsize);
 }
 
 void

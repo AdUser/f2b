@@ -10,13 +10,13 @@
 #define MODNAME "pcre"
 #define HOST_REGEX "(?<host>[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})"
 
-typedef struct f2b_regex_t {
-  struct f2b_regex_t *next;
+struct _regexp {
+  rx_t *next;
   char pattern[PATTERN_MAX];
   int matches;
   pcre *regex;
   pcre_extra *data;
-} f2b_regex_t;
+};
 
 struct _config {
   char id[ID_MAX];
@@ -24,8 +24,7 @@ struct _config {
   bool icase;
   bool study;
   bool usejit;
-  f2b_regex_t *regexps;
-  f2b_regex_t *statp;
+  rx_t *regexps;
 };
 
 #include "filter.c"
@@ -73,7 +72,7 @@ config(cfg_t *cfg, const char *key, const char *value) {
 
 bool
 append(cfg_t *cfg, const char *pattern) {
-  f2b_regex_t *regex = NULL;
+  rx_t *regex = NULL;
   int flags = 0;
   size_t bufsize;
   char *buf = NULL;
@@ -98,7 +97,7 @@ append(cfg_t *cfg, const char *pattern) {
   strlcat(buf, HOST_REGEX, bufsize);
   strlcat(buf, token + strlen(HOST_TOKEN), bufsize);
 
-  if ((regex = calloc(1, sizeof(f2b_regex_t))) == NULL)
+  if ((regex = calloc(1, sizeof(rx_t))) == NULL)
     return false;
 
   if ((regex->regex = pcre_compile(buf, flags, &errptr, &erroffset, NULL)) == NULL) {
@@ -136,25 +135,7 @@ ready(cfg_t *cfg) {
 }
 
 bool
-stats(cfg_t *cfg, int *matches, char **pattern, bool reset) {
-  assert(cfg != NULL);
-
-  if (reset)
-    cfg->statp = cfg->regexps;
-
-  if (cfg->statp) {
-    *matches   = cfg->statp->matches;
-    *pattern   = cfg->statp->pattern;
-    cfg->statp = cfg->statp->next;
-    return true;
-  }
-
-  return false;
-}
-
-bool
 match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
-  f2b_regex_t *r = NULL;
   enum { OVECSIZE = 30 };
   int ovector[OVECSIZE];
   int flags = 0;
@@ -164,7 +145,7 @@ match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
   assert(line != NULL);
   assert(buf  != NULL);
 
-  for (r = cfg->regexps; r != NULL; r = r->next) {
+  for (rx_t *r = cfg->regexps; r != NULL; r = r->next) {
     rc = pcre_exec(r->regex, r->data, line, strlen(line), 0, flags, ovector, OVECSIZE);
     if (rc < 0 && rc == PCRE_ERROR_NOMATCH)
       continue;
@@ -188,11 +169,11 @@ match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
 
 void
 flush(cfg_t *cfg) {
-  f2b_regex_t *next = NULL, *r = NULL;
+  rx_t *next = NULL;
 
   assert(cfg != NULL);
 
-  for (r = cfg->regexps; r != NULL; r = next) {
+  for (rx_t *r = cfg->regexps; r != NULL; r = next) {
     next = r->next;
 #ifdef PCRE_CONFIG_JIT
     if (cfg->study)

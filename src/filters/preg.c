@@ -6,25 +6,25 @@
  */
 #include <regex.h>
 
+#include "../strlcpy.h"
 #include "filter.h"
 
 #define MODNAME "preg"
 /* draft */
 #define HOST_REGEX "([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})"
 
-typedef struct f2b_regex_t {
-  struct f2b_regex_t *next;
+struct _regexp {
+  rx_t *next;
   char pattern[PATTERN_MAX];
   int matches;
   regex_t regex;
-} f2b_regex_t;
+};
 
 struct _config {
   char id[ID_MAX];
   bool icase;
   void (*logcb)(enum loglevel lvl, const char *msg);
-  f2b_regex_t *regexps;
-  f2b_regex_t *statp;
+  rx_t *regexps;
 };
 
 #include "filter.c"
@@ -57,7 +57,7 @@ config(cfg_t *cfg, const char *key, const char *value) {
 
 bool
 append(cfg_t *cfg, const char *pattern) {
-  f2b_regex_t *regex = NULL;
+  rx_t *regex = NULL;
   int flags = REG_EXTENDED;
   size_t bufsize;
   char *buf = NULL;
@@ -81,7 +81,7 @@ append(cfg_t *cfg, const char *pattern) {
   strlcat(buf, HOST_REGEX, bufsize);
   strlcat(buf, token + strlen(HOST_TOKEN), bufsize);
 
-  if ((regex = calloc(1, sizeof(f2b_regex_t))) == NULL)
+  if ((regex = calloc(1, sizeof(rx_t))) == NULL)
     return false;
 
   if ((ret = regcomp(&regex->regex, buf, flags)) == 0) {
@@ -108,25 +108,7 @@ ready(cfg_t *cfg) {
 }
 
 bool
-stats(cfg_t *cfg, int *matches, char **pattern, bool reset) {
-  assert(cfg != NULL);
-
-  if (reset)
-    cfg->statp = cfg->regexps;
-
-  if (cfg->statp) {
-    *matches   = cfg->statp->matches;
-    *pattern   = cfg->statp->pattern;
-    cfg->statp = cfg->statp->next;
-    return true;
-  }
-
-  return false;
-}
-
-bool
 match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
-  f2b_regex_t *r = NULL;
   size_t match_len = 0;
   regmatch_t match[2];
 
@@ -134,7 +116,7 @@ match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
   assert(line != NULL);
   assert(buf  != NULL);
 
-  for (r = cfg->regexps; r != NULL; r = r->next) {
+  for (rx_t *r = cfg->regexps; r != NULL; r = r->next) {
     if (regexec(&r->regex, line, 2, &match[0], 0) != 0)
       continue;
     /* matched */
@@ -152,11 +134,11 @@ match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
 
 void
 flush(cfg_t *cfg) {
-  f2b_regex_t *next = NULL, *r = NULL;
+  rx_t *next = NULL;
 
   assert(cfg != NULL);
 
-  for (r = cfg->regexps; r != NULL; r = next) {
+  for (rx_t *r = cfg->regexps; r != NULL; r = next) {
     next = r->next;
     regfree(&r->regex);
     free(r);
