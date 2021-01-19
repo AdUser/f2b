@@ -137,6 +137,9 @@ f2b_csocket_cmd_process(const f2b_cmd_t *cmd, f2b_buf_t *res) {
   } else if (cmd->type == CMD_JAIL_IP_RELEASE) {
     f2b_jail_cmd_ip_xxx(buf, sizeof(buf), jail, -1, cmd->args[4]);
     f2b_buf_append(res, buf, 0);
+  } else if (cmd->type == CMD_JAIL_SOURCE_STATS) {
+    f2b_source_cmd_stats(buf, sizeof(buf), jail->source);
+    f2b_buf_append(res, buf, 0);
   } else if (cmd->type == CMD_JAIL_FILTER_STATS) {
     f2b_filter_cmd_stats(buf, sizeof(buf), jail->filter);
     f2b_buf_append(res, buf, 0);

@@ -31,7 +31,8 @@ enum f2b_command_type {
   CMD_JAIL_IP_STATUS,      /**< show status of given ip */
   CMD_JAIL_IP_BAN,         /**< force ban given ip */
   CMD_JAIL_IP_RELEASE,     /**< force unban given ip */
-  CMD_JAIL_FILTER_STATS,   /**< show stats of fileter matches */
+  CMD_JAIL_SOURCE_STATS,   /**< show stats of source */
+  CMD_JAIL_FILTER_STATS,   /**< show stats of filter matches */
   CMD_JAIL_FILTER_RELOAD,  /**< reload filter patterns from file */
   CMD_MAX_NUMBER,          /**< placeholder */
 };

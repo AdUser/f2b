@@ -76,4 +76,9 @@ bool f2b_source_next (f2b_source_t *s, char *buf, size_t bufsize, bool reset);
  */
 bool f2b_source_stop (f2b_source_t *s);
 
+/* handlers for csocket commands processing */
+
+/** handler of 'jail $JAIL source stats' cmd */
+void f2b_source_cmd_stats (char *buf, size_t bufsize, f2b_source_t *f);
+
 #endif /* F2B_SOURCE_H_ */

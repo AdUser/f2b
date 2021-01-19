@@ -71,6 +71,11 @@ struct cmd_desc {
     .tokens = { "jail", "<jailname>", "ip", "release", "<ip>", NULL },
     .help = "Forcefully release some ip in given jail",
   }, {
+    .type = CMD_JAIL_SOURCE_STATS,
+    .argc = 1, .tokenc = 4,
+    .tokens = { "jail", "<jailname>", "source", "stats", NULL },
+    .help = "Show source stats for jail",
+  }, {
     .type = CMD_JAIL_FILTER_STATS,
     .argc = 1, .tokenc = 4,
     .tokens = { "jail", "<jailname>", "filter", "stats", NULL },
@@ -190,6 +195,9 @@ f2b_cmd_parse(f2b_cmd_t *cmd, const char *src) {
     }
     if (cmd->argc == 5 && strcmp(cmd->args[2], "ip") == 0 && strcmp(cmd->args[3], "release") == 0) {
       cmd->type = CMD_JAIL_IP_RELEASE; return true;
+    }
+    if (cmd->argc == 4 && strcmp(cmd->args[2], "source") == 0 && strcmp(cmd->args[3], "stats") == 0) {
+      cmd->type = CMD_JAIL_SOURCE_STATS; return true;
     }
     if (cmd->argc == 4 && strcmp(cmd->args[2], "filter") == 0 && strcmp(cmd->args[3], "stats") == 0) {
       cmd->type = CMD_JAIL_FILTER_STATS; return true;

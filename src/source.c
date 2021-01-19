@@ -109,3 +109,11 @@ f2b_source_ ## CMD(f2b_source_t *source) { \
 SOURCE_CMD_ARG0(start, bool)
 SOURCE_CMD_ARG0(stop,  bool)
 SOURCE_CMD_ARG0(ready, bool)
+
+void
+f2b_source_cmd_stats(char *buf, size_t bufsize, f2b_source_t *source) {
+  assert(source != NULL);
+  assert(buf    != NULL);
+
+  source->stats(source->cfg, buf, bufsize);
+}
