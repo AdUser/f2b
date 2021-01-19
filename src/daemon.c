@@ -89,6 +89,11 @@ f2b_csocket_cmd_process(const f2b_cmd_t *cmd, f2b_buf_t *res) {
   if (cmd->type == CMD_UNKNOWN)
     return;
 
+  if (cmd->type == CMD_HELP) {
+    f2b_buf_append(res, f2b_cmd_help(), 0);
+    return;
+  }
+
   if (cmd->type >= CMD_JAIL_STATUS && cmd->type <= CMD_JAIL_FILTER_RELOAD) {
     if ((jail = f2b_jail_find(jails, cmd->args[1])) == NULL) {
       len = snprintf(buf, sizeof(buf), "can't find jail '%s'\n", cmd->args[1]);
