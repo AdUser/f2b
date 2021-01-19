@@ -12,7 +12,9 @@ cmd_handler(const f2b_cmd_t *cmd, f2b_buf_t *res) {
   for (int i = 0; i < cmd->argc; i++) {
     fprintf(stdout, "[handler] arg %d : %s\n", i + 1, cmd->args[i]);
   }
-  UNUSED(res);
+  if (cmd->type == CMD_HELP) {
+    f2b_buf_append(res, f2b_cmd_help(), 0);
+  }
   return;
 }
 
