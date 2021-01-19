@@ -11,6 +11,18 @@
 #include "common.h"
 #include "client.h"
 
+#ifdef WITH_READLINE
+  #include <readline/readline.h>
+  #include <readline/history.h>
+#else
+  /* stubs */
+  #define add_history(x)  (void)(x)
+  #define using_history()
+  #define rl_clear_visible_line()
+  #define rl_on_new_line()
+  #define rl_redisplay()
+#endif /* WITH_READLINE */
+
 struct {
   enum { interactive = 0, oneshot } mode;
   char spath[PATH_MAX];
@@ -29,6 +41,16 @@ void usage(int exitcode) {
   exit(exitcode);
 }
 
+void
+handle_print(const char *buf, size_t len, bool last) {
+  rl_clear_visible_line();
+  if (len == 0) len = strlen(buf);
+  fwrite(buf, len, 1, stdout);
+  if (last) return;
+  rl_on_new_line();
+  rl_redisplay();
+}
+
 int
 handle_recv() {
   char buf[WBUF_SIZE] = ""; /* our "read" is server "write" */
@@ -39,14 +61,14 @@ handle_recv() {
 
   ret = recv(csock, &buf, sizeof(buf), MSG_DONTWAIT);
   if (ret > 0) {
-    write(fileno(stdout), buf, ret);
+    handle_print(buf, ret, false);
   } else if (ret == 0) {
-    puts("connection closed");
+    handle_print("connection closed\n", 0, true);
     exit(EXIT_SUCCESS); /* received EOF */
   } else if (ret < 0 && errno == EAGAIN) {
     return 0;
   } else /* ret < 0 */ {
-    perror("recv()");
+    handle_print(strerror(errno), 0, true);
     exit(EXIT_FAILURE);
   }
   return 0;
@@ -122,36 +144,30 @@ setup_socket() {
 }
 
 #ifdef WITH_READLINE
-  #include <readline/readline.h>
-  #include <readline/history.h>
   rl_hook_func_t *rl_event_hook = &handle_recv;
 #else
-char *
-readline(const char *prompt) {
-  char line[RBUF_SIZE+1];
-  char *p;
+  char *
+  readline(const char *prompt) {
+    char line[RBUF_SIZE+1];
+    char *p;
 
-  while (1) {
-    line[0] = '\0';
-    p = &line[0];
-    handle_recv();
-    fputs(prompt, stdout);
-    if (!fgets(line, sizeof(line) - 1, stdin)) {
-      if (!feof(stdin))
-        fputs("read error\n", stdout);
-      return NULL;
+    while (1) {
+      line[0] = '\0';
+      p = &line[0];
+      handle_recv();
+      fputs(prompt, stdout);
+      if (!fgets(line, sizeof(line) - 1, stdin)) {
+        if (!feof(stdin))
+          fputs("read error\n", stdout);
+        return NULL;
+      }
+      while (isspace(*p)) p++;
+      if (*p != '\n' && *p != '\0')
+        return strdup(p);
     }
-    while (isspace(*p)) p++;
-    if (*p != '\n' && *p != '\0')
-      return strdup(p);
+    return NULL;
   }
-  return NULL;
-}
-
-/* stubs */
-#define add_history(x) (void)(x);
-#define using_history()
-#endif
+#endif /* WITH_READLINE */
 
 int main(int argc, char *argv[]) {
   char *line = NULL;
