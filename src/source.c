@@ -42,6 +42,8 @@ f2b_source_create(f2b_config_section_t *config, const char *init) {
     goto cleanup;
   if ((*(void **) (&source->next)    = dlsym(source->h, "next"))    == NULL)
     goto cleanup;
+  if ((*(void **) (&source->stats)   = dlsym(source->h, "stats"))   == NULL)
+    goto cleanup;
   if ((*(void **) (&source->stop)    = dlsym(source->h, "stop"))    == NULL)
     goto cleanup;
   if ((*(void **) (&source->destroy) = dlsym(source->h, "destroy")) == NULL)
