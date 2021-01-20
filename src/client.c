@@ -4,12 +4,16 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
+#include "common.h"
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <sys/uio.h>
+#include <getopt.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <signal.h>
-
-#include "common.h"
-#include "client.h"
 
 #ifdef WITH_READLINE
   #include <readline/readline.h>
