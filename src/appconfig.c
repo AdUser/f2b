@@ -10,9 +10,11 @@
 #include "appconfig.h"
 
 f2b_appconfig_t appconfig = {
+  .coredumps = false,
   .daemon = false,
   .uid = 0,
   .gid = 0,
+  .nice = 0,
   .logdest = "file",
   .config_path   = "/etc/f2b/f2b.conf",
   .logfile_path  = "/var/log/f2b.log",
@@ -38,9 +40,16 @@ f2b_appconfig_update(f2b_config_section_t *section) {
     if ((grp = getgrnam(pa->value)) != NULL)
       appconfig.gid = grp->gr_gid;
   }
+  if ((pa = f2b_config_param_find(section->param, "nice")) != NULL) {
+    appconfig.nice = atoi(pa->value);
+  }
 
   if ((pa = f2b_config_param_find(section->param, "daemon")) != NULL) {
     appconfig.daemon = (strcmp(pa->value, "yes") == 0) ? true : false;
+  }
+
+  if ((pa = f2b_config_param_find(section->param, "coredumps")) != NULL) {
+    appconfig.coredumps = (strcmp(pa->value, "yes") == 0) ? true : false;
   }
 
   if ((pa = f2b_config_param_find(section->param, "pidfile")) != NULL)

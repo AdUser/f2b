@@ -5,6 +5,11 @@
  * published by the Free Software Foundation.
  */
 #include "common.h"
+
+#include <getopt.h>
+#include <signal.h>
+#include <sys/resource.h>
+
 #include "ipaddr.h"
 #include "config.h"
 #include "jail.h"
@@ -13,9 +18,6 @@
 #include "buf.h"
 #include "commands.h"
 #include "csocket.h"
-
-#include <getopt.h>
-#include <signal.h>
 
 /**
  * @def SA_REGISTER
@@ -270,6 +272,22 @@ int main(int argc, char *argv[]) {
       perror("child: freopen() on std streams failed");
       exit(EXIT_FAILURE);
     }
+  }
+
+  if (appconfig.nice != 0) {
+    errno = 0;
+    nice(appconfig.nice);
+    if (errno)
+      f2b_log_msg(log_warn, "can't set process priority: %s", strerror(errno));
+  }
+
+  if (appconfig.coredumps) {
+    struct rlimit rl;
+    if (getrlimit(RLIMIT_CORE, &rl) < 0)
+      f2b_log_msg(log_error, "can't get current coresize limit");
+    rl.rlim_cur = rl.rlim_max;
+    if (setrlimit(RLIMIT_CORE, &rl) < 0)
+      f2b_log_msg(log_error, "can't get current coresize limit");
   }
 
   if (appconfig.pidfile_path[0] != '\0') {

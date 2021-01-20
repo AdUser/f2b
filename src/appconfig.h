@@ -12,6 +12,8 @@
 
 typedef struct f2b_appconfig_t {
   bool daemon;
+  bool coredumps;
+  int nice;
   uid_t uid;
   gid_t gid;
   char logdest[CONFIG_KEY_MAX];

@@ -8,6 +8,8 @@ logfile = /var/log/f2b.log
 user = root
 group = root
 daemon = yes
+coredumps = no
+nice = 0
 
 [defaults]
 state    = no
