@@ -8,11 +8,10 @@
 #include "ipaddr.h"
 
 f2b_ipaddr_t *
-f2b_ipaddr_create(const char *addr, size_t matches) {
+f2b_ipaddr_create(const char *addr) {
   f2b_ipaddr_t *a = NULL;
 
   assert(addr != NULL);
-  assert(matches != 0);
 
   if ((a = calloc(1, sizeof(f2b_ipaddr_t))) != NULL) {
     strlcpy(a->text, addr, sizeof(a->text));
@@ -25,9 +24,6 @@ f2b_ipaddr_create(const char *addr, size_t matches) {
       if (inet_pton(a->type, addr, &a->binary.v6) < 1)
         goto cleanup;
     }
-
-    if (f2b_matches_create(&a->matches, matches) == false)
-      goto cleanup;
   }
   return a;
 
@@ -40,7 +36,7 @@ void
 f2b_ipaddr_destroy(f2b_ipaddr_t *ipaddr) {
   assert(ipaddr != NULL);
 
-  f2b_matches_destroy(&ipaddr->matches);
+  f2b_matches_flush(&ipaddr->matches);
   free(ipaddr);
 }
 
@@ -57,7 +53,7 @@ f2b_ipaddr_status(f2b_ipaddr_t *addr, char *res, size_t ressize) {
     "banned_at: %u\n"
     "release_at: %u\n";
   snprintf(res, ressize, fmt, addr->text, addr->banned ? "yes" : "no",
-    addr->bancount, addr->matches.used, addr->lastseen, addr->banned_at, addr->release_at);
+    addr->bancount, addr->matches.count, addr->lastseen, addr->banned_at, addr->release_at);
 }
 
 f2b_ipaddr_t *

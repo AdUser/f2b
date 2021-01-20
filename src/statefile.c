@@ -51,7 +51,7 @@ f2b_statefile_destroy(f2b_statefile_t *sf) {
 }
 
 f2b_ipaddr_t *
-f2b_statefile_load(f2b_statefile_t *sf, size_t matches) {
+f2b_statefile_load(f2b_statefile_t *sf) {
   const int fields = 3;
   const char *format = "%48s %u %u"; /* 48 == IPADDR_MAX == sizeof(addr) */
   f2b_ipaddr_t *addrlist = NULL, *ipaddr = NULL;
@@ -76,7 +76,7 @@ f2b_statefile_load(f2b_statefile_t *sf, size_t matches) {
       f2b_log_msg(log_warn, "can't parse, ignoring line: %s", buf);
       continue;
     }
-    if ((ipaddr = f2b_ipaddr_create(addr, matches)) == NULL) {
+    if ((ipaddr = f2b_ipaddr_create(addr)) == NULL) {
       f2b_log_msg(log_warn, "can't parse addr: %s", addr);
       continue;
     }

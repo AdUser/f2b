@@ -3,7 +3,6 @@
 #include "../src/statefile.h"
 
 int main() {
-  const char matches = 4;
   bool res = false;
   f2b_ipaddr_t *list = NULL;
   f2b_statefile_t *sf = NULL;
@@ -19,13 +18,13 @@ int main() {
   sf = f2b_statefile_create("/tmp", jailname);
   assert(sf != NULL);
 
-  list = f2b_statefile_load(sf, matches);
+  list = f2b_statefile_load(sf);
   assert(list == NULL);
 
   banned_at = time(NULL) - 60;
   release_at = banned_at + 60 * 2;
 
-  list = f2b_ipaddr_create("1.2.3.4", matches);
+  list = f2b_ipaddr_create("1.2.3.4");
   list->banned = true;
   list->banned_at  = banned_at;
   list->release_at = release_at;
@@ -43,7 +42,7 @@ int main() {
   f2b_ipaddr_destroy(list);
   list = NULL;
 
-  list = f2b_statefile_load(sf, matches);
+  list = f2b_statefile_load(sf);
   assert(list != NULL);
   assert(list->banned     == true);
   assert(list->banned_at  == banned_at);

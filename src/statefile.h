@@ -19,7 +19,7 @@ void
 f2b_statefile_destroy(f2b_statefile_t *sf);
 
 f2b_ipaddr_t *
-f2b_statefile_load(f2b_statefile_t *sf, size_t matches);
+f2b_statefile_load(f2b_statefile_t *sf);
 
 bool
 f2b_statefile_save(f2b_statefile_t *sf, f2b_ipaddr_t *addrlist);

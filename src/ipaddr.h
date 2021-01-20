@@ -44,10 +44,10 @@ typedef struct f2b_ipaddr_t {
 /**
  * @brief Create address record and fill related metadata
  * @param addr  Textual address
- * @param max_matches Maximum matches count
  * @returns Pointer to address or NULL no error
  */
-f2b_ipaddr_t * f2b_ipaddr_create (const char *addr, size_t max_matches);
+f2b_ipaddr_t * f2b_ipaddr_create (const char *addr);
+
 /**
  * @brief Free address metadata
  * @param ipaddr Pointer to f2b_ipaddr_t struct

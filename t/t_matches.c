@@ -2,6 +2,7 @@
 #include "../src/matches.h"
 
 int main() {
+  f2b_match_t *match = NULL;
   f2b_matches_t matches;
   bool result = false;
   size_t size = 15;
@@ -9,28 +10,36 @@ int main() {
 
   UNUSED(result);
 
-  result = f2b_matches_create(&matches, size);
-  assert(result == true);
-  assert(matches.used == 0);
-  assert(matches.max == 15);
-  assert(matches.times != NULL);
+  memset(&matches, 0x0, sizeof(matches));
 
-  for (size_t i = 0; i < size; i++) {
-    result = f2b_matches_append(&matches, now - 60 * i);
-    assert(result == true);
+  match = f2b_match_create(now);
+  assert(match != NULL);
+  assert(match->next == NULL);
+
+  f2b_matches_append(&matches, match);
+  assert(matches.count == 1);
+  assert(matches.last == now);
+  assert(matches.list == match);
+
+  f2b_matches_expire(&matches, now + 1);
+  assert(matches.count == 0);
+  assert(matches.last == 0);
+  assert(matches.list == NULL);
+
+  for (size_t i = 1; i < size; i++) {
+    match = f2b_match_create(now - 60 * (size - i));
+    f2b_matches_append(&matches, match);
+    assert(matches.count == i);
+    assert(matches.last == now - (time_t) (60 * (size - i)));
   }
 
-  result = f2b_matches_append(&matches, 0);
-  assert(result == false);
-
   f2b_matches_expire(&matches, now - 60 * 4);
-  assert(matches.used == 4);
-  assert(matches.max == 15);
+  assert(matches.count == 3);
 
-  f2b_matches_destroy(&matches);
-  assert(matches.used == 0);
-  assert(matches.max  == 0);
-  assert(matches.times == NULL);
+  f2b_matches_flush(&matches);
+  assert(matches.count == 0);
+  assert(matches.last == 0);
+  assert(matches.list == NULL);
 
   return 0;
 }

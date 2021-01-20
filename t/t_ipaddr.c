@@ -13,17 +13,16 @@ int main() {
   addr = f2b_addrlist_lookup(list, "127.0.0.1");
   assert(addr == NULL);
 
-  addr = f2b_ipaddr_create("400.400.400.400", 15);
+  addr = f2b_ipaddr_create("400.400.400.400");
   assert(addr == NULL);
-  addr = f2b_ipaddr_create("127.0.0.1",       15);
+  addr = f2b_ipaddr_create("127.0.0.1");
   assert(addr != NULL);
 
   assert(addr->type == AF_INET);
   assert(addr->next == NULL);
   assert(strncmp(addr->text, "127.0.0.1", sizeof(addr->text)) == 0);
-  assert(addr->matches.times != NULL);
-  assert(addr->matches.max == 15);
-  assert(addr->matches.used == 0);
+  assert(addr->matches.list != NULL);
+  assert(addr->matches.count == 0);
 
   list = f2b_addrlist_append(list, addr);
   assert(list != NULL);
@@ -35,15 +34,15 @@ int main() {
   list = f2b_addrlist_remove(list, "127.0.0.1");
   assert(list == NULL);
 
-  assert((addr = f2b_ipaddr_create("127.0.0.1", 15)) != NULL);
+  assert((addr = f2b_ipaddr_create("127.0.0.1")) != NULL);
   assert((list = f2b_addrlist_append(list, addr)) != NULL);
-  assert((addr = f2b_ipaddr_create("127.0.0.2", 15)) != NULL);
+  assert((addr = f2b_ipaddr_create("127.0.0.2")) != NULL);
   assert((list = f2b_addrlist_append(list, addr)) != NULL);
-  assert((addr = f2b_ipaddr_create("127.0.0.3", 15)) != NULL);
+  assert((addr = f2b_ipaddr_create("127.0.0.3")) != NULL);
   assert((list = f2b_addrlist_append(list, addr)) != NULL);
-  assert((addr = f2b_ipaddr_create("127.0.0.4", 15)) != NULL);
+  assert((addr = f2b_ipaddr_create("127.0.0.4")) != NULL);
   assert((list = f2b_addrlist_append(list, addr)) != NULL);
-  assert((addr = f2b_ipaddr_create("127.0.0.5", 15)) != NULL);
+  assert((addr = f2b_ipaddr_create("127.0.0.5")) != NULL);
   assert((list = f2b_addrlist_append(list, addr)) != NULL);
 
   assert((list = f2b_addrlist_remove(list, "127.0.0.2")) != NULL);

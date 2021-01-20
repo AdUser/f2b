@@ -12,38 +12,46 @@
  * This file contains definition of ipaddr matches struct and related routines
  */
 
+typedef struct f2b_match_t {
+  struct f2b_match_t *next;
+  time_t time;
+  /* more fields? */
+} f2b_match_t;
+
 /** matches container */
 typedef struct {
-  size_t hits;   /**< how many times this ip matched by filter */
-  size_t max;    /**< max matches that this in struct can contain */
-  size_t used;   /**< currently used matches count */
-  time_t *times; /**< dynamic unix timestamps array */
+  size_t count;  /**< Count of entries in linked list */
+  time_t last;   /**< latest match time */
+  f2b_match_t *list; /**< linked list  */
 } f2b_matches_t;
 
 /**
- * @brief Init matches struct, allocate memory for @a hits
- * @param m Pointer to struct
- * @param max Max expected matches count
- * @returns true on success, false otherwise
+ * @brief Allocate memory for new match struct & initialize it
+ * @param t Match time
+ * @returns pointer to allocated struct
  */
-bool f2b_matches_create (f2b_matches_t *m, size_t max);
+f2b_match_t * f2b_match_create(time_t t);
+
 /**
- * @brief Destroy matches struct and free memory
- * @param m Pointer to struct
+ * @brief Clean list of matches and free memory
+ * @param ms Pointer to struct
  */
-void f2b_matches_destroy(f2b_matches_t *m);
+void f2b_matches_flush(f2b_matches_t *ms);
+
 /**
  * @brief Push new match time to struct
  * @param m Pointer to struct
- * @param t Match time
+ * @param time Match time
+ * @param score Match score
  * @returns true on success, false if capacity exceeded
  */
-bool f2b_matches_append (f2b_matches_t *m, time_t t);
+void f2b_matches_append (f2b_matches_t *ms, f2b_match_t *m);
+
 /**
  * @brief Remove matches before given time
  * @param m Pointer to struct
- * @param t Start time
+ * @param before Start time
  */
-void f2b_matches_expire (f2b_matches_t *m, time_t t);
+void f2b_matches_expire (f2b_matches_t *m, time_t before);
 
 #endif /* F2B_MATCHES_H_ */
