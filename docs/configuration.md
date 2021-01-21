@@ -164,7 +164,7 @@ Now let's see real configs. This is modified sample from section `General notes`
     [jail:actor1]
     enabled = yes
     source = redis:ssh
-    filter = preg:/etc/f2b/filters/empty.preg
+    ; no "filter" line here
     backend = exec-ipset:banned
 
 Now, if "sensor1" detects some malicious activity it sends notify with redis PUBLISH command on channel f2b-banned-ssh.

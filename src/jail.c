@@ -119,6 +119,7 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
     if (strcmp(param->name, "filter") == 0) {
       f2b_jail_parse_compound_value(param->value, name, init);
       jail->filter = f2b_filter_create(name, init);
+      jail->flags |= JAIL_HAS_FILTER;
       continue;
     }
     if (strcmp(param->name, "backend") == 0) {
@@ -248,8 +249,13 @@ f2b_jail_process(f2b_jail_t *jail) {
 
   while (f2b_source_next(jail->source, line, sizeof(line), reset)) {
     reset = false;
-    if (!f2b_filter_match(jail->filter, line, matchbuf, sizeof(matchbuf)))
-      continue;
+    if (jail->flags & JAIL_HAS_FILTER) {
+      if (!f2b_filter_match(jail->filter, line, matchbuf, sizeof(matchbuf)))
+        continue;
+    } else {
+      /* without filter: 1) value always matches, 2) passed as-is */
+      memcpy(matchbuf, line, sizeof(matchbuf));
+    }
     /* some regex matches the line */
     jail->stats.matches++;
     addr = f2b_addrlist_lookup(jail->ipaddrs, matchbuf);
