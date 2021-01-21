@@ -561,8 +561,7 @@ f2b_jail_cmd_ip_xxx(char *res, size_t ressize, f2b_jail_t *jail, int op, const c
     if (op > 0) {
       /* ban */
       time_t now = time(NULL);
-      addr = f2b_ipaddr_create(ip);
-      if (!addr) {
+      if ((addr = f2b_ipaddr_create(ip)) == NULL) {
         snprintf(res, ressize, "can't parse ip address: %s", ip);
         return;
       }
