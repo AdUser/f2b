@@ -226,13 +226,12 @@ f2b_jail_find(f2b_jail_t *list, const char *name) {
   return NULL;
 }
 
-size_t
+void
 f2b_jail_process(f2b_jail_t *jail) {
   f2b_match_t *match = NULL;
   f2b_ipaddr_t  *prev = NULL;
   f2b_ipaddr_t  *addr = NULL;
   unsigned int hostc = 0;
-  size_t processed = 0;
   char line[LOGLINE_MAX] = "";
   char matchbuf[IPADDR_MAX] = "";
   time_t now  = time(NULL);
@@ -327,7 +326,7 @@ f2b_jail_process(f2b_jail_t *jail) {
     jail->sfile->need_save = false;
   }
 
-  return processed;
+  return;
 }
 
 bool

@@ -98,12 +98,12 @@ bool   f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config);
  */
 bool   f2b_jail_start(f2b_jail_t *jail);
 /**
- * @brief Jail maintenance routine
- * Polls source for data, match against filter, manage matches,
+ * @brief Jail main maintenance routine
+ * Polls source for data, match against filter (if set), manage matches,
  * ban ips, that exceeded their limit, unban ips after bantime expire
  * @param jail Jail for processing
  */
-size_t f2b_jail_process (f2b_jail_t *jail);
+void   f2b_jail_process (f2b_jail_t *jail);
 /**
  * @brief Correctly shutdown given jail
  * @param jail Jail pointer
