@@ -231,6 +231,7 @@ f2b_jail_process(f2b_jail_t *jail) {
   f2b_match_t *match = NULL;
   f2b_ipaddr_t  *prev = NULL;
   f2b_ipaddr_t  *addr = NULL;
+  unsigned int hostc = 0;
   size_t processed = 0;
   char line[LOGLINE_MAX] = "";
   char matchbuf[IPADDR_MAX] = "";
@@ -303,6 +304,7 @@ f2b_jail_process(f2b_jail_t *jail) {
     /* list cleanup */
     if (!remove) {
       prev = addr, addr = addr->next;
+      hostc++;
       continue;
     }
     /* remove from list */
@@ -318,6 +320,7 @@ f2b_jail_process(f2b_jail_t *jail) {
       addr = prev->next;
     }
   }
+  jail->stats.hosts = hostc;
 
   if (jail->flags & JAIL_HAS_STATE && jail->sfile->need_save) {
     f2b_statefile_save(jail->sfile, jail->ipaddrs);
@@ -407,6 +410,7 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
 
 bool
 f2b_jail_start(f2b_jail_t *jail) {
+  unsigned int hostc = 0;
   time_t now = time(NULL);
   time_t remains;
 
@@ -423,6 +427,7 @@ f2b_jail_start(f2b_jail_t *jail) {
   }
 
   for (f2b_ipaddr_t *addr = jail->ipaddrs; addr != NULL; addr = addr->next) {
+    hostc++;
     if (!addr->banned)
       continue; /* if list NOW contains such addresses, it may be bug */
     if (f2b_backend_check(jail->backend, addr->text))
@@ -439,6 +444,7 @@ f2b_jail_start(f2b_jail_t *jail) {
       f2b_log_msg(log_error, "jail '%s': can't ban ip %s", jail->name, addr->text);
     }
   }
+  jail->stats.hosts = hostc;
 
   f2b_log_msg(log_info, "jail '%s' started", jail->name);
 
@@ -553,6 +559,7 @@ f2b_jail_cmd_ip_xxx(char *res, size_t ressize, f2b_jail_t *jail, int op, const c
       f2b_matches_append(&addr->matches, match);
       f2b_matches_flush(&addr->matches);
       jail->ipaddrs = f2b_addrlist_append(jail->ipaddrs, addr);
+      jail->stats.hosts++;
       if (jail->flags & JAIL_HAS_STATE)
         jail->sfile->need_save = true;
     } else {
