@@ -19,7 +19,7 @@ log_msg(const cfg_t *cfg, enum loglevel lvl, const char *format, ...) {
   va_list args;
   size_t len;
 
-  len = snprintf(buf, sizeof(buf), "filter/%s ", MODNAME);
+  len = snprintf(buf, sizeof(buf), "filter/%s: ", MODNAME);
   va_start(args, format);
   vsnprintf(buf + len, sizeof(buf) - len, format, args);
   va_end(args);
