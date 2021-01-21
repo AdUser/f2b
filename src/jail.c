@@ -496,17 +496,20 @@ f2b_jail_cmd_status(char *res, size_t ressize, f2b_jail_t *jail) {
     "flags:\n"
     "  enabled: %s\n"
     "  state: %s\n"
+    "  filter: %s\n"
     "maxretry: %d\n"
     "times:\n"
-    "  bantime: %d\n"
-    "  findtime: %d\n"
-    "  expiretime: %d\n"
-    "incr:\n"
+    "  bantime: %d (+%d%%)\n"
+    "  findtime: %d (+%d%%)\n"
+    "  expiretime: %d (+%d%%)\n"
+    "extend:\n"
     "  bantime: %.1f\n"
     "  findtime: %.1f\n"
+    "  expiretime: %d\n"
     "stats:\n"
-    "  banned: %d\n"
-    "  matched: %d\n";
+    "  hosts: %d\n"
+    "  matches: %d\n"
+    "  bans: %d\n";
 
   assert(res  != NULL);
   assert(jail != NULL);
@@ -514,10 +517,14 @@ f2b_jail_cmd_status(char *res, size_t ressize, f2b_jail_t *jail) {
   snprintf(res, ressize, fmt, jail->name,
     jail->flags & JAIL_ENABLED     ? "yes" : "no",
     jail->flags & JAIL_HAS_STATE   ? "yes" : "no",
+    jail->flags & JAIL_HAS_FILTER  ? "yes" : "no",
     jail->maxretry,
-    jail->bantime, jail->findtime, jail->expiretime,
-    jail->bantime_extend, jail->findtime_extend,
-    jail->stats.bans, jail->stats.matches);
+    jail->bantime,    (int) (jail->bantime_extend    - 1.0) * 100,
+    jail->findtime,   (int) (jail->findtime_extend   - 1.0) * 100,
+    jail->expiretime, (int) (jail->expiretime_extend - 1.0) * 100,
+    jail->stats.hosts,
+    jail->stats.matches,
+    jail->stats.bans);
 }
 
 void
