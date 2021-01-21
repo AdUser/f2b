@@ -34,10 +34,7 @@ typedef struct f2b_ipaddr_t {
   time_t lastseen;           /**< self-descriptive, unixtime */
   time_t banned_at;          /**< self-descriptive, unixtime */
   time_t release_at;         /**< self-descriptive, unixtime */
-  union {
-    struct in_addr  v4;      /**< AF_INET address  */
-    struct in6_addr v6;      /**< AF_INET6 address */
-  } binary;                  /**< binary address representation, see @a type */
+  unsigned char binary[16];  /**< AF_INET/AF_INET6 binary address, see inet_pton() */
   f2b_matches_t matches;     /**< list of matches */
 } f2b_ipaddr_t;
 

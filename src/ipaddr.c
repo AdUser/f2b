@@ -17,11 +17,11 @@ f2b_ipaddr_create(const char *addr) {
     strlcpy(a->text, addr, sizeof(a->text));
     if (strchr(addr, ':') == NULL) {
       a->type = AF_INET;
-      if (inet_pton(a->type, addr, &a->binary.v4) < 1)
+      if (inet_pton(a->type, addr, &a->binary) < 1)
         goto cleanup;
     } else {
       a->type = AF_INET6;
-      if (inet_pton(a->type, addr, &a->binary.v6) < 1)
+      if (inet_pton(a->type, addr, &a->binary) < 1)
         goto cleanup;
     }
   }
