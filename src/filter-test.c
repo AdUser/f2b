@@ -6,9 +6,14 @@
  */
 #include "common.h"
 #include "log.h"
+#include "matches.h"
 #include "ipaddr.h"
 #include "config.h"
 #include "filter.h"
+
+#include <sys/socket.h>
+#include <arpa/inet.h> /* struct in_addr */
+#include <sys/un.h>
 
 void usage() {
   fprintf(stderr, "Usage: filter-test <filter.conf> <regexps.txt> [<file.log>]\n");

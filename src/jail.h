@@ -7,15 +7,6 @@
 #ifndef F2B_JAIL_H_
 #define F2B_JAIL_H_
 
-#include "log.h"
-#include "ipaddr.h"
-#include "config.h"
-#include "appconfig.h"
-#include "statefile.h"
-#include "source.h"
-#include "filter.h"
-#include "backend.h"
-
 /**
  * @file
  * This header describes jail definition and related routines

@@ -7,9 +7,6 @@
 #ifndef F2B_BACKEND_H_
 #define F2B_BACKEND_H_
 
-#include "config.h"
-#include "log.h"
-
 /**
  * @file
  * This header describes backend module definition and related routines

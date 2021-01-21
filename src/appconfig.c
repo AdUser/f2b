@@ -9,6 +9,9 @@
 #include "config.h"
 #include "appconfig.h"
 
+#include <pwd.h>
+#include <grp.h>
+
 f2b_appconfig_t appconfig = {
   .coredumps = false,
   .daemon = false,

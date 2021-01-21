@@ -7,9 +7,6 @@
 #ifndef F2B_APPCONFIG_H_
 #define F2B_APPCONFIG_H_
 
-#include <pwd.h>
-#include <grp.h>
-
 typedef struct f2b_appconfig_t {
   bool daemon;
   bool coredumps;

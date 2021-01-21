@@ -1,4 +1,5 @@
 #include "../src/common.h"
+#include "../src/matches.h"
 #include "../src/ipaddr.h"
 #include "../src/statefile.h"
 

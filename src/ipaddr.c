@@ -5,7 +5,10 @@
  * published by the Free Software Foundation.
  */
 #include "common.h"
+#include "matches.h"
 #include "ipaddr.h"
+
+#include <arpa/inet.h>
 
 f2b_ipaddr_t *
 f2b_ipaddr_create(const char *addr) {

@@ -7,9 +7,6 @@
 #ifndef F2B_SOURCE_H_
 #define F2B_SOURCE_H_
 
-#include "config.h"
-#include "log.h"
-
 /**
  * @file
  * This header describes source module definition and related routines

@@ -7,7 +7,7 @@
 #include "common.h"
 #include "log.h"
 
-#include "syslog.h"
+#include <sys/syslog.h>
 
 static log_msgtype_t minlevel = log_info;
 static enum { log_stderr = 0, log_file = 1, log_syslog = 2 } dest = log_stderr;

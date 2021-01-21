@@ -7,6 +7,7 @@
 
 #include "common.h"
 #include "log.h"
+#include "matches.h"
 #include "ipaddr.h"
 #include "statefile.h"
 

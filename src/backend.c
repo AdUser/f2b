@@ -5,7 +5,11 @@
  * published by the Free Software Foundation.
  */
 #include "common.h"
+#include "config.h"
+#include "log.h"
 #include "backend.h"
+
+#include <dlfcn.h>
 
 #define BACKEND_LIBRARY_PARAM "load"
 

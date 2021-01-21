@@ -5,7 +5,11 @@
  * published by the Free Software Foundation.
  */
 #include "common.h"
+#include "config.h"
+#include "log.h"
 #include "filter.h"
+
+#include <dlfcn.h>
 
 #define REGEX_LINE_MAX 256
 #define HOST_TOKEN "<HOST>"

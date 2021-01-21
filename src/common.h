@@ -9,10 +9,8 @@
 
 #include <assert.h>
 #include <ctype.h>
-#include <dlfcn.h>
 #include <errno.h>
-#include <fcntl.h>
-#include <limits.h>
+#include <limits.h> /* PATH_MAX */
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>

@@ -1,5 +1,6 @@
 #include "../src/common.h"
 #include "../src/log.h"
+#include "../src/matches.h"
 #include "../src/ipaddr.h"
 #include "../src/filters/filter.h"
 

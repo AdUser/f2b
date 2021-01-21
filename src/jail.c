@@ -5,6 +5,15 @@
  * published by the Free Software Foundation.
  */
 #include "common.h"
+#include "log.h"
+#include "config.h"
+#include "appconfig.h"
+#include "matches.h"
+#include "ipaddr.h"
+#include "source.h"
+#include "filter.h"
+#include "backend.h"
+#include "statefile.h"
 #include "jail.h"
 
 #define DEFAULT_BANTIME  3600 /* in seconds, 1 hour */

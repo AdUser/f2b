@@ -7,9 +7,6 @@
 #ifndef F2B_FILTER_H_
 #define F2B_FILTER_H_
 
-#include "config.h"
-#include "log.h"
-
 /**
  * @file
  * This header describes filter module definition and related routines

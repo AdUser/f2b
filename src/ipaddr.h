@@ -7,16 +7,10 @@
 #ifndef F2B_IPADDR_H_
 #define F2B_IPADDR_H_
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
 /**
  * @file
  * This file contains definition of ipaddr struct and related routines
  */
-
-#include "matches.h"
 
 /**
  * @def IPADDR_MAX
