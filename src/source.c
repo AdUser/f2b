@@ -10,9 +10,21 @@
 #define SOURCE_LIBRARY_PARAM "load"
 
 f2b_source_t *
-f2b_source_create(f2b_config_section_t *config, const char *init) {
-  f2b_config_param_t *param = NULL;
+f2b_source_create(const char *name, const char *init) {
   f2b_source_t *source = NULL;
+
+  if ((source = calloc(1, sizeof(f2b_source_t))) == NULL)
+    return NULL;
+
+  strlcpy(source->name, name, sizeof(source->name));
+  strlcpy(source->init, init, sizeof(source->init));
+
+  return source;
+}
+
+bool
+f2b_source_init(f2b_source_t *source, f2b_config_section_t *config) {
+  f2b_config_param_t *param = NULL;
   int flags = RTLD_NOW | RTLD_LOCAL;
   const char *dlerr = NULL;
 
@@ -22,11 +34,8 @@ f2b_source_create(f2b_config_section_t *config, const char *init) {
   param = f2b_config_param_find(config->param, SOURCE_LIBRARY_PARAM);
   if (!param) {
     f2b_log_msg(log_error, "can't find '%s' param in source config", SOURCE_LIBRARY_PARAM);
-    return NULL;
+    return false;
   }
-
-  if ((source = calloc(1, sizeof(f2b_source_t))) == NULL)
-    return NULL;
 
   if ((source->h = dlopen(param->value, flags)) == NULL)
      goto cleanup;
@@ -49,7 +58,7 @@ f2b_source_create(f2b_config_section_t *config, const char *init) {
   if ((*(void **) (&source->destroy) = dlsym(source->h, "destroy")) == NULL)
     goto cleanup;
 
-  if ((source->cfg = source->create(init)) == NULL) {
+  if ((source->cfg = source->create(source->init)) == NULL) {
     f2b_log_msg(log_error, "source create config failed");
     goto cleanup;
   }
@@ -67,7 +76,7 @@ f2b_source_create(f2b_config_section_t *config, const char *init) {
   }
 
   if (source->ready(source->cfg))
-    return source;
+    return true;
 
   /* still not ready */
   f2b_log_msg(log_error, "source '%s' not fully configured", config->name);
@@ -82,7 +91,7 @@ f2b_source_create(f2b_config_section_t *config, const char *init) {
     dlclose(source->h);
   }
   free(source);
-  return NULL;
+  return false;
 }
 
 void

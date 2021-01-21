@@ -84,8 +84,13 @@ int main(int argc, char *argv[]) {
     section = config.backends;
   }
 
-  if ((backend = f2b_backend_create(section, argv[2])) == NULL) {
-    f2b_log_msg(log_fatal, "can't create backend '%s' with id '%s'", section->name, argv[2]);
+  if ((backend = f2b_backend_create(section->name, argv[2])) == NULL) {
+    f2b_log_msg(log_fatal, "can't create backend '%s'", section->name);
+    return EXIT_FAILURE;
+  }
+
+  if (!f2b_backend_init(backend, section)) {
+    f2b_log_msg(log_fatal, "can't init backend '%s'", backend->name);
     return EXIT_FAILURE;
   }
 

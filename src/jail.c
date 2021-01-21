@@ -89,12 +89,12 @@ f2b_jail_set_param(f2b_jail_t *jail, const char *param, const char *value) {
       jail->maxretry = DEFAULT_MAXRETRY;
     return true;
   }
-  if (strcmp(param, "incr_bantime") == 0) {
-    jail->incr_bantime = atof(value);
+  if (strcmp(param, "bantime_extend") == 0) {
+    jail->bantime_extend = atof(value);
     return true;
   }
-  if (strcmp(param, "incr_findtime") == 0) {
-    jail->incr_findtime = atof(value);
+  if (strcmp(param, "findtime_extend") == 0) {
+    jail->findtime_extend = atof(value);
     return true;
   }
   return false;
@@ -102,6 +102,8 @@ f2b_jail_set_param(f2b_jail_t *jail, const char *param, const char *value) {
 
 void
 f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
+  char name[CONFIG_KEY_MAX];
+  char init[CONFIG_KEY_MAX];
   f2b_config_param_t *param = NULL;
 
   assert(jail != NULL);
@@ -110,15 +112,18 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
 
   for (param = section->param; param != NULL; param = param->next) {
     if (strcmp(param->name, "source") == 0) {
-      f2b_jail_parse_compound_value(param->value, jail->source_name, jail->source_init);
+      f2b_jail_parse_compound_value(param->value, name, init);
+      jail->source = f2b_source_create(name, init);
       continue;
     }
     if (strcmp(param->name, "filter") == 0) {
-      f2b_jail_parse_compound_value(param->value, jail->filter_name, jail->filter_init);
+      f2b_jail_parse_compound_value(param->value, name, init);
+      jail->filter = f2b_filter_create(name, init);
       continue;
     }
     if (strcmp(param->name, "backend") == 0) {
-      f2b_jail_parse_compound_value(param->value, jail->backend_name, jail->backend_init);
+      f2b_jail_parse_compound_value(param->value, name, init);
+      jail->backend = f2b_backend_create(name, init);
       continue;
     }
     if (f2b_jail_set_param(jail, param->name, param->value))
@@ -149,14 +154,14 @@ f2b_jail_ban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
   addr->banned  = true;
   addr->banned_at = addr->lastseen;
 
-  if (jail->incr_bantime > 0) {
-    bantime = jail->bantime + (int) (addr->bancount * (jail->bantime * jail->incr_bantime));
+  if (jail->bantime_extend > 0) {
+    bantime = jail->bantime + (int) (addr->bancount * (jail->bantime * jail->bantime_extend));
   } else {
     bantime = jail->bantime;
   }
   addr->bancount++;
   addr->release_at = addr->banned_at + bantime;
-  jail->bancount++;
+  jail->stats.bans++;
 
   if (f2b_backend_check(jail->backend, addr->text)) {
     f2b_log_msg(log_warn, "jail '%s': ip %s was already banned", jail->name, addr->text);
@@ -246,7 +251,7 @@ f2b_jail_process(f2b_jail_t *jail) {
     if (!f2b_filter_match(jail->filter, line, matchbuf, sizeof(matchbuf)))
       continue;
     /* some regex matches the line */
-    jail->matchcount++;
+    jail->stats.matches++;
     addr = f2b_addrlist_lookup(jail->ipaddrs, matchbuf);
     if (!addr) {
       addr = f2b_ipaddr_create(matchbuf);
@@ -260,10 +265,10 @@ f2b_jail_process(f2b_jail_t *jail) {
       continue;
     }
     match = f2b_match_create(now);
-    if (jail->incr_findtime > 0 && addr->matches.count > jail->maxretry) {
+    if (jail->findtime_extend > 0 && addr->matches.count > jail->maxretry) {
       findtime = now - jail->findtime;
       findtime -= (int) ((addr->matches.count - jail->maxretry) *
-                         (jail->findtime * jail->incr_findtime));
+                         (jail->findtime * jail->findtime_extend));
     } else {
       findtime = now - jail->findtime;
     }
@@ -324,61 +329,55 @@ f2b_jail_process(f2b_jail_t *jail) {
 
 bool
 f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
-  f2b_config_section_t * s_section = NULL;
-  f2b_config_section_t * b_section = NULL;
-  f2b_config_section_t * f_section = NULL;
+  f2b_config_section_t *section = NULL;
 
   assert(jail   != NULL);
   assert(config != NULL);
 
-  /* source */
-  if (jail->source_name[0] == '\0') {
-    f2b_log_msg(log_error, "jail '%s': missing 'source' parameter", jail->name);
-    return false;
-  }
-  if ((s_section = f2b_config_section_find(config->sources, jail->source_name)) == NULL) {
-    f2b_log_msg(log_error, "jail '%s': no source with name '%s'", jail->name, jail->source_name);
-    return false;
-  }
-
-  /* filter */
-  if (jail->filter_name[0] == '\0') {
-    f2b_log_msg(log_error, "jail '%s': missing 'filter' parameter", jail->name);
-    return false;
-  }
-  if ((f_section = f2b_config_section_find(config->filters, jail->filter_name)) == NULL) {
-    f2b_log_msg(log_error, "jail '%s': no filter with name '%s'", jail->name, jail->filter_name);
-    return false;
-  }
-
-  /* backend */
-  if (jail->backend_name[0] == '\0') {
-    f2b_log_msg(log_error, "jail '%s': missing 'backend' parameter", jail->name);
-    return false;
-  }
-  if ((b_section = f2b_config_section_find(config->backends, jail->backend_name)) == NULL) {
-    f2b_log_msg(log_error, "jail '%s': no backend with name '%s'", jail->name, jail->backend_name);
-    return false;
-  }
-
-  /* init all */
-  if ((jail->source = f2b_source_create(s_section, jail->source_init)) == NULL) {
-    f2b_log_msg(log_error, "jail '%s': can't init source '%s' with %s", jail->name, jail->source_name, jail->source_init);
+  if (!jail->source) {
+    f2b_log_msg(log_error, "jail '%s': missing 'source' option", jail->name);
     goto cleanup;
   }
+  if (!jail->filter) {
+    f2b_log_msg(log_error, "jail '%s': missing 'filter' option", jail->name);
+    goto cleanup;
+  }
+  if (!jail->backend) {
+    f2b_log_msg(log_error, "jail '%s': missing 'backend' option", jail->name);
+    goto cleanup;
+  }
+
+  if ((section = f2b_config_section_find(config->sources, jail->source->name)) == NULL) {
+    f2b_log_msg(log_error, "jail '%s': no source with name '%s'", jail->name, jail->source->name);
+    goto cleanup;
+  }
+  if (!f2b_source_init(jail->source, section)) {
+    f2b_log_msg(log_error, "jail '%s': can't init source '%s' with %s", jail->name, jail->source->name, jail->source->init);
+    goto cleanup;
+  }
+
+  if ((section = f2b_config_section_find(config->filters, jail->filter->name)) == NULL) {
+    f2b_log_msg(log_error, "jail '%s': no filter with name '%s'", jail->name, jail->filter->name);
+    goto cleanup;
+  }
+  if (!f2b_filter_init(jail->filter, section)) {
+    f2b_log_msg(log_error, "jail '%s': no regexps loaded from '%s'", jail->name, jail->filter->init);
+    goto cleanup;
+  }
+
+  if ((section = f2b_config_section_find(config->backends, jail->backend->name)) == NULL) {
+    f2b_log_msg(log_error, "jail '%s': no backend with name '%s'", jail->name, jail->backend->name);
+    goto cleanup;
+  }
+  if (!f2b_backend_init(jail->backend, section)) {
+    f2b_log_msg(log_error, "jail '%s': can't init backend '%s' with %s",
+      jail->name, jail->backend->name, jail->backend->init);
+    goto cleanup;
+  }
+
+  /* start all */
   if (!f2b_source_start(jail->source)) {
     f2b_log_msg(log_warn, "jail '%s': source action 'start' failed", jail->name);
-    goto cleanup;
-  }
-
-  if ((jail->filter = f2b_filter_create(f_section, jail->filter_init)) == NULL) {
-    f2b_log_msg(log_error, "jail '%s': no regexps loaded from '%s'", jail->name, jail->filter_init);
-    goto cleanup;
-  }
-
-  if ((jail->backend = f2b_backend_create(b_section, jail->backend_init)) == NULL) {
-    f2b_log_msg(log_error, "jail '%s': can't init backend '%s' with %s",
-      jail->name, jail->backend_name, jail->backend_init);
     goto cleanup;
   }
   if (!f2b_backend_start(jail->backend)) {
@@ -391,12 +390,18 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
   return true;
 
   cleanup:
-  if (jail->source)
+  if (jail->source) {
     f2b_source_destroy(jail->source);
-  if (jail->filter)
+    jail->source = NULL;
+  }
+  if (jail->filter) {
     f2b_filter_destroy(jail->filter);
-  if (jail->backend)
+    jail->filter = NULL;
+  }
+  if (jail->backend) {
     f2b_backend_destroy(jail->backend);
+    jail->backend = NULL;
+  }
   return false;
 }
 
@@ -500,8 +505,8 @@ f2b_jail_cmd_status(char *res, size_t ressize, f2b_jail_t *jail) {
     jail->flags & JAIL_HAS_STATE   ? "yes" : "no",
     jail->maxretry,
     jail->bantime, jail->findtime, jail->expiretime,
-    jail->incr_bantime, jail->incr_findtime,
-    jail->bancount, jail->matchcount);
+    jail->bantime_extend, jail->findtime_extend,
+    jail->stats.bans, jail->stats.matches);
 }
 
 void

@@ -42,15 +42,26 @@ typedef struct f2b_backend_t {
   bool  (*unban)   (void *cfg, const char *ip);
   /** dlsym pointer to handler of @a destroy command */
   void  (*destroy) (void *cfg);
+  /* config variables */
+  char name[CONFIG_KEY_MAX];  /**< backend name from config (eg [backend:$NAME] section) */
+  char init[CONFIG_VAL_MAX];  /**< backend init string (eg `backend = NAME:$INIT_STRING` line from jail section) */
 } f2b_backend_t;
 
 /**
- * @brief Create module from config
- * @param config Pointer to section of config
- * @param id     Backend id
- * @returns Pointer to module metadata of NULL on error
+ * @brief Allocate new backend struct and fill name/init fields
+ * @param name   Module name
+ * @param init   Module init string
+ * @returns Pointer to allocated module struct or NULL on error
  */
-f2b_backend_t * f2b_backend_create (f2b_config_section_t *config, const char *id);
+f2b_backend_t * f2b_backend_create (const char *name, const char *init);
+
+/**
+ * @brief Initialize and configure backend
+ * @param config Pointer to config section with module description
+ * @return true on success, false on error
+ */
+bool f2b_backend_init(f2b_backend_t *backend, f2b_config_section_t *config);
+
 /**
  * @brief Free module metadata
  * @param b Pointer to module struct

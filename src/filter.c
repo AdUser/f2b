@@ -70,24 +70,32 @@ f2b_filter_load_file(f2b_filter_t *filter, const char *path) {
 }
 
 f2b_filter_t *
-f2b_filter_create(f2b_config_section_t *config, const char *file) {
-  f2b_config_param_t *param = NULL;
+f2b_filter_create(const char *name, const char *init) {
   f2b_filter_t *filter = NULL;
+
+  if ((filter = calloc(1, sizeof(f2b_filter_t))) == NULL)
+    return NULL;
+
+  strlcpy(filter->name, name, sizeof(filter->name));
+  strlcpy(filter->init, init, sizeof(filter->init));
+
+  return filter;
+}
+
+bool
+f2b_filter_init(f2b_filter_t *filter, f2b_config_section_t *config) {
+  f2b_config_param_t *param = NULL;
   int flags = RTLD_NOW | RTLD_LOCAL;
   const char *dlerr = NULL;
 
-  assert(file   != NULL);
   assert(config != NULL);
   assert(config->type == t_filter);
 
   param = f2b_config_param_find(config->param, FILTER_LIBRARY_PARAM);
   if (!param) {
     f2b_log_msg(log_error, "can't find '%s' param in filter config", FILTER_LIBRARY_PARAM);
-    return NULL;
+    return false;
   }
-
-  if ((filter = calloc(1, sizeof(f2b_filter_t))) == NULL)
-    return NULL;
 
   if ((filter->h = dlopen(param->value, flags)) == NULL)
      goto cleanup;
@@ -110,7 +118,6 @@ f2b_filter_create(f2b_config_section_t *config, const char *file) {
   if ((*(void **) (&filter->destroy) = dlsym(filter->h, "destroy")) == NULL)
     goto cleanup;
 
-  /* TODO: do we need id? */
   if ((filter->cfg = filter->create("")) == NULL) {
     f2b_log_msg(log_error, "filter create config failed");
     goto cleanup;
@@ -128,13 +135,11 @@ f2b_filter_create(f2b_config_section_t *config, const char *file) {
       config->name, param->name, param->value);
   }
 
-  strlcpy(filter->file, file, sizeof(filter->file));
-
-  if (!f2b_filter_load_file(filter, file))
+  if (!f2b_filter_load_file(filter, filter->init))
     goto cleanup;
 
   if (filter->ready(filter->cfg))
-    return filter;
+    return true;
 
   /* still not ready */
   f2b_log_msg(log_error, "filter '%s' not fully configured", config->name);
@@ -149,7 +154,7 @@ f2b_filter_create(f2b_config_section_t *config, const char *file) {
     dlclose(filter->h);
   }
   free(filter);
-  return NULL;
+  return false;
 }
 
 void
@@ -191,7 +196,7 @@ f2b_filter_cmd_reload(char *buf, size_t bufsize, f2b_filter_t *filter) {
   assert(filter != NULL);
 
   filter->flush(filter->cfg);
-  if (f2b_filter_load_file(filter, filter->file)) {
+  if (f2b_filter_load_file(filter, filter->init)) {
     snprintf(buf, bufsize, "can't reload filter");
   }
 }

@@ -41,14 +41,19 @@ int main(int argc, char *argv[]) {
     section = config.filters;
   }
 
-  if ((filter = f2b_filter_create(section, argv[2])) == false) {
-    f2b_log_msg(log_fatal, "can't create filter '%s' with file '%s'", section->name, argv[2]);
+  if ((filter = f2b_filter_create(section->name, argv[2])) == false) {
+    f2b_log_msg(log_fatal, "can't create filter '%s'", section->name);
+    return EXIT_FAILURE;
+  }
+
+  if (!f2b_filter_init(filter, section)) {
+    f2b_log_msg(log_fatal, "can't configure filter '%s' with file '%s'", filter->name, argv[2]);
     return EXIT_FAILURE;
   }
 
   if (argc > 3) {
     if ((file = fopen(argv[3], "r")) == NULL) {
-      f2b_log_msg(log_fatal, "can't open regexp file '%s': %s", argv[2], strerror(errno));
+      f2b_log_msg(log_fatal, "can't open log file '%s': %s", argv[3], strerror(errno));
       return EXIT_FAILURE;
     }
   } else {

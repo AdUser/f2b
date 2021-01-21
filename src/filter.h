@@ -19,7 +19,6 @@
 typedef struct f2b_filter_t {
   void *h;   /**< dlopen handler */
   void *cfg; /**< opaque pointer of module config */
-  char file[PATH_MAX]; /**< path to file with patterns */
   /* handlers */
   /** dlsym pointer to handler of @a create command */
   void *(*create)  (const char *id);
@@ -39,15 +38,26 @@ typedef struct f2b_filter_t {
   bool  (*match)   (void *cfg, const char *line, char *buf, size_t buf_size);
   /** dlsym pointer to handler of @a destroy command */
   void  (*destroy) (void *cfg);
+  /* config variables */
+  char name[CONFIG_KEY_MAX];  /**< filter name from config (eg [filter:$NAME] section) */
+  char init[CONFIG_VAL_MAX];  /**< filter init string (eg `filter = NAME:$INIT_STRING` line from jail section) */
 } f2b_filter_t;
 
 /**
- * @brief Create module from config
- * @param config Pointer to config section with module description
- * @param id Filter id
+ * @brief Allocate new filter struct and fill name/init fields
+ * @param name   Module name
+ * @param init   Module init string
  * @returns Pointer to allocated module struct or NULL on error
  */
-f2b_filter_t * f2b_filter_create  (f2b_config_section_t *config, const char *id);
+f2b_filter_t * f2b_filter_create  (const char *name, const char *init);
+
+/**
+ * @brief Initialize and configure filter
+ * @param config Pointer to config section with module description
+ * @return true on success, false on error
+ */
+bool f2b_filter_init (f2b_filter_t *filter, f2b_config_section_t *config);
+
 /**
  * @brief Free module metadata
  * @param f Pointer to module struct

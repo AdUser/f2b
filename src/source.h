@@ -17,6 +17,8 @@
 
 /** source module definition */
 typedef struct f2b_source_t {
+  char name[CONFIG_KEY_MAX];  /**< source name from config (eg [source:$NAME] section) */
+  char init[CONFIG_VAL_MAX];  /**< source init string (eg `source = NAME:$INIT_STRING` line from jail section) */
   void *h;   /**< dlopen handler */
   void *cfg; /**< opaque pointer of module config */
   /* handlers */
@@ -41,13 +43,20 @@ typedef struct f2b_source_t {
 } f2b_source_t;
 
 /**
- * @brief Create module from config
- * @param config Pointer to config section with module description
+ * @brief Allocate new source struct and fill name/init fields
+ * @param name   Module name
  * @param init   Module init string
- * @param logcb  Logging callback
  * @returns Pointer to allocated module struct or NULL on error
  */
-f2b_source_t * f2b_source_create  (f2b_config_section_t *config, const char *init);
+f2b_source_t * f2b_source_create(const char *name, const char *init);
+
+/**
+ * @brief Initialize and configure source
+ * @param config Pointer to config section with module description
+ * @return true on success, false on error
+ */
+bool f2b_source_init(f2b_source_t *source, f2b_config_section_t *config);
+
 /**
  * @brief Free module metadata
  * @param s Pointer to module struct

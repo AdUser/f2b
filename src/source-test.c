@@ -37,8 +37,13 @@ int main(int argc, char *argv[]) {
     section = config.sources;
   }
 
-  if ((source = f2b_source_create(section, argv[2])) == NULL) {
-    f2b_log_msg(log_fatal, "can't create source '%s' with init '%s'", section->name, argv[2]);
+  if ((source = f2b_source_create(section->name, argv[2])) == NULL) {
+    f2b_log_msg(log_fatal, "can't create source '%s'", section->name);
+    return EXIT_FAILURE;
+  }
+
+  if (!f2b_source_init(source, section)) {
+    f2b_log_msg(log_fatal, "can't init source '%s'", source->name);
     return EXIT_FAILURE;
   }
 

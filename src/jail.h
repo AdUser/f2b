@@ -28,26 +28,27 @@
 /** jail metadata struct */
 typedef struct f2b_jail_t {
   struct f2b_jail_t *next;   /**< pointer to next jail */
-  int flags;                 /**< jail flags, see above */
-  time_t bantime;            /**< option: ban host for this time if maxretry exceeded */
-  time_t findtime;           /**< option: time period for counting matches */
-  time_t expiretime;         /**< option: forget about host after this time with on activity (not including bantime) */
-  size_t maxretry;           /**< option: maximum count of matches before ban */
-  size_t bancount;           /**< stats: total number of bans for this jail */
-  size_t matchcount;         /**< stats: total number of matches for this jail */
-  float incr_bantime;        /**< option: multiplier for bantime  */
-  float incr_findtime;       /**< option: multiplier for finetime */
   char name[CONFIG_KEY_MAX]; /**< name of the jail */
-  char backend_name[CONFIG_KEY_MAX]; /**< backend name from config (eg [backend:$NAME] section) */
-  char backend_init[CONFIG_VAL_MAX]; /**< backend init string (eg `backend = NAME:$INIT_STRING` line from jail section) */
-  char filter_name[CONFIG_KEY_MAX];  /**< filter name from config (eg [filter:$NAME] section) */
-  char filter_init[CONFIG_VAL_MAX];  /**< filter init string (eg `filter = NAME:$INIT_STRING` line from jail section) */
-  char source_name[CONFIG_KEY_MAX];  /**< source name from config (eg [source:$NAME] section) */
-  char source_init[CONFIG_VAL_MAX];  /**< source init string (eg `source = NAME:$INIT_STRING` line from jail section) */
-  f2b_statefile_t *sfile; /**< pointer to state file description */
+  int flags;                 /**< jail flags, see above */
+  size_t maxretry;           /**< option: maximum count of matches before ban */
+  /* duration of misc time periods */
+  time_t findtime;           /**< option: length of time period for estimating recent host activity (in seconds) */
+  time_t bantime;            /**< option: host ban time on excess activity (seconds) */
+  time_t expiretime;         /**< option: forget about host after this time with no activity (seconds, for banned hosts - after it's release, for not banned - after latest match) */
+  /** time period length modifiers for already banned hosts */
+  float findtime_extend;     /**< findtime modifier for already banned hosts in past (float) */
+  float bantime_extend;      /**< bantime modifier for already banned hosts in past (float) */
+  float expiretime_extend;   /**< expiretime modifier for already banned hosts in past (float) */
+  /* jail stats */
+  struct {
+    unsigned int hosts;      /**< number of tracked hosts */
+    unsigned int bans;       /**< number of ban events */
+    unsigned int matches;    /**< number of match events */
+  } stats;
   f2b_source_t  *source;  /**< pointer to source */
   f2b_filter_t  *filter;  /**< pointer to filter */
   f2b_backend_t *backend; /**< pointer to backend */
+  f2b_statefile_t *sfile; /**< pointer to state file description */
   f2b_ipaddr_t  *ipaddrs; /**< list of known ip addresses */
 } f2b_jail_t;
 
