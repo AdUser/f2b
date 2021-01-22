@@ -4,22 +4,23 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
+#include "source.h"
+
 #include <limits.h>
 #include <sys/file.h>
 #include <sys/stat.h>
-
 #include <glob.h>
 #include <time.h>
 
-#include "source.h"
 #define MODNAME "files"
 
 typedef struct f2b_file_t {
   struct f2b_file_t *next;
+  uint32_t lines;
+  uint32_t stag;
   FILE *fd;
   char path[PATH_MAX];
   struct stat st;
-  unsigned int lines;
 } f2b_file_t;
 
 struct _config {
@@ -167,6 +168,7 @@ start(cfg_t *cfg) {
       free(file);
       continue;
     }
+    file->stag = fnv_32a_str(globbuf.gl_pathv[i], FNV1_32A_INIT);
     if (cfg->files == NULL) {
       cfg->files = file;
     } else {

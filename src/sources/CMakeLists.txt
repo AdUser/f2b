@@ -2,10 +2,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 unset(CMAKE_SHARED_MODULE_PREFIX)
 set(SOURCES "")
 
-add_library("s_files" MODULE "files.c" "../strlcpy.c")
+add_library("s_files" MODULE "files.c" "../strlcpy.c" "../fnv32a.c")
 list(APPEND SOURCES "files")
 
-add_library("s_portknock" MODULE "portknock.c" "../strlcpy.c")
+add_library("s_portknock" MODULE "portknock.c" "../strlcpy.c" "../fnv32a.c")
 list(APPEND SOURCES "portknock")
 
 find_library(REDIS_FOUND "hiredis")

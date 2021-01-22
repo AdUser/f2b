@@ -9,11 +9,13 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
 
 #include "../strlcpy.h"
+#include "../fnv.h"
 #include "../mod-defs.h"
 #include "../mod-api.h"
 

@@ -10,11 +10,13 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 
 #include "../strlcpy.h"
+#include "../fnv.h"
 #include "../mod-defs.h"
 #include "../mod-api.h"
 

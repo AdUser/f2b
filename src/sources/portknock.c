@@ -18,10 +18,11 @@
 
 typedef struct f2b_port_t {
   struct f2b_port_t *next;
+  unsigned int accepts;
+  uint32_t stag;
+  int sock;
   char host[HOST_MAX];
   char port[PORT_MAX];
-  unsigned int accepts;
-  int sock;
 } f2b_port_t;
 
 struct _config {
@@ -98,6 +99,7 @@ config(cfg_t *cfg, const char *key, const char *value) {
       free(port);
       return false;
     }
+    port->stag = fnv_32a_str(port->port, FNV1_32A_INIT);
     port->next = cfg->ports;
     cfg->ports = port;
     cfg->flags |= MOD_IS_READY;

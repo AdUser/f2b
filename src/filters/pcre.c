@@ -4,28 +4,32 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
+#include "filter.h"
+
 #include <pcre.h>
 
-#include "filter.h"
 #define MODNAME "pcre"
 #define HOST_REGEX "(?<host>[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})"
 
 struct _regexp {
   rx_t *next;
-  char pattern[PATTERN_MAX];
-  int matches;
   pcre *regex;
   pcre_extra *data;
+  int matches;
+  uint32_t ftag;
+  short int score;
+  char pattern[PATTERN_MAX];
 };
 
 struct _config {
-  char id[ID_MAX];
   void (*logcb)(enum loglevel lvl, const char *msg);
+  rx_t *regexps;
   int flags;
+  short int defscore;
   bool icase;
   bool study;
   bool usejit;
-  rx_t *regexps;
+  char id[ID_MAX];
 };
 
 #include "filter.c"
@@ -122,6 +126,7 @@ append(cfg_t *cfg, const char *pattern) {
     }
   }
 
+  regex->ftag = fnv_32a_str(pattern, FNV1_32A_INIT);
   regex->next = cfg->regexps;
   cfg->regexps = regex;
   strlcpy(regex->pattern, pattern, sizeof(regex->pattern));

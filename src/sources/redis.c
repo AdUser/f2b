@@ -15,17 +15,17 @@
 #define ID_MAX 32
 
 struct _config {
-  char name[ID_MAX + 1];
-  char hash[ID_MAX * 2];
+  redisContext *conn;
   void (*logcb)(enum loglevel lvl, const char *msg);
   time_t timeout;
+  int flags;
+  uint16_t port;
+  uint32_t received;
   uint8_t database;
   char password[32];
   char host[32];
-  uint16_t port;
-  uint32_t received;
-  int flags;
-  redisContext *conn;
+  char name[ID_MAX + 1];
+  char hash[ID_MAX * 2];
 };
 
 #include "source.c"

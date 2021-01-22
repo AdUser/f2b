@@ -15,17 +15,19 @@
 
 struct _regexp {
   rx_t *next;
-  char pattern[PATTERN_MAX];
+  uint32_t ftag;
   int matches;
   regex_t regex;
+  char pattern[PATTERN_MAX];
 };
 
 struct _config {
-  char id[ID_MAX];
-  int flags;
-  bool icase;
-  void (*logcb)(enum loglevel lvl, const char *msg);
   rx_t *regexps;
+  void (*logcb)(enum loglevel lvl, const char *msg);
+  short int defscore;
+  int flags;
+  char id[ID_MAX];
+  bool icase;
 };
 
 #include "filter.c"
@@ -87,6 +89,7 @@ append(cfg_t *cfg, const char *pattern) {
     return false;
 
   if ((ret = regcomp(&regex->regex, buf, flags)) == 0) {
+    regex->ftag = fnv_32a_str(pattern, FNV1_32A_INIT);
     regex->next = cfg->regexps;
     cfg->regexps = regex;
     strlcpy(regex->pattern, pattern, sizeof(regex->pattern));
