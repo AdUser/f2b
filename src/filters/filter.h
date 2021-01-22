@@ -66,42 +66,15 @@
  * @endmsc
  */
 
-/**
- * @def ID_MAX
- * Maximum length of name for usage in @a start()
- */
-#define ID_MAX 32
-/**
- * @def PATTERN_MAX
- * Maximum length of regex
- */
-#define PATTERN_MAX 256
-/**
- * @def HOST_TOKEN
- * Use this string in place where to search for ip address
- */
-#define HOST_TOKEN "<HOST>"
+#define ID_MAX       32 /**< Maximum length of name for usage in @a start() */
+#define PATTERN_MAX 256 /**< Maximum length of regex */
+#define HOST_TOKEN "<HOST>" /**< Use this string in place where to search for ip address */
 
-/**
- * Opaque module handler, contains module internal structs
- */
-typedef struct _config cfg_t;
+/** opaque pointer to regexp type */
 typedef struct _regexp rx_t;
 
-/**
- * @brief Create instance of module
- * @param id Module name string
- * @returns Opaque module handler or NULL on failure
- */
-extern cfg_t *create(const char *id);
-/**
- * @brief Contigure module instance
- * @param cfg Module handler
- * @param key Parameter name
- * @param value Parameter value
- * @returns true on success, false on error
- */
-extern bool   config(cfg_t *cfg, const char *key, const char *value);
+/** type-specific module api routines */
+
 /**
  * @brief Add match pattern
  * @param cfg Module handler
@@ -109,19 +82,6 @@ extern bool   config(cfg_t *cfg, const char *key, const char *value);
  * @returns true on success, false on error
  */
 extern bool   append(cfg_t *cfg, const char *pattern);
-/**
- * @brief Checks is module ready for usage
- * @param cfg Module handler
- * @returns true if ready, false if not
- */
-extern bool    ready(cfg_t *cfg);
-/**
- * @brief Sets the log callback
- * @param cfg Module handler
- * @param cb Logging callback
- * @note Optional, if this function is not called, warnings/errors of module will be suppressed
- */
-extern void    logcb(cfg_t *cfg, void (*cb)(enum loglevel l, const char *msg));
 /**
  * @brief Fetch filter match stats
  * @param cfg Module handler
@@ -144,9 +104,3 @@ extern bool    match(cfg_t *cfg, const char *line, char *buf, size_t bufsize);
  * @param cfg Module handler
  */
 extern void    flush(cfg_t *cfg);
-/**
- * @brief Free module handle
- * @param cfg Module handler
- * @note Module handler becomes invalid after calling this function on it
- */
-extern void  destroy(cfg_t *cfg);

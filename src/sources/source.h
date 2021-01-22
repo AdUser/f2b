@@ -62,43 +62,6 @@
  */
 
 /**
- * @def INIT_MAX
- * Defines max length of @a init param in @a create()
- */
-#define INIT_MAX 256
-
-/**
- * Opaque module handler, contains module internal structs
- */
-typedef struct _config cfg_t;
-/**
- * @brief Create instance of module
- * @param init Module-specific init string
- * @returns Opaque module handler or NULL on failure
- */
-extern cfg_t *create(const char *init);
-/**
- * @brief Configure module instance
- * @param cfg Module handler
- * @param key Parameter name
- * @param value Parameter value
- * @returns true on success, false on error
- */
-extern bool   config(cfg_t *cfg, const char *key, const char *value);
-/**
- * @brief Checks is module ready for usage
- * @param cfg Module handler
- * @returns true if ready, false if not
- */
-extern bool    ready(cfg_t *cfg);
-/**
- * @brief Sets the log callback
- * @param cfg Module handler
- * @param cb Logging callback
- * @note Optional, if this function is not called, warnings/errors of module will be suppressed
- */
-extern void    logcb(cfg_t *cfg, void (*cb)(enum loglevel l, const char *msg));
-/**
  * @brief Allocate resources and start processing
  * @param cfg Module handler
  * @returns true on success, false on error
@@ -127,9 +90,3 @@ extern bool    stats(cfg_t *cfg, char *buf, size_t bufsize);
  * @returns true on success
  */
 extern bool     stop(cfg_t *cfg);
-/**
- * @brief Free module handle
- * @param cfg Module handler
- * @note Module handler becomes invalid after calling this function on it
- */
-extern void  destroy(cfg_t *cfg);

@@ -75,33 +75,11 @@
  */
 #define ID_MAX 32
 
-/**
- * Opaque module handler, contains module internal structs
- */
-typedef struct _config cfg_t;
+/** @note config() parameters are module-specific, but each module
+ * at least should handle 'shared' option */
 
-/**
- * @brief Create instance of module
- * @param id Module id, used when 'shared = yes'
- * @returns Opaque module handler or NULL on failure
- */
-extern cfg_t *create(const char *id);
-/**
- * @brief Configure module instance
- * @param cfg Module handler
- * @param key Parameter name
- * @param value Parameter value
- * @returns true on success, false on error
- */
-extern bool   config(cfg_t *cfg, const char *key, const char *value);
-/**
- * @brief Checks is module ready for usage
- * @param cfg Module handler
- * @returns true if ready, false if not
- * @note parameters are module-specific, but each module
- * at least should handle 'shared' option
- */
-extern bool    ready(cfg_t *cfg);
+/** type-specific module exportable routines */
+
 /**
  * @brief Allocate resources and start processing
  * @param cfg Module handler
@@ -120,13 +98,6 @@ extern bool     stop(cfg_t *cfg);
  * @returns true on success
  */
 extern bool     ping(cfg_t *cfg);
-/**
- * @brief Sets the log callback
- * @param cfg Module handler
- * @param cb Logging callback
- * @note Optional, if this function is not called, warnings/errors of module will be suppressed
- */
-extern void    logcb(cfg_t *cfg, void (*cb)(enum loglevel l, const char *msg));
 /**
  * @brief Make a rabbit disappear
  * @param cfg Module handler
@@ -150,9 +121,3 @@ extern bool    check(cfg_t *cfg, const char *ip);
  * @note If this action is meaningless for backend it should return true
  */
 extern bool    unban(cfg_t *cfg, const char *ip);
-/**
- * @brief Free module handle
- * @param cfg Module handler
- * @note Module handler becomes invalid after calling this function on it
- */
-extern void  destroy(cfg_t *cfg);
