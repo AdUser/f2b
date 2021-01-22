@@ -7,3 +7,5 @@
 #define MOD_TYPE_SOURCE    1024 
 #define MOD_TYPE_FILTER    2048
 #define MOD_TYPE_BACKEND   4096
+
+#define MATCH_DEFSCORE 10

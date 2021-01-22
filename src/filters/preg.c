@@ -17,6 +17,7 @@ struct _regexp {
   rx_t *next;
   uint32_t ftag;
   int matches;
+  short int score;
   regex_t regex;
   char pattern[PATTERN_MAX];
 };
@@ -42,6 +43,7 @@ create(const char *id) {
 
   cfg->logcb = &logcb_stub;
   cfg->flags |= MOD_TYPE_FILTER;
+  cfg->defscore = MATCH_DEFSCORE;
   return cfg;
 }
 
@@ -53,6 +55,10 @@ config(cfg_t *cfg, const char *key, const char *value) {
 
   if (strcmp(key, "icase") == 0) {
     cfg->icase = (strcmp(value, "yes") == 0) ? true : false;
+    return true;
+  }
+  if (strcmp(key, "defscore") == 0) {
+    cfg->defscore = atoi(value);
     return true;
   }
 
@@ -89,6 +95,7 @@ append(cfg_t *cfg, const char *pattern) {
     return false;
 
   if ((ret = regcomp(&regex->regex, buf, flags)) == 0) {
+    regex->score = cfg->defscore;
     regex->ftag = fnv_32a_str(pattern, FNV1_32A_INIT);
     regex->next = cfg->regexps;
     cfg->regexps = regex;
