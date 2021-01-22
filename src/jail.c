@@ -14,6 +14,7 @@
 #include "filter.h"
 #include "backend.h"
 #include "statefile.h"
+#include "mod-defs.h"
 #include "jail.h"
 
 #define DEFAULT_BANTIME  3600 /* in seconds, 1 hour */
@@ -370,6 +371,11 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
   }
   if (!f2b_source_init(jail->source, section)) {
     f2b_log_msg(log_error, "jail '%s': can't init source '%s' with %s", jail->name, jail->source->name, jail->source->init);
+    goto cleanup;
+  }
+
+  if (jail->source->flags & MOD_NEED_FILTER && !(jail->flags & JAIL_HAS_FILTER)) {
+    f2b_log_msg(log_error, "jail '%s': source '%s' needs filter, but jail has no one", jail->name, jail->source->name);
     goto cleanup;
   }
 
