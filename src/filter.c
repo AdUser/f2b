@@ -7,6 +7,7 @@
 #include "common.h"
 #include "config.h"
 #include "log.h"
+#include "mod-defs.h"
 #include "filter.h"
 
 #include <dlfcn.h>

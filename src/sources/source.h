@@ -14,15 +14,8 @@
 #include <unistd.h>
 
 #include "../strlcpy.h"
-
-enum loglevel {
-  debug  = 0,
-  info   = 1,
-  notice = 2,
-  warn   = 3,
-  error  = 4,
-  fatal  = 5,
-}; /* see log.h */
+#include "../mod-defs.h"
+#include "../mod-api.h"
 
 /**
  * @file

@@ -7,10 +7,10 @@
 #include "common.h"
 #include "config.h"
 #include "log.h"
+#include "mod-defs.h"
+#include "source.h"
 
 #include <dlfcn.h>
-
-#include "source.h"
 
 #define SOURCE_LIBRARY_PARAM "load"
 
