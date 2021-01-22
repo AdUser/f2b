@@ -22,6 +22,7 @@ struct _regexp {
 
 struct _config {
   char id[ID_MAX];
+  int flags;
   bool icase;
   void (*logcb)(enum loglevel lvl, const char *msg);
   rx_t *regexps;
@@ -38,6 +39,7 @@ create(const char *id) {
   strlcpy(cfg->id, id, sizeof(cfg->id));
 
   cfg->logcb = &logcb_stub;
+  cfg->flags |= MOD_TYPE_FILTER;
   return cfg;
 }
 
@@ -88,6 +90,7 @@ append(cfg_t *cfg, const char *pattern) {
     regex->next = cfg->regexps;
     cfg->regexps = regex;
     strlcpy(regex->pattern, pattern, sizeof(regex->pattern));
+    cfg->flags |= MOD_IS_READY;
     return true;
   } else {
     char buf[256] = "";
@@ -96,14 +99,6 @@ append(cfg_t *cfg, const char *pattern) {
   }
 
   free(regex);
-  return false;
-}
-
-bool
-ready(cfg_t *cfg) {
-  assert(cfg != NULL);
-  if (cfg->regexps)
-    return true;
   return false;
 }
 

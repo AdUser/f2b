@@ -24,8 +24,9 @@
 struct _config {
   char name[ID_MAX + 1];
   void (*logcb)(enum loglevel lvl, const char *msg);
-  bool shared;
   struct ipset_session *sess;
+  int flags;
+  bool shared;
 };
 
 #include "backend.c"
@@ -78,8 +79,9 @@ create(const char *id) {
   if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
     return NULL;
   strlcpy(cfg->name, id, sizeof(cfg->name));
-
   cfg->logcb = &logcb_stub;
+  cfg->flags |= MOD_IS_READY;
+  cfg->flags |= MOD_TYPE_BACKEND;
   return cfg;
 }
 
@@ -92,16 +94,6 @@ config(cfg_t *cfg, const char *key, const char *value) {
   (void)(cfg);
   (void)(key);
   (void)(value);
-
-  return false;
-}
-
-bool
-ready(cfg_t *cfg) {
-  assert(cfg != NULL);
-
-  if (cfg->name[0])
-    return true;
 
   return false;
 }

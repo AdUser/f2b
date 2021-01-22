@@ -24,7 +24,6 @@ int main() {
   assert(addr->type == AF_INET);
   assert(addr->next == NULL);
   assert(strncmp(addr->text, "127.0.0.1", sizeof(addr->text)) == 0);
-  assert(addr->matches.list != NULL);
   assert(addr->matches.count == 0);
 
   list = f2b_addrlist_append(list, addr);

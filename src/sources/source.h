@@ -37,9 +37,9 @@
  *   f2b <<= source [label="logcb(level, char *msg)"];
  *   f2b <<  source [label="false"];
  *       |||;
- *   f2b =>  source [label="ready(cfg)"];
- *   f2b <<  source [label="true"];
- *       ---        [label="source is ready for start()"];
+ *   f2b =>  source [label="state(cfg)"];
+ *   f2b <<  source [label="int"];
+ *       ---        [label="check for MOD_IS_READY flag"];
  *   f2b =>  source [label="start()"];
  *   f2b <<  source [label="true"];
  *       ---        [label="source is ready to use"];

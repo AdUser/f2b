@@ -16,13 +16,14 @@
 typedef struct f2b_backend_t {
   void *h;   /**< dlopen handler */
   void *cfg; /**< opaque pointer of module config */
+  int flags; /**< module flags (update with state() call) */
   /* handlers */
   /** dlsym pointer to handler of @a create command */
   void *(*create)  (const char *id);
   /** dlsym pointer to handler of @a config command */
   bool  (*config)  (void *cfg, const char *key, const char *value);
-  /** dlsym pointer to handler of @a ready command */
-  bool  (*ready)   (void *cfg);
+  /** dlsym pointer to handler of @a state command */
+  int   (*state)   (void *cfg);
   /** dlsym pointer to handler of @a error command */
   void  (*logcb)   (void *cfg, void (*cb)(log_msgtype_t lvl, const char *msg));
   /** dlsym pointer to handler of @a start command */

@@ -29,9 +29,9 @@
  *   f2b <<= backend [label="logcb(level, char *msg)"];
  *   f2b <<  backend [label="false"];
  *       |||;
- *   f2b =>  backend [label="ready(cfg)"];
- *   f2b <<  backend [label="true"];
- *       ---         [label="backend is ready for start()"];
+ *   f2b =>  backend [label="state(cfg)"];
+ *   f2b <<  backend [label="int"];
+ *       ---         [label="check for MOD_IS_READY flag"];
  *   f2b =>  backend [label="start()"];
  *   f2b <<  backend [label="true"];
  *       ---         [label="backend is ready to use"];

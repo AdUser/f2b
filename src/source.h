@@ -14,17 +14,16 @@
 
 /** source module definition */
 typedef struct f2b_source_t {
-  char name[CONFIG_KEY_MAX];  /**< source name from config (eg [source:$NAME] section) */
-  char init[CONFIG_VAL_MAX];  /**< source init string (eg `source = NAME:$INIT_STRING` line from jail section) */
   void *h;   /**< dlopen handler */
   void *cfg; /**< opaque pointer of module config */
+  int flags; /**< module flags (update with state() call) */
   /* handlers */
   /** dlsym pointer to handler of @a create command */
   void *(*create)  (const char *init);
   /** dlsym pointer to handler of @a config command */
   bool  (*config)  (void *cfg, const char *key, const char *value);
-  /** dlsym pointer to handler of @a ready command */
-  bool  (*ready)   (void *cfg);
+  /** dlsym pointer to handler of @a state command */
+  int   (*state)   (void *cfg);
   /** dlsym pointer to handler of @a logcb command */
   void  (*logcb)   (void *cfg, void (*cb)(log_msgtype_t l, const char *msg));
   /** dlsym pointer to handler of @a start command */
@@ -37,6 +36,9 @@ typedef struct f2b_source_t {
   bool  (*stop)    (void *cfg);
   /** dlsym pointer to handler of @a destroy command */
   void  (*destroy) (void *cfg);
+  /* config variables */
+  char name[CONFIG_KEY_MAX];  /**< source name from config (eg [source:$NAME] section) */
+  char init[CONFIG_VAL_MAX];  /**< source init string (eg `source = NAME:$INIT_STRING` line from jail section) */
 } f2b_source_t;
 
 /**

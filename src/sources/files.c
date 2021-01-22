@@ -23,10 +23,11 @@ typedef struct f2b_file_t {
 } f2b_file_t;
 
 struct _config {
-  char path[256];
   void (*logcb)(enum loglevel lvl, const char *msg);
   f2b_file_t *files;
   f2b_file_t *current;
+  int flags;
+  char path[256];
 };
 
 #include "source.c"
@@ -122,11 +123,15 @@ file_getline(f2b_file_t *file, char *buf, size_t bufsize) {
 cfg_t *
 create(const char *init) {
   cfg_t *cfg = NULL;
-  assert(init != NULL);
   if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
     return NULL;
-  strlcpy(cfg->path, init, sizeof(cfg->path));
   cfg->logcb = &logcb_stub;
+  cfg->flags |= MOD_TYPE_SOURCE;
+  cfg->flags |= MOD_NEED_FILTER;
+  if (init != NULL && strlen(init) > 0) {
+    strlcpy(cfg->path, init, sizeof(cfg->path));
+    cfg->flags |= MOD_IS_READY;
+  }
   return cfg;
 }
 
@@ -142,14 +147,6 @@ config(cfg_t *cfg, const char *key, const char *value) {
   (void)(value); /* suppress warning for unused variable 'ip' */
 
   return false;
-}
-
-bool
-ready(cfg_t *cfg) {
-  assert(cfg != NULL);
-  if (cfg->path[0] == '\0')
-    return false;
-  return true;
 }
 
 bool

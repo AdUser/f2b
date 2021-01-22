@@ -43,9 +43,9 @@
  *   f2b <<= filter [label="logcb(level, char *msg)"];
  *   f2b <<  filter [label="false"];
  *       |||        [label="more calls of append()"];
- *   f2b =>  filter [label="ready(cfg)"];
- *   f2b <<  filter [label="true"];
- *       ---        [label="filter is ready to use"];
+ *   f2b =>  filter [label="state(cfg)"];
+ *   f2b <<  filter [label="int"];
+ *       ---        [label="check for MOD_IS_READY flag"];
  *   f2b =>  filter [label="match(cfg, line, buf, sizeof(buf))"];
  *   f2b <<  filter [label="false"];
  *       ...        [label="no match"];

@@ -36,3 +36,10 @@ logcb(cfg_t *cfg, void (*cb)(enum loglevel lvl, const char *msg)) {
 
   cfg->logcb = cb;
 }
+
+int
+state(cfg_t *cfg) {
+  assert(cfg != NULL);
+
+  return cfg->flags;
+}

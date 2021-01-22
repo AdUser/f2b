@@ -55,3 +55,8 @@ stats(cfg_t *cfg, char *buf, size_t bufsize) {
   return true;
 }
 
+int
+state(cfg_t *cfg) {
+  assert(cfg != NULL);
+  return cfg->flags;
+}

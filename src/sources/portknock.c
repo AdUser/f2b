@@ -25,10 +25,11 @@ typedef struct f2b_port_t {
 } f2b_port_t;
 
 struct _config {
-  char name[32];
   void (*logcb)(enum loglevel lvl, const char *msg);
   f2b_port_t *ports;
   f2b_port_t *current;
+  int flags;
+  char name[32];
 };
 
 #include "source.c"
@@ -76,6 +77,7 @@ create(const char *init) {
     return NULL;
   strlcpy(cfg->name, init, sizeof(cfg->name));
   cfg->logcb = &logcb_stub;
+  cfg->flags |= MOD_TYPE_SOURCE;
   return cfg;
 }
 
@@ -98,17 +100,10 @@ config(cfg_t *cfg, const char *key, const char *value) {
     }
     port->next = cfg->ports;
     cfg->ports = port;
+    cfg->flags |= MOD_IS_READY;
     return true;
   }
 
-  return false;
-}
-
-bool
-ready(cfg_t *cfg) {
-  assert(cfg != NULL);
-  if (cfg->ports)
-    return true;
   return false;
 }
 

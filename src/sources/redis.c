@@ -24,6 +24,7 @@ struct _config {
   char host[32];
   uint16_t port;
   uint32_t received;
+  int flags;
   redisContext *conn;
 };
 
@@ -107,16 +108,17 @@ cfg_t *
 create(const char *init) {
   cfg_t *cfg = NULL;
 
-  assert(init != NULL);
-
   if ((cfg = calloc(1, sizeof(cfg_t))) == NULL)
     return NULL;
 
-  strlcpy(cfg->name, init, sizeof(cfg->name));
   strlcpy(cfg->hash, "f2b-banned-", sizeof(cfg->hash));
   strlcat(cfg->hash, init, sizeof(cfg->hash));
   cfg->logcb = &logcb_stub;
-
+  cfg->flags |= MOD_TYPE_SOURCE;
+  if (init && strlen(init) > 0) {
+    strlcpy(cfg->name, init, sizeof(cfg->name));
+    cfg->flags |= MOD_IS_READY;
+  }
   return cfg;
 }
 
@@ -148,16 +150,6 @@ config(cfg_t *cfg, const char *key, const char *value) {
   }
 
   return false;
-}
-
-bool
-ready(cfg_t *cfg) {
-  assert(cfg != NULL);
-
-  if (cfg->host)
-    return true;
-
-  return true;
 }
 
 bool

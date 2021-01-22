@@ -23,18 +23,19 @@
 #define MODNAME "redis"
 
 struct _config {
-  char name[ID_MAX + 1];
-  char hash[ID_MAX * 2];
   void (*logcb)(enum loglevel lvl, const char *msg);
-  bool shared;
+  redisContext *conn;
   time_t timeout;
+  int flags;
+  uint16_t port;
   uint8_t ping_num; /*< current number of ping() call */
   uint8_t ping_max; /*< max ping() calls before actually pinginig redis server */
   uint8_t database;
+  bool shared;
   char password[32];
   char host[32];
-  uint16_t port;
-  redisContext *conn;
+  char name[ID_MAX + 1];
+  char hash[ID_MAX * 2];
 };
 
 #include "backend.c"
@@ -113,6 +114,7 @@ create(const char *id) {
   strlcat(cfg->hash, id, sizeof(cfg->hash));
 
   cfg->logcb = &logcb_stub;
+  cfg->flags |= MOD_TYPE_BACKEND;
   return cfg;
 }
 
@@ -132,6 +134,7 @@ config(cfg_t *cfg, const char *key, const char *value) {
   }
   if (strcmp(key, "host") == 0) {
     strlcpy(cfg->host, value, sizeof(cfg->host));
+    cfg->flags |= MOD_IS_READY;
     return true;
   }
   if (strcmp(key, "port") == 0) {
@@ -150,16 +153,6 @@ config(cfg_t *cfg, const char *key, const char *value) {
     strlcpy(cfg->password, value, sizeof(cfg->password));
     return true;
   }
-
-  return false;
-}
-
-bool
-ready(cfg_t *cfg) {
-  assert(cfg != NULL);
-
-  if (cfg->host)
-    return true;
 
   return false;
 }

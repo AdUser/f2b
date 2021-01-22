@@ -48,7 +48,7 @@ f2b_backend_init(f2b_backend_t *backend, f2b_config_section_t *config) {
     goto cleanup;
   if ((*(void **) (&backend->config)  = dlsym(backend->h, "config"))  == NULL)
     goto cleanup;
-  if ((*(void **) (&backend->ready)   = dlsym(backend->h, "ready"))   == NULL)
+  if ((*(void **) (&backend->state)   = dlsym(backend->h, "state"))   == NULL)
     goto cleanup;
   if ((*(void **) (&backend->logcb)   = dlsym(backend->h, "logcb"))   == NULL)
     goto cleanup;
@@ -72,6 +72,11 @@ f2b_backend_init(f2b_backend_t *backend, f2b_config_section_t *config) {
     goto cleanup;
   }
 
+  if ((backend->state(backend->cfg) & MOD_TYPE_BACKEND) == 0) {
+    f2b_log_msg(log_error, "loaded module is not backend type");
+    goto cleanup;
+  }
+
   backend->logcb(backend->cfg, f2b_log_mod_cb);
 
   /* try init */
@@ -84,7 +89,17 @@ f2b_backend_init(f2b_backend_t *backend, f2b_config_section_t *config) {
       config->name, param->name, param->value);
   }
 
-  if (backend->ready(backend->cfg))
+  if ((backend->flags = backend->state(backend->cfg)) < 0) {
+    f2b_log_msg(log_error, "can't get module state");
+    goto cleanup;
+  }
+
+  if (backend->flags & MOD_WRONG_API) {
+    f2b_log_msg(log_error, "module reports wrong api version");
+    goto cleanup;
+  }
+
+  if (backend->flags & MOD_IS_READY)
     return true;
 
   /* still not ready */

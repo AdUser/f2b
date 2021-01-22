@@ -32,6 +32,7 @@ struct _config {
   char name[ID_MAX + 1];
   void (*logcb)(enum loglevel lvl, const char *msg);
   time_t timeout;
+  int flags;
   bool  shared;
   cmd_t *start;
   cmd_t *stop;
@@ -166,6 +167,8 @@ create(const char *id) {
   strlcpy(cfg->name, id, sizeof(cfg->name));
 
   cfg->logcb = &logcb_stub;
+  cfg->flags |= MOD_IS_READY;
+  cfg->flags |= MOD_TYPE_BACKEND;
   return cfg;
 }
 
@@ -201,16 +204,6 @@ config(cfg_t *cfg, const char *key, const char *value) {
   CREATE_CMD(ban)
   CREATE_CMD(unban)
   CREATE_CMD(check)
-
-  return false;
-}
-
-bool
-ready(cfg_t *cfg) {
-  assert(cfg != NULL);
-
-  if (cfg->ban && cfg->unban)
-    return true;
 
   return false;
 }

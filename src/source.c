@@ -48,7 +48,7 @@ f2b_source_init(f2b_source_t *source, f2b_config_section_t *config) {
     goto cleanup;
   if ((*(void **) (&source->config)  = dlsym(source->h, "config"))  == NULL)
     goto cleanup;
-  if ((*(void **) (&source->ready)   = dlsym(source->h, "ready"))   == NULL)
+  if ((*(void **) (&source->state)   = dlsym(source->h, "state"))   == NULL)
     goto cleanup;
   if ((*(void **) (&source->logcb)   = dlsym(source->h, "logcb"))   == NULL)
     goto cleanup;
@@ -68,6 +68,11 @@ f2b_source_init(f2b_source_t *source, f2b_config_section_t *config) {
     goto cleanup;
   }
 
+  if ((source->state(source->cfg) & MOD_TYPE_SOURCE) == 0) {
+    f2b_log_msg(log_error, "loaded module is not source type");
+    goto cleanup;
+  }
+
   source->logcb(source->cfg, f2b_log_mod_cb);
 
   /* try init */
@@ -80,7 +85,17 @@ f2b_source_init(f2b_source_t *source, f2b_config_section_t *config) {
       config->name, param->name, param->value);
   }
 
-  if (source->ready(source->cfg))
+  if ((source->flags = source->state(source->cfg)) < 0) {
+    f2b_log_msg(log_error, "can't get module state");
+    goto cleanup;
+  }
+
+  if (source->flags & MOD_WRONG_API) {
+    f2b_log_msg(log_error, "module reports wrong api version");
+    goto cleanup;
+  }
+
+  if (source->flags & MOD_IS_READY)
     return true;
 
   /* still not ready */
@@ -122,7 +137,6 @@ f2b_source_ ## CMD(f2b_source_t *source) { \
 
 SOURCE_CMD_ARG0(start, bool)
 SOURCE_CMD_ARG0(stop,  bool)
-SOURCE_CMD_ARG0(ready, bool)
 
 void
 f2b_source_cmd_stats(char *buf, size_t bufsize, f2b_source_t *source) {

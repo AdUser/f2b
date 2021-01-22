@@ -112,7 +112,7 @@ f2b_filter_init(f2b_filter_t *filter, f2b_config_section_t *config) {
     goto cleanup;
   if ((*(void **) (&filter->logcb)   = dlsym(filter->h, "logcb"))   == NULL)
     goto cleanup;
-  if ((*(void **) (&filter->ready)   = dlsym(filter->h, "ready"))   == NULL)
+  if ((*(void **) (&filter->state)   = dlsym(filter->h, "state"))   == NULL)
     goto cleanup;
   if ((*(void **) (&filter->flush)   = dlsym(filter->h, "flush"))   == NULL)
     goto cleanup;
@@ -125,6 +125,11 @@ f2b_filter_init(f2b_filter_t *filter, f2b_config_section_t *config) {
 
   if ((filter->cfg = filter->create("")) == NULL) {
     f2b_log_msg(log_error, "filter create config failed");
+    goto cleanup;
+  }
+
+  if ((filter->state(filter->cfg) & MOD_TYPE_FILTER) == 0) {
+    f2b_log_msg(log_error, "loaded module is not filter type");
     goto cleanup;
   }
 
@@ -143,7 +148,17 @@ f2b_filter_init(f2b_filter_t *filter, f2b_config_section_t *config) {
   if (!f2b_filter_load_file(filter, filter->init))
     goto cleanup;
 
-  if (filter->ready(filter->cfg))
+  if ((filter->flags = filter->state(filter->cfg)) < 0) {
+    f2b_log_msg(log_error, "can't get module state");
+    goto cleanup;
+  }
+
+  if (filter->flags & MOD_WRONG_API) {
+    f2b_log_msg(log_error, "module reports wrong api version");
+    goto cleanup;
+  }
+
+  if (filter->flags & MOD_IS_READY)
     return true;
 
   /* still not ready */

@@ -8,6 +8,7 @@ int main() {
   cfg_t *filter = NULL;
   char matchbuf[IPADDR_MAX] = "";
   bool result = false;
+  int flags;
 
   UNUSED(result);
 
@@ -23,8 +24,8 @@ int main() {
   result = config(filter, "icase", "no");
   assert(result == true);
 
-  result = ready(filter);
-  assert(result == false);
+  flags = state(filter);
+  assert((flags & MOD_IS_READY) == 0);
 
   result = append(filter, "host without marker");
   assert(result == false);
@@ -32,8 +33,8 @@ int main() {
   result = append(filter, "host with marker <HOST>");
   assert(result == true);
 
-  result = ready(filter);
-  assert(result == true);
+  flags = state(filter);
+  assert(flags & MOD_IS_READY);
 
   result = match(filter, "host", matchbuf, sizeof(matchbuf));
   assert(result == false);

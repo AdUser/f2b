@@ -16,6 +16,7 @@
 typedef struct f2b_filter_t {
   void *h;   /**< dlopen handler */
   void *cfg; /**< opaque pointer of module config */
+  int flags; /**< module flags (update with state() call) */
   /* handlers */
   /** dlsym pointer to handler of @a create command */
   void *(*create)  (const char *id);
@@ -25,8 +26,8 @@ typedef struct f2b_filter_t {
   bool  (*append)  (void *cfg, const char *pattern);
   /** dlsym pointer to handler of @a logcb command */
   void  (*logcb)   (void *cfg, void (*cb)(log_msgtype_t lvl, const char *msg));
-  /** dlsym pointer to handler of @a ready command */
-  bool  (*ready)   (void *cfg);
+  /** dlsym pointer to handler of @a state command */
+  int   (*state)   (void *cfg);
   /** dlsym pointer to handler of @a flush command */
   bool  (*flush)   (void *cfg);
   /** dlsym pointer to handler of @a stats command */
