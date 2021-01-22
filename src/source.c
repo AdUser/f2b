@@ -96,7 +96,7 @@ f2b_source_init(f2b_source_t *source, f2b_config_section_t *config) {
 
 void
 f2b_source_destroy(f2b_source_t *source) {
-  assert(source != NULL);
+  if (!source) return;
   source->destroy(source->cfg);
   dlclose(source->h);
   free(source);
