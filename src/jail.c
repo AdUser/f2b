@@ -31,6 +31,15 @@ static f2b_jail_t defaults = {
   .maxretry   = DEFAULT_MAXRETRY,
 };
 
+static struct opt_remap {
+  const char *old;
+  const char *new;
+} deprecated[] = {
+  { .old = "incr_bantime",   .new = "bantime_extend"  },
+  { .old = "incr_findtime",  .new = "findtime_extend" },
+  { .old = NULL } /* end of list */
+};
+
 void
 f2b_jail_parse_compound_value(const char *value, char *name, char *init) {
   size_t len = 0;
@@ -106,6 +115,16 @@ f2b_jail_set_param(f2b_jail_t *jail, const char *param, const char *value) {
   }
   if (strcmp(param, "findtime_extend") == 0) {
     jail->findtime_extend = atof(value);
+    return true;
+  }
+  if (strcmp(param, "expiretime_extend") == 0) {
+    jail->expiretime_extend = atof(value);
+    return true;
+  }
+  for (struct opt_remap *opt = deprecated; opt->old != NULL; opt++) {
+    if (strcmp(opt->old, param) != 0)
+      continue;
+    f2b_log_msg(log_warn, "jail '%s': param '%s' deprecated, use '%s' instead", jail->name, opt->old, opt->new);
     return true;
   }
   return false;
