@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
   f2b_config_t          config;
   f2b_config_section_t *section = NULL;
   f2b_source_t         *source  = NULL;
-  char buf[1024] = "";
+  char buf[4096] = "";
   uint32_t stag;
   bool reset;
 
@@ -77,6 +77,10 @@ int main(int argc, char *argv[]) {
       printf("stag: %08X, data: %s\n", stag, buf);
     }
     sleep(1);
+  }
+
+  if (f2b_source_stats(source, buf, sizeof(buf))) {
+    printf("stats:\n" "%s\n", buf);
   }
 
   return EXIT_SUCCESS;
