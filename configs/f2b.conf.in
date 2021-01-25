@@ -17,9 +17,9 @@ enabled  = no
 bantime  = 3600
 findtime = 300
 expiretime = 14400
-incr_bantime = 0.0
-incr_findtime = 0.0
-maxretry = 5
+bantime_extend = 0.2
+findtime_extend = 0.07
+banscore = 50
 source   = files:/var/log/messages
 backend  = exec-ipset:banned
 
