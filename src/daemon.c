@@ -280,9 +280,9 @@ int main(int argc, char *argv[]) {
 
   if (appconfig.nice != 0) {
     errno = 0;
-    nice(appconfig.nice);
-    if (errno)
+    if (nice(appconfig.nice) == -1 && errno) {
       f2b_log_msg(log_warn, "can't set process priority: %s", strerror(errno));
+    }
   }
 
   if (appconfig.coredumps) {

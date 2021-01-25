@@ -150,6 +150,7 @@ f2b_jail_set_defaults(f2b_config_section_t *section) {
   assert(section != NULL);
   assert(section->type == t_defaults);
 
+  strlcpy(defaults.name, "default", sizeof(defaults.name)); /* can't init before */
   f2b_jail_apply_config(&defaults, section);
 
   return;
