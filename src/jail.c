@@ -250,6 +250,8 @@ f2b_jail_process(f2b_jail_t *jail) {
   time_t expiretime = 0;
   bool remove = false;
   bool reset = true; /* source reset */
+  uint32_t stag, ftag;
+  short int score;
 
   assert(jail != NULL);
 
@@ -257,14 +259,18 @@ f2b_jail_process(f2b_jail_t *jail) {
 
   f2b_backend_ping(jail->backend);
 
-  while (f2b_source_next(jail->source, line, sizeof(line), reset)) {
+  while ((stag = f2b_source_next(jail->source, line, sizeof(line), reset)) > 0) {
     reset = false;
+    if (!match) match = f2b_match_create(now);
+    match->stag = stag;
     if (jail->flags & JAIL_HAS_FILTER) {
-      if (!f2b_filter_match(jail->filter, line, matchbuf, sizeof(matchbuf)))
+      if ((ftag = f2b_filter_match(jail->filter, line, matchbuf, sizeof(matchbuf), &score)) == 0)
         continue;
+      match->ftag = ftag;
     } else {
       /* without filter: 1) value always matches, 2) passed as-is */
       memcpy(matchbuf, line, sizeof(matchbuf));
+      match->ftag = 0;
     }
     /* some regex matches the line */
     jail->stats.matches++;
@@ -275,6 +281,8 @@ f2b_jail_process(f2b_jail_t *jail) {
       f2b_log_msg(log_debug, "jail '%s': found new ip %s", jail->name, matchbuf);
     }
     addr->lastseen = now;
+    f2b_matches_append(&addr->matches, match);
+    match = NULL; /* will create new object on next run */
     if (addr->banned) {
       if (addr->banned_at != now)
         f2b_log_msg(log_warn, "jail '%s': ip %s was already banned", jail->name, matchbuf);
