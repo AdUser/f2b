@@ -147,11 +147,19 @@ f2b_csocket_cmd_process(const f2b_cmd_t *cmd, f2b_buf_t *res) {
     f2b_source_cmd_stats(buf, sizeof(buf), jail->source);
     f2b_buf_append(res, buf, 0);
   } else if (cmd->type == CMD_JAIL_FILTER_STATS) {
-    f2b_filter_cmd_stats(buf, sizeof(buf), jail->filter);
-    f2b_buf_append(res, buf, 0);
+    if (jail->flags & JAIL_HAS_FILTER) {
+      f2b_filter_cmd_stats(buf, sizeof(buf), jail->filter);
+      f2b_buf_append(res, buf, 0);
+    } else {
+      f2b_buf_append(res, "this jail has no filter\n", 0);
+    }
   } else if (cmd->type == CMD_JAIL_FILTER_RELOAD) {
-    f2b_filter_cmd_reload(buf, sizeof(buf), jail->filter);
-    f2b_buf_append(res, buf, 0);
+    if (jail->flags & JAIL_HAS_FILTER) {
+      f2b_filter_cmd_reload(buf, sizeof(buf), jail->filter);
+      f2b_buf_append(res, buf, 0);
+    } else {
+      f2b_buf_append(res, "this jail has no filter\n", 0);
+    }
   } else {
     f2b_buf_append(res, "error: unknown command\n", 0);
   }
