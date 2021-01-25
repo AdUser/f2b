@@ -362,76 +362,74 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
 
   if (!jail->source) {
     f2b_log_msg(log_error, "jail '%s': missing 'source' option", jail->name);
-    goto cleanup;
+    goto cleanup1;
   }
-  if (!jail->filter) {
-    f2b_log_msg(log_error, "jail '%s': missing 'filter' option", jail->name);
-    goto cleanup;
-  }
-  if (!jail->backend) {
-    f2b_log_msg(log_error, "jail '%s': missing 'backend' option", jail->name);
-    goto cleanup;
-  }
-
   if ((section = f2b_config_section_find(config->sources, jail->source->name)) == NULL) {
     f2b_log_msg(log_error, "jail '%s': no source with name '%s'", jail->name, jail->source->name);
-    goto cleanup;
+    goto cleanup1;
   }
   if (!f2b_source_init(jail->source, section)) {
     f2b_log_msg(log_error, "jail '%s': can't init source '%s' with %s", jail->name, jail->source->name, jail->source->init);
-    goto cleanup;
+    goto cleanup1;
   }
 
-  if (jail->source->flags & MOD_NEED_FILTER && !(jail->flags & JAIL_HAS_FILTER)) {
-    f2b_log_msg(log_error, "jail '%s': source '%s' needs filter, but jail has no one", jail->name, jail->source->name);
-    goto cleanup;
+  if (jail->source->flags & MOD_NEED_FILTER) {
+    if (!jail->filter) {
+      f2b_log_msg(log_error, "jail '%s': source '%s' needs filter, but jail has no one", jail->name, jail->source->name);
+      goto cleanup1;
+    }
+    if ((section = f2b_config_section_find(config->filters, jail->filter->name)) == NULL) {
+      f2b_log_msg(log_error, "jail '%s': no filter with name '%s'", jail->name, jail->filter->name);
+      goto cleanup2;
+    }
+    if (!f2b_filter_init(jail->filter, section)) {
+      f2b_log_msg(log_error, "jail '%s': no regexps loaded from '%s'", jail->name, jail->filter->init);
+      goto cleanup2;
+    }
   }
 
-  if ((section = f2b_config_section_find(config->filters, jail->filter->name)) == NULL) {
-    f2b_log_msg(log_error, "jail '%s': no filter with name '%s'", jail->name, jail->filter->name);
-    goto cleanup;
+  if (!jail->backend) {
+    f2b_log_msg(log_error, "jail '%s': missing 'backend' option", jail->name);
+    goto cleanup3;
   }
-  if (!f2b_filter_init(jail->filter, section)) {
-    f2b_log_msg(log_error, "jail '%s': no regexps loaded from '%s'", jail->name, jail->filter->init);
-    goto cleanup;
-  }
-
   if ((section = f2b_config_section_find(config->backends, jail->backend->name)) == NULL) {
     f2b_log_msg(log_error, "jail '%s': no backend with name '%s'", jail->name, jail->backend->name);
-    goto cleanup;
+    goto cleanup3;
   }
   if (!f2b_backend_init(jail->backend, section)) {
     f2b_log_msg(log_error, "jail '%s': can't init backend '%s' with %s",
       jail->name, jail->backend->name, jail->backend->init);
-    goto cleanup;
+    goto cleanup3;
   }
 
   /* start all */
   if (!f2b_source_start(jail->source)) {
     f2b_log_msg(log_warn, "jail '%s': source action 'start' failed", jail->name);
-    goto cleanup;
+    goto cleanup3;
   }
   if (!f2b_backend_start(jail->backend)) {
     f2b_log_msg(log_warn, "jail '%s': backend action 'start' failed", jail->name);
-    goto cleanup;
+    goto cleanup3;
   }
 
   f2b_log_msg(log_debug, "jail '%s' init complete", jail->name);
 
   return true;
 
-  cleanup:
-  if (jail->source) {
-    f2b_source_destroy(jail->source);
-    jail->source = NULL;
+  cleanup3:
+  if (jail->backend) {
+    f2b_backend_destroy(jail->backend);
+    jail->backend = NULL;
   }
+  cleanup2:
   if (jail->filter) {
     f2b_filter_destroy(jail->filter);
     jail->filter = NULL;
   }
-  if (jail->backend) {
-    f2b_backend_destroy(jail->backend);
-    jail->backend = NULL;
+  cleanup1:
+  if (jail->source) {
+    f2b_source_destroy(jail->source);
+    jail->source = NULL;
   }
   return false;
 }
