@@ -140,8 +140,8 @@ append(cfg_t *cfg, const char *pattern) {
   return true;
 }
 
-bool
-match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
+uint32_t
+match(cfg_t *cfg, const char *line, char *buf, size_t buf_size, short int *score) {
   enum { OVECSIZE = 30 };
   int ovector[OVECSIZE];
   int flags = 0;
@@ -156,7 +156,7 @@ match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
     if (rc < 0 && rc == PCRE_ERROR_NOMATCH)
       continue;
     if (rc < 0) {
-      log_msg(cfg, error, "matched failed with error: %d", rc);
+      log_msg(cfg, error, "pcre match failed with error: %d", rc);
       continue;
     }
     /* matched */
@@ -167,10 +167,11 @@ match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
       log_msg(cfg, error, "can't copy matched string: %d", rc);
       continue;
     }
-    return true;
+    *score = r->score;
+    return r->ftag;
   }
 
-  return false;
+  return 0;
 }
 
 void

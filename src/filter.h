@@ -33,7 +33,7 @@ typedef struct f2b_filter_t {
   /** dlsym pointer to handler of @a stats command */
   bool  (*stats)   (void *cfg, char *buf, size_t bufsize);
   /** dlsym pointer to handler of @a match command */
-  bool  (*match)   (void *cfg, const char *line, char *buf, size_t buf_size);
+  uint32_t (*match)(void *cfg, const char *line, char *buf, size_t bufsize, short int *score);
   /** dlsym pointer to handler of @a destroy command */
   void  (*destroy) (void *cfg);
   /* config variables */
@@ -76,9 +76,10 @@ bool f2b_filter_append(f2b_filter_t *f, const char *pattern);
  * @param line Line of data
  * @param buf Match buffer
  * @param bufsize Size of match buffer
- * @returns false if no match and true otherwise with filling @a buf with matched token
+ * @param score Pointer to score
+ * @returns >0 on match 0 otherwise, fills @a buf with extracted host string and @a score with match score
  */
-bool f2b_filter_match (f2b_filter_t *f, const char *line, char *buf, size_t bufsize);
+uint32_t f2b_filter_match (f2b_filter_t *f, const char *line, char *buf, size_t bufsize, short int *score);
 
 /* handlers for csocket commands processing */
 /** handler of 'jail $JAIL filter reload' cmd */

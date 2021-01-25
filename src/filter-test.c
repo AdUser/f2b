@@ -29,6 +29,8 @@ int main(int argc, char *argv[]) {
   char stats[4096];
   size_t read = 0, matched = 0;
   FILE *file = NULL;
+  uint32_t ftag;
+  short int score;
 
   if (argc < 3)
     usage();
@@ -67,9 +69,9 @@ int main(int argc, char *argv[]) {
 
   while (fgets(line, sizeof(line), file) != NULL) {
     read++;
-    if (f2b_filter_match(filter, line, match, sizeof(match))) {
+    if ((ftag = f2b_filter_match(filter, line, match, sizeof(match), &score)) > 0) {
       matched++;
-      fprintf(stdout, "+ %s\n", match);
+      fprintf(stdout, "+ %s (score: %d, tag: %08X)\n", match, score, ftag);
       continue;
     } else {
       fprintf(stdout, "- (no-match): %s", line);

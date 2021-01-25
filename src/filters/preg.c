@@ -112,8 +112,8 @@ append(cfg_t *cfg, const char *pattern) {
   return false;
 }
 
-bool
-match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
+uint32_t
+match(cfg_t *cfg, const char *line, char *buf, size_t buf_size, short int *score) {
   size_t match_len = 0;
   regmatch_t match[2];
 
@@ -131,10 +131,11 @@ match(cfg_t *cfg, const char *line, char *buf, size_t buf_size) {
     memcpy(buf, &line[match[1].rm_so], match_len);
     buf[match_len] = '\0';
     buf[buf_size - 1]  = '\0';
-    return true;
+    *score = cfg->defscore;
+    return r->ftag;
   }
 
-  return false;
+  return 0;
 }
 
 void

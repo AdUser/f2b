@@ -193,13 +193,12 @@ f2b_filter_append(f2b_filter_t *filter, const char *pattern) {
   return filter->append(filter->cfg, pattern);
 }
 
-bool
-f2b_filter_match(f2b_filter_t *filter, const char *line, char *buf, size_t buf_size) {
+uint32_t
+f2b_filter_match(f2b_filter_t *filter, const char *line, char *buf, size_t bufsize, short int *score) {
   assert(filter != NULL);
   assert(line   != NULL);
-  assert(buf    != NULL);
 
-  return filter->match(filter->cfg, line, buf, buf_size);
+  return filter->match(filter->cfg, line, buf, bufsize, score);
 }
 
 void

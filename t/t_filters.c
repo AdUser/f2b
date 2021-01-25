@@ -8,7 +8,9 @@ int main() {
   cfg_t *filter = NULL;
   char matchbuf[IPADDR_MAX] = "";
   bool result = false;
+  short int score;
   int flags;
+  uint32_t ftag;
 
   UNUSED(result);
 
@@ -36,17 +38,17 @@ int main() {
   flags = state(filter);
   assert(flags & MOD_IS_READY);
 
-  result = match(filter, "host", matchbuf, sizeof(matchbuf));
-  assert(result == false);
+  ftag = match(filter, "host", matchbuf, sizeof(matchbuf), &score);
+  assert(ftag == 0);
 
-  result = match(filter, "host with marker <HOST>", matchbuf, sizeof(matchbuf));
-  assert(result == false);
+  ftag = match(filter, "host with marker <HOST>", matchbuf, sizeof(matchbuf), &score);
+  assert(ftag == 0);
 
-  result = match(filter, "host with marker 1.2.3.4", matchbuf, sizeof(matchbuf));
-  assert(result == true);
+  ftag = match(filter, "host with marker 1.2.3.4", matchbuf, sizeof(matchbuf), &score);
+  assert(ftag > 0);
 
-  result = match(filter, "host with marker example.com", matchbuf, sizeof(matchbuf));
-  assert(result == false);
+  ftag = match(filter, "host with marker example.com", matchbuf, sizeof(matchbuf), &score);
+  assert(ftag == 0);
 
   destroy(filter);
 

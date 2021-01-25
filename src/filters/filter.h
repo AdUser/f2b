@@ -100,7 +100,7 @@ extern bool    stats(cfg_t *cfg, char *buf, size_t bufsize);
  * @param bufsize Size of buffer above
  * @returns false if no match or true otherwise with filling @a buf
  */
-extern bool    match(cfg_t *cfg, const char *line, char *buf, size_t bufsize);
+extern uint32_t match(cfg_t *cfg, const char *line, char *buf, size_t bufsize, short int *score);
 /**
  * @brief Destroy all added patterns and free it's resources
  * @param cfg Module handler
