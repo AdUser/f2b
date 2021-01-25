@@ -28,9 +28,9 @@ typedef struct f2b_jail_t {
   time_t bantime;            /**< option: host ban time on excess activity (seconds) */
   time_t expiretime;         /**< option: forget about host after this time with no activity (seconds, for banned hosts - after it's release, for not banned - after latest match) */
   /** time period length modifiers for already banned hosts */
-  float findtime_extend;     /**< findtime modifier for already banned hosts in past (float) */
-  float bantime_extend;      /**< bantime modifier for already banned hosts in past (float) */
-  float expiretime_extend;   /**< expiretime modifier for already banned hosts in past (float) */
+  float findtime_extend;     /**< (float, 0.0 - 1.0) */
+  float bantime_extend;      /**< (float, 0.0 - 1.0) */
+  float expiretime_extend;   /**< (float, 0.0 - 1.0) */
   /* jail stats */
   struct {
     unsigned int hosts;      /**< number of tracked hosts */

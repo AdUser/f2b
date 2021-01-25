@@ -25,9 +25,10 @@
 f2b_jail_t *jails = NULL;
 
 static f2b_jail_t defaults = {
-  .bantime  = DEFAULT_BANTIME,
-  .findtime = DEFAULT_FINDTIME,
-  .maxretry = DEFAULT_MAXRETRY,
+  .bantime    = DEFAULT_BANTIME,
+  .findtime   = DEFAULT_FINDTIME,
+  .expiretime = DEFAULT_EXPIRETIME,
+  .maxretry   = DEFAULT_MAXRETRY,
 };
 
 void
@@ -515,19 +516,15 @@ void
 f2b_jail_cmd_status(char *res, size_t ressize, f2b_jail_t *jail) {
   const char *fmt =
     "name: %s\n"
+    "maxretry: %d\n"
     "flags:\n"
     "  enabled: %s\n"
     "  state: %s\n"
     "  filter: %s\n"
-    "maxretry: %d\n"
     "times:\n"
-    "  bantime: %d (+%d%%)\n"
-    "  findtime: %d (+%d%%)\n"
-    "  expiretime: %d (+%d%%)\n"
-    "extend:\n"
-    "  bantime: %.1f\n"
-    "  findtime: %.1f\n"
-    "  expiretime: %d\n"
+    "  bantime: %.1f hrs (+%d%%)\n"
+    "  findtime: %.1f min (+%d%%)\n"
+    "  expiretime: %.1f min (+%d%%)\n"
     "stats:\n"
     "  hosts: %d\n"
     "  matches: %d\n"
@@ -537,13 +534,13 @@ f2b_jail_cmd_status(char *res, size_t ressize, f2b_jail_t *jail) {
   assert(jail != NULL);
 
   snprintf(res, ressize, fmt, jail->name,
+    jail->maxretry,
     jail->flags & JAIL_ENABLED     ? "yes" : "no",
     jail->flags & JAIL_HAS_STATE   ? "yes" : "no",
     jail->flags & JAIL_HAS_FILTER  ? "yes" : "no",
-    jail->maxretry,
-    jail->bantime,    (int) (jail->bantime_extend    - 1.0) * 100,
-    jail->findtime,   (int) (jail->findtime_extend   - 1.0) * 100,
-    jail->expiretime, (int) (jail->expiretime_extend - 1.0) * 100,
+    jail->bantime    / 3600, (int) jail->bantime_extend    * 100,
+    jail->findtime   /   60, (int) jail->findtime_extend   * 100,
+    jail->expiretime /   60, (int) jail->expiretime_extend * 100,
     jail->stats.hosts,
     jail->stats.matches,
     jail->stats.bans);
