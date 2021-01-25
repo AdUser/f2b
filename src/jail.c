@@ -20,7 +20,7 @@
 #define DEFAULT_BANTIME  3600 /* in seconds, 1 hour */
 #define DEFAULT_FINDTIME  300 /* in seconds, 5 min */
 #define DEFAULT_EXPIRETIME 14400 /* in seconds, 4 hours */
-#define DEFAULT_MAXRETRY    5
+#define DEFAULT_BANSCORE    50
 
 f2b_jail_t *jails = NULL;
 
@@ -28,7 +28,7 @@ static f2b_jail_t defaults = {
   .bantime    = DEFAULT_BANTIME,
   .findtime   = DEFAULT_FINDTIME,
   .expiretime = DEFAULT_EXPIRETIME,
-  .maxretry   = DEFAULT_MAXRETRY,
+  .banscore   = DEFAULT_BANSCORE,
 };
 
 static struct opt_remap {
@@ -37,6 +37,7 @@ static struct opt_remap {
 } deprecated[] = {
   { .old = "incr_bantime",   .new = "bantime_extend"  },
   { .old = "incr_findtime",  .new = "findtime_extend" },
+  { .old = "maxretry",       .new = "banscore"        },
   { .old = NULL } /* end of list */
 };
 
@@ -103,10 +104,10 @@ f2b_jail_set_param(f2b_jail_t *jail, const char *param, const char *value) {
       jail->expiretime = DEFAULT_EXPIRETIME;
     return true;
   }
-  if (strcmp(param, "maxretry") == 0) {
-    jail->maxretry = atoi(value);
-    if (jail->maxretry == 0)
-      jail->maxretry = DEFAULT_MAXRETRY;
+  if (strcmp(param, "banscore") == 0) {
+    jail->banscore = atoi(value);
+    if (jail->banscore == 0)
+      jail->banscore = DEFAULT_BANSCORE;
     return true;
   }
   if (strcmp(param, "bantime_extend") == 0) {
@@ -266,12 +267,12 @@ f2b_jail_process(f2b_jail_t *jail) {
   unsigned int hostc = 0;
   char line[LOGLINE_MAX] = "";
   char matchbuf[IPADDR_MAX] = "";
-  time_t now  = time(NULL);
   time_t findtime = 0;
   time_t expiretime = 0;
+  time_t now = time(NULL);
   bool remove = false;
   bool reset = true; /* source reset */
-  uint32_t stag, ftag;
+  unsigned int stag, ftag;
   short int score;
 
   assert(jail != NULL);
@@ -279,22 +280,18 @@ f2b_jail_process(f2b_jail_t *jail) {
   f2b_log_msg(log_debug, "jail '%s': processing", jail->name);
 
   f2b_backend_ping(jail->backend);
-
+  
   while ((stag = f2b_source_next(jail->source, line, sizeof(line), reset)) > 0) {
     reset = false;
-    if (!match) match = f2b_match_create(now);
-    match->stag = stag;
     if (jail->flags & JAIL_HAS_FILTER) {
       if ((ftag = f2b_filter_match(jail->filter, line, matchbuf, sizeof(matchbuf), &score)) == 0)
-        continue;
-      match->ftag = ftag;
+        continue; /* no match in filter */
     } else {
       /* without filter: 1) value always matches, 2) passed as-is */
       memcpy(matchbuf, line, sizeof(matchbuf));
-      match->ftag = 0;
+      ftag = 0;
     }
-    /* some regex matches the line */
-    jail->stats.matches++;
+    /* find-or-create matched address in jail known hosts list */
     addr = f2b_addrlist_lookup(jail->ipaddrs, matchbuf);
     if (!addr) {
       addr = f2b_ipaddr_create(matchbuf);
@@ -302,29 +299,34 @@ f2b_jail_process(f2b_jail_t *jail) {
       f2b_log_msg(log_debug, "jail '%s': found new ip %s", jail->name, matchbuf);
     }
     addr->lastseen = now;
+    /* create, fill and append new match to found host history */
+    jail->stats.matches++;
+    if ((match = f2b_match_create(now)) == NULL) {
+      f2b_log_msg(log_error, "can't allocate memory for new match");
+      continue;
+    }
+    match->time = now;
+    match->stag = stag;
+    match->ftag = ftag;
+    match->score = score;
     f2b_matches_prepend(&addr->matches, match);
-    match = NULL; /* will create new object on next run */
+    /* host is banned? */
     if (addr->banned) {
       if (addr->banned_at != now)
         f2b_log_msg(log_warn, "jail '%s': ip %s was already banned", jail->name, matchbuf);
       continue;
     }
-    match = f2b_match_create(now);
-    if (jail->findtime_extend > 0 && addr->matches.count > jail->maxretry) {
-      findtime = now - jail->findtime;
-      findtime -= (int) ((addr->matches.count - jail->maxretry) *
-                         (jail->findtime * jail->findtime_extend));
-    } else {
-      findtime = now - jail->findtime;
+    /* how deep should we look inside host's history? */
+    findtime = jail->findtime + jail->findtime * (jail->findtime_extend * addr->bancount);
+    f2b_matches_expire(&addr->matches, now - findtime - 600);
+    /* ...so, check host score */
+    score = f2b_matches_score(&addr->matches, findtime);
+    if (score < jail->banscore) {
+      f2b_log_msg(log_info, "jail '%s': new match for ip %s (%u/%u)",
+        jail->name, matchbuf, score, jail->banscore);
+      continue; /* lucky bastard */
     }
-    f2b_matches_expire(&addr->matches, findtime);
-    f2b_matches_prepend(&addr->matches, match);
-    if (addr->matches.count < jail->maxretry) {
-      f2b_log_msg(log_info, "jail '%s': new match for ip %s (%zu/%zu)",
-        jail->name, matchbuf, addr->matches.count, jail->maxretry);
-      continue;
-    }
-    /* limit reached, ban ip */
+    /* score limit reached, ban ip */
     f2b_jail_ban(jail, addr);
     if (jail->flags & JAIL_HAS_STATE)
       jail->sfile->need_save = true;
@@ -535,7 +537,7 @@ void
 f2b_jail_cmd_status(char *res, size_t ressize, f2b_jail_t *jail) {
   const char *fmt =
     "name: %s\n"
-    "maxretry: %d\n"
+    "banscore: %d\n"
     "flags:\n"
     "  enabled: %s\n"
     "  state: %s\n"
@@ -553,7 +555,7 @@ f2b_jail_cmd_status(char *res, size_t ressize, f2b_jail_t *jail) {
   assert(jail != NULL);
 
   snprintf(res, ressize, fmt, jail->name,
-    jail->maxretry,
+    jail->banscore,
     jail->flags & JAIL_ENABLED     ? "yes" : "no",
     jail->flags & JAIL_HAS_STATE   ? "yes" : "no",
     jail->flags & JAIL_HAS_FILTER  ? "yes" : "no",

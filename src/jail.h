@@ -21,8 +21,8 @@
 typedef struct f2b_jail_t {
   struct f2b_jail_t *next;   /**< pointer to next jail */
   char name[CONFIG_KEY_MAX]; /**< name of the jail */
-  int flags;                 /**< jail flags, see above */
-  size_t maxretry;           /**< option: maximum count of matches before ban */
+  unsigned int flags;        /**< jail flags, see above */
+  short int banscore;        /**< option: minimum amount of score to ban host */
   /* duration of misc time periods */
   time_t findtime;           /**< option: length of time period for estimating recent host activity (in seconds) */
   time_t bantime;            /**< option: host ban time on excess activity (seconds) */
