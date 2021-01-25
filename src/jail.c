@@ -626,7 +626,7 @@ f2b_jail_cmd_ip_xxx(char *res, size_t ressize, f2b_jail_t *jail, int op, const c
         jail->sfile->need_save = true;
     } else {
       /* unban & status */
-      snprintf(res, ressize, "can't find ip '%s' in jail '%s'", ip, jail->name);
+      snprintf(res, ressize, "can't find ip '%s' in jail '%s'\n", ip, jail->name);
       return;
     }
   }
