@@ -7,6 +7,7 @@ int main() {
   bool result = false;
   size_t size = 15;
   time_t now  = time(NULL);
+  int score = 0;
 
   UNUSED(result);
 
@@ -28,6 +29,7 @@ int main() {
 
   for (size_t i = 1; i < size; i++) {
     match = f2b_match_create(now - 60 * (size - i));
+    match->score = i * 10;
     f2b_matches_prepend(&matches, match);
     assert(matches.count == i);
     assert(matches.last == now - (time_t) (60 * (size - i)));
@@ -35,6 +37,11 @@ int main() {
 
   f2b_matches_expire(&matches, now - 60 * 4);
   assert(matches.count == 3);
+
+  score = f2b_matches_score(&matches, 0);
+  assert(score == 140 + 130 + 120);
+  score = f2b_matches_score(&matches, now - 60);
+  assert(score == 140);
 
   f2b_matches_flush(&matches);
   assert(matches.count == 0);

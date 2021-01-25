@@ -54,4 +54,12 @@ void f2b_matches_prepend (f2b_matches_t *ms, f2b_match_t *m);
  */
 void f2b_matches_expire (f2b_matches_t *m, time_t before);
 
+/**
+ * @brief Get sum of scores after specified time
+ * @param m Pointer to struct
+ * @param after Only check matches after this time
+ * @returns Sum of scores
+ */
+int f2b_matches_score(f2b_matches_t *ms, time_t after);
+
 #endif /* F2B_MATCHES_H_ */

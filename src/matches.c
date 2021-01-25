@@ -69,3 +69,17 @@ f2b_matches_expire(f2b_matches_t *ms, time_t before) {
   }
   ms->last = ms->list ? ms->list->time : 0;
 }
+
+int
+f2b_matches_score(f2b_matches_t *ms, time_t after) {
+  int score = 0;
+
+  assert(ms != NULL);
+  for (f2b_match_t *match = ms->list; match != NULL; match = match->next) {
+    if (after > match->time)
+      break; /* speedhack: consider list is sorted from newest to oldest matches */
+    score += match->score;
+  }
+
+  return score;
+}
