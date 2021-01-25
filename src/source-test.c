@@ -9,12 +9,22 @@
 #include "config.h"
 #include "source.h"
 
+#include <signal.h>
+
+bool run = 1;
+
+void sigint_handler (int signal) {
+  UNUSED(signal);
+  run = 0;
+}
+
 void usage() {
   fprintf(stderr, "Usage: source-test <source.conf> <init string>\n");
   exit(EXIT_FAILURE);
 }
 
 int main(int argc, char *argv[]) {
+  struct sigaction act;
   f2b_config_t          config;
   f2b_config_section_t *section = NULL;
   f2b_source_t         *source  = NULL;
@@ -53,11 +63,18 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  while (1) {
+  memset(&act, 0x0, sizeof(act));
+  act.sa_handler = sigint_handler;
+  if (sigaction(SIGINT, &act, NULL) != 0) {
+    f2b_log_msg(log_fatal, "can't register handler for SIGINT");
+    return EXIT_FAILURE;
+  }
+
+  while (run) {
     reset = true;
     while ((stag = f2b_source_next(source, buf, sizeof(buf), reset)) > 0) {
       reset = false;
-      printf("stag: %08X, line: %s\n", stag, buf);
+      printf("stag: %08X, data: %s\n", stag, buf);
     }
     sleep(1);
   }
