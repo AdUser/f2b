@@ -121,8 +121,11 @@ f2b_backend_init(f2b_backend_t *backend, f2b_config_section_t *config) {
 void
 f2b_backend_destroy(f2b_backend_t *backend) {
   if (!backend) return;
-  backend->destroy(backend->cfg);
-  dlclose(backend->h);
+  if (backend->h) {
+    if (backend->cfg)
+      backend->destroy(backend->cfg);
+    dlclose(backend->h);
+  }
   free(backend);
 }
 

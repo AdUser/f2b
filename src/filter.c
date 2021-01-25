@@ -180,8 +180,11 @@ f2b_filter_init(f2b_filter_t *filter, f2b_config_section_t *config) {
 void
 f2b_filter_destroy(f2b_filter_t *filter) {
   if (!filter) return;
-  filter->destroy(filter->cfg);
-  dlclose(filter->h);
+  if (filter->h) {
+    if (filter->cfg)
+      filter->destroy(filter->cfg);
+    dlclose(filter->h);
+  }
   free(filter);
 }
 
