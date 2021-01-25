@@ -535,17 +535,20 @@ f2b_jail_stop(f2b_jail_t *jail) {
 
 void
 f2b_jail_cmd_status(char *res, size_t ressize, f2b_jail_t *jail) {
-  const char *fmt =
+  char buf[1024] = "";
+  const char *fmt1 =
     "name: %s\n"
     "banscore: %d\n"
     "flags:\n"
     "  enabled: %s\n"
     "  state: %s\n"
-    "  filter: %s\n"
+    "  filter: %s\n";
+  const char *fmt2 =
     "times:\n"
     "  bantime: %.1f hrs (+%d%%)\n"
     "  findtime: %.1f min (+%d%%)\n"
-    "  expiretime: %.1f min (+%d%%)\n"
+    "  expiretime: %.1f hrs (+%d%%)\n";
+  const char *fmt3 =
     "stats:\n"
     "  hosts: %d\n"
     "  matches: %d\n"
@@ -554,17 +557,24 @@ f2b_jail_cmd_status(char *res, size_t ressize, f2b_jail_t *jail) {
   assert(res  != NULL);
   assert(jail != NULL);
 
-  snprintf(res, ressize, fmt, jail->name,
-    jail->banscore,
+  snprintf(res, ressize, fmt1,
+    jail->name, jail->banscore,
     jail->flags & JAIL_ENABLED     ? "yes" : "no",
     jail->flags & JAIL_HAS_STATE   ? "yes" : "no",
-    jail->flags & JAIL_HAS_FILTER  ? "yes" : "no",
-    jail->bantime    / 3600, (int) jail->bantime_extend    * 100,
-    jail->findtime   /   60, (int) jail->findtime_extend   * 100,
-    jail->expiretime /   60, (int) jail->expiretime_extend * 100,
+    jail->flags & JAIL_HAS_FILTER  ? "yes" : "no"
+  );
+  snprintf(buf, sizeof(buf), fmt2,
+    (float) jail->bantime    / 3600, (int) (jail->bantime_extend    * 100),
+    (float) jail->findtime   /   60, (int) (jail->findtime_extend   * 100),
+    (float) jail->expiretime / 3600, (int) (jail->expiretime_extend * 100)
+  );
+  strlcat(res, buf, ressize);
+  snprintf(buf, sizeof(buf), fmt3,
     jail->stats.hosts,
     jail->stats.matches,
-    jail->stats.bans);
+    jail->stats.bans
+  );
+  strlcat(res, buf, ressize);
 }
 
 void
