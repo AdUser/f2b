@@ -107,6 +107,7 @@ file_rotated(const cfg_t *cfg, f2b_file_t *file) {
 
 static bool
 file_getline(f2b_file_t *file, char *buf, size_t bufsize) {
+  char *p;
   assert(file != NULL);
   assert(buf != NULL);
 
@@ -114,6 +115,8 @@ file_getline(f2b_file_t *file, char *buf, size_t bufsize) {
     clearerr(file->fd);
   /* fread()+EOF set is implementation defined */
   if (fgets(buf, bufsize, file->fd) != NULL) {
+    if ((p = strchr(buf, '\n')) != NULL)
+      *p = '\0'; /* strip newline(s) */
     file->lines++;
     return true;
   }
