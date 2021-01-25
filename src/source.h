@@ -78,6 +78,13 @@ bool f2b_source_start (f2b_source_t *s);
  */
 uint32_t f2b_source_next (f2b_source_t *s, char *buf, size_t bufsize, bool reset);
 /**
+ * @brief Get internal stats from source
+ * @param buf Buffer for data
+ * @param bufsize Size of buffer for data
+ * @returns true on success, false on error
+ */
+bool f2b_source_stats (f2b_source_t *s, char *buf, size_t bufsize);
+/**
  * @brief Stop given source
  * @param s Pointer to source struct
  * @returns true on success, false on error

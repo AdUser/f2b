@@ -128,6 +128,12 @@ f2b_source_next(f2b_source_t *source, char *buf, size_t bufsize, bool reset) {
   return source->next(source->cfg, buf, bufsize, reset);
 }
 
+bool
+f2b_source_stats(f2b_source_t *source, char *buf, size_t bufsize) {
+  assert(source != NULL);
+  return source->stats(source->cfg, buf, bufsize);
+}
+
 #define SOURCE_CMD_ARG0(CMD, RETURNS) \
 RETURNS \
 f2b_source_ ## CMD(f2b_source_t *source) { \
