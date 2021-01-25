@@ -45,18 +45,40 @@ f2b_ipaddr_destroy(f2b_ipaddr_t *ipaddr) {
 
 void
 f2b_ipaddr_status(f2b_ipaddr_t *addr, char *res, size_t ressize) {
+  struct tm t;
+  char buf[2048], stime[32] = "", btime1[32] = "", btime2[32] = "";
   assert(addr != NULL);
   assert(res != NULL);
-  const char *fmt =
+  const char *fmt_dt = "%Y-%m-%d %H:%M:%S";
+  const char *fmt_status =
     "ipaddr: %s\n"
-    "banned: %s\n"
-    "bancount: %u\n"
-    "matches: %u\n"
-    "lastseen: %u\n"
-    "banned_at: %u\n"
-    "release_at: %u\n";
-  snprintf(res, ressize, fmt, addr->text, addr->banned ? "yes" : "no",
-    addr->bancount, addr->matches.count, addr->lastseen, addr->banned_at, addr->release_at);
+    "lastseen: %s\n"
+    "bancount: %u\n";
+  const char *fmt_ban =
+    "banned: yes\n"
+    "bantime:\n"
+    "  from: %s\n"
+    "  to:   %s\n";
+  const char *fmt_match =
+    "  - time: %s, score: %d, stag: %08X, ftag: %08X\n";
+  strftime(stime, sizeof(stime), fmt_dt, localtime(&addr->lastseen));
+  snprintf(res, ressize, fmt_status, addr->text, stime, addr->bancount);
+  if (addr->banned) {
+    strftime(btime1, sizeof(btime1), fmt_dt, localtime_r(&addr->banned_at,  &t));
+    strftime(btime2, sizeof(btime2), fmt_dt, localtime_r(&addr->release_at, &t));
+    snprintf(buf, sizeof(buf), fmt_ban, btime1, btime2);
+    strlcat(res, buf, ressize);
+  } else {
+    strlcat(res, "banned: no\n", ressize);
+    if (addr->matches.count) {
+      strlcat(res, "matches:\n", ressize);
+      for (f2b_match_t *m = addr->matches.list; m != NULL; m = m->next) {
+        strftime(stime, sizeof(stime), fmt_dt, localtime_r(&m->time,  &t));
+        snprintf(buf, sizeof(buf), fmt_match, stime, m->score, m->stag, m->ftag);
+        strlcat(res, buf, ressize);
+      }
+    }
+  }
 }
 
 f2b_ipaddr_t *
