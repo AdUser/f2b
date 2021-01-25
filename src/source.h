@@ -29,7 +29,7 @@ typedef struct f2b_source_t {
   /** dlsym pointer to handler of @a start command */
   bool  (*start)   (void *cfg);
   /** dlsym pointer to handler of @a next command */
-  bool  (*next)    (void *cfg, char *buf, size_t bufsize, bool reset);
+  uint32_t (*next) (void *cfg, char *buf, size_t bufsize, bool reset);
   /** dlsym pointer to handler of @a stats command */
   bool  (*stats)   (void *cfg, char *buf, size_t bufsize);
   /** dlsym pointer to handler of @a stop command */
@@ -74,9 +74,9 @@ bool f2b_source_start (f2b_source_t *s);
  * @param buf Buffer for data
  * @param bufsize Size of buffer for data
  * @param reset Reset source internals
- * @returns false of no data available, true otherwise with setting @a buf
+ * @returns >0 on new data available with filling @a buf and 0 on no data/error
  */
-bool f2b_source_next (f2b_source_t *s, char *buf, size_t bufsize, bool reset);
+uint32_t f2b_source_next (f2b_source_t *s, char *buf, size_t bufsize, bool reset);
 /**
  * @brief Stop given source
  * @param s Pointer to source struct

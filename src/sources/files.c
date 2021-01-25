@@ -196,7 +196,7 @@ stop(cfg_t *cfg) {
   return true;
 }
 
-bool
+uint32_t
 next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
   assert(cfg != NULL);
   assert(buf != NULL);
@@ -213,10 +213,10 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
       continue;
     }
     if (file_getline(file, buf, bufsize))
-      return true;
+      return file->stag;
   }
 
-  return false;
+  return 0;
 }
 
 bool

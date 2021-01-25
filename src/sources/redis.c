@@ -168,9 +168,9 @@ stop(cfg_t *cfg) {
   return true;
 }
 
-bool
+uint32_t
 next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
-  bool gotit = false;
+  uint32_t res = 0;
   assert(cfg != NULL);
   assert(buf != NULL);
   assert(bufsize > 0);
@@ -180,11 +180,11 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
   if (!cfg->conn || cfg->conn->err)
     redis_connect(cfg);
   if (!cfg->conn)
-    return false; /* reconnect failure */
+    return 0; /* reconnect failure */
 
   if (cfg->conn->err) {
     log_msg(cfg, error, "connection error: %s", cfg->conn->errstr);
-    return false;
+    return 0;
   }
 
   redisReply *reply = NULL;
@@ -194,7 +194,7 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
       if (strcmp(reply->element[0]->str, "message") == 0 ||
           strcmp(reply->element[1]->str, cfg->hash) == 0) {
         strlcpy(buf, reply->element[2]->str, bufsize);
-        gotit = true;
+        res = (uint32_t) -1;
       } else {
         log_msg(cfg, error, "wrong redis message type: %s", reply->element[0]->str);
       }
@@ -208,7 +208,7 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
     log_msg(cfg, error, "can't get reply from server %s: %s", cfg->host, cfg->conn->errstr);
   }
 
-  return gotit;
+  return res;
 }
 
 bool

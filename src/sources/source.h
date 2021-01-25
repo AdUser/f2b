@@ -77,7 +77,7 @@ extern bool    start(cfg_t *cfg);
  * @param reset Reset internals to start of list
  * @returns false if no new data available, or true otherwise with filling @a buf
  */
-extern bool     next(cfg_t *cfg, char *buf, size_t bufsize, bool reset);
+extern uint32_t next(cfg_t *cfg, char *buf, size_t bufsize, bool reset);
 /**
  * @brief Get statistics for source
  * @param cfg Module handler

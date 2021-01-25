@@ -19,6 +19,7 @@ int main(int argc, char *argv[]) {
   f2b_config_section_t *section = NULL;
   f2b_source_t         *source  = NULL;
   char buf[1024] = "";
+  uint32_t stag;
   bool reset;
 
   if (argc < 3)
@@ -54,9 +55,9 @@ int main(int argc, char *argv[]) {
 
   while (1) {
     reset = true;
-    while (f2b_source_next(source, buf, sizeof(buf), reset)) {
+    while ((stag = f2b_source_next(source, buf, sizeof(buf), reset)) > 0) {
       reset = false;
-      puts(buf);
+      printf("stag: %08X, line: %s\n", stag, buf);
     }
     sleep(1);
   }

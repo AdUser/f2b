@@ -163,7 +163,7 @@ stop(cfg_t *cfg) {
   return true;
 }
 
-bool
+uint32_t
 next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
   struct sockaddr_storage addr;
   socklen_t addrlen;
@@ -191,16 +191,16 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
     close(sock);
     if (addr.ss_family == AF_INET) {
       inet_ntop(AF_INET,  &(((struct sockaddr_in *) &addr)->sin_addr), buf, bufsize);
-      return true;
+      return port->stag;
     }
     if (addr.ss_family == AF_INET6) {
       inet_ntop(AF_INET6, &(((struct sockaddr_in6 *) &addr)->sin6_addr), buf, bufsize);
-      return true;
+      return port->stag;
     }
     cfg->logcb(error, "can't convert sockaddr to string: unknown AF");
   }
 
-  return false;
+  return 0;
 }
 
 bool

@@ -122,7 +122,7 @@ f2b_source_destroy(f2b_source_t *source) {
   free(source);
 }
 
-bool
+uint32_t
 f2b_source_next(f2b_source_t *source, char *buf, size_t bufsize, bool reset) {
   assert(source != NULL);
   return source->next(source->cfg, buf, bufsize, reset);
