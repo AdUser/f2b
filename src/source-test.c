@@ -83,5 +83,7 @@ int main(int argc, char *argv[]) {
     printf("stats:\n" "%s\n", buf);
   }
 
+  f2b_source_stop(source);
+
   return EXIT_SUCCESS;
 }
