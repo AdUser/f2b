@@ -188,6 +188,7 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
     }
     port->accepts++;
     shutdown(sock, SHUT_RDWR);
+    close(sock);
     if (addr.ss_family == AF_INET) {
       inet_ntop(AF_INET,  &(((struct sockaddr_in *) &addr)->sin_addr), buf, bufsize);
       return true;
