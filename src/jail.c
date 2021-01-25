@@ -290,6 +290,7 @@ f2b_jail_process(f2b_jail_t *jail) {
       /* without filter: 1) value always matches, 2) passed as-is */
       memcpy(matchbuf, line, sizeof(matchbuf));
       ftag = 0;
+      score = MATCH_DEFSCORE;
     }
     /* find-or-create matched address in jail known hosts list */
     addr = f2b_addrlist_lookup(jail->ipaddrs, matchbuf);
