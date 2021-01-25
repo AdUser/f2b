@@ -18,6 +18,7 @@
 
 static bool
 f2b_filter_load_file(f2b_filter_t *filter, const char *path) {
+  f2b_config_param_t *param;
   FILE *f = NULL;
   size_t linenum = 0;
   char line[REGEX_LINE_MAX] = "";
@@ -55,7 +56,13 @@ f2b_filter_load_file(f2b_filter_t *filter, const char *path) {
         break;
       case ';':
       case '#':
-        /* comment line */
+        if ((p = strstr(p, "set: ")) != NULL) {
+          /* inline config line */
+          if ((param = f2b_config_param_create(p + 5)) != NULL) {
+            filter->config(filter->h, param->name, param->value);
+            free(param);
+          }
+        } /* else: just comment line */
         break;
       default:
         if (strstr(p, HOST_TOKEN) == NULL) {
