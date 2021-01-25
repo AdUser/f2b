@@ -15,7 +15,9 @@
 typedef struct f2b_match_t {
   struct f2b_match_t *next;
   time_t time;
-  /* more fields? */
+  uint32_t stag;
+  uint32_t ftag;
+   int16_t score;
 } f2b_match_t;
 
 /** matches container */
