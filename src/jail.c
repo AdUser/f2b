@@ -302,7 +302,7 @@ f2b_jail_process(f2b_jail_t *jail) {
       f2b_log_msg(log_debug, "jail '%s': found new ip %s", jail->name, matchbuf);
     }
     addr->lastseen = now;
-    f2b_matches_append(&addr->matches, match);
+    f2b_matches_prepend(&addr->matches, match);
     match = NULL; /* will create new object on next run */
     if (addr->banned) {
       if (addr->banned_at != now)
@@ -318,7 +318,7 @@ f2b_jail_process(f2b_jail_t *jail) {
       findtime = now - jail->findtime;
     }
     f2b_matches_expire(&addr->matches, findtime);
-    f2b_matches_append(&addr->matches, match);
+    f2b_matches_prepend(&addr->matches, match);
     if (addr->matches.count < jail->maxretry) {
       f2b_log_msg(log_info, "jail '%s': new match for ip %s (%zu/%zu)",
         jail->name, matchbuf, addr->matches.count, jail->maxretry);
@@ -605,7 +605,7 @@ f2b_jail_cmd_ip_xxx(char *res, size_t ressize, f2b_jail_t *jail, int op, const c
       }
       addr->lastseen = now;
       match = f2b_match_create(now);
-      f2b_matches_append(&addr->matches, match);
+      f2b_matches_prepend(&addr->matches, match);
       f2b_matches_flush(&addr->matches);
       jail->ipaddrs = f2b_addrlist_append(jail->ipaddrs, addr);
       jail->stats.hosts++;

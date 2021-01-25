@@ -32,7 +32,7 @@ f2b_matches_flush(f2b_matches_t *ms) {
 }
 
 void
-f2b_matches_append(f2b_matches_t *ms, f2b_match_t *m) {
+f2b_matches_prepend(f2b_matches_t *ms, f2b_match_t *m) {
   assert(ms != NULL);
   assert(m != NULL);
 

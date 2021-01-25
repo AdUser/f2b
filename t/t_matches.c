@@ -16,7 +16,7 @@ int main() {
   assert(match != NULL);
   assert(match->next == NULL);
 
-  f2b_matches_append(&matches, match);
+  f2b_matches_prepend(&matches, match);
   assert(matches.count == 1);
   assert(matches.last == now);
   assert(matches.list == match);
@@ -28,7 +28,7 @@ int main() {
 
   for (size_t i = 1; i < size; i++) {
     match = f2b_match_create(now - 60 * (size - i));
-    f2b_matches_append(&matches, match);
+    f2b_matches_prepend(&matches, match);
     assert(matches.count == i);
     assert(matches.last == now - (time_t) (60 * (size - i)));
   }
