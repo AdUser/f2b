@@ -230,7 +230,7 @@ stats(cfg_t *cfg, char *buf, size_t bufsize) {
   const char *fmt =
     "- path: %s\n"
     "  mtime: %s\n"
-    "  fstat: fd=%d inode=%d size=%ld pos=%ld\n"
+    "  file: fd=%d inode=%d size=%ld pos=%ld tag=%08X\n"
     "  read: %lu lines\n";
   int fd, ino; off_t sz; long pos;
   assert(cfg != NULL);
@@ -249,7 +249,7 @@ stats(cfg_t *cfg, char *buf, size_t bufsize) {
       fd = -1, ino = -1, sz = 0, pos = -1;
       strlcpy(mtime, "-", sizeof(mtime));
     }
-    snprintf(tmp, sizeof(tmp), fmt, f->path, mtime, fd, ino, sz, pos, f->lines);
+    snprintf(tmp, sizeof(tmp), fmt, f->path, mtime, fd, ino, sz, pos, f->stag, f->lines);
     strlcat(buf, tmp, bufsize);
   }
 
