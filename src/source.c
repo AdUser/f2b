@@ -106,11 +106,22 @@ f2b_source_init(f2b_source_t *source, f2b_config_section_t *config) {
   if (dlerr)
     f2b_log_msg(log_error, "source load error: %s", dlerr);
   if (source->h) {
-    if (source->cfg && source->destroy)
+    if (source->cfg && source->destroy) {
       source->destroy(source->cfg);
+      source->cfg = NULL;
+    }
     dlclose(source->h);
+    source->create  = NULL;
+    source->config  = NULL;
+    source->state   = NULL;
+    source->logcb   = NULL;
+    source->start   = NULL;
+    source->next    = NULL;
+    source->stats   = NULL;
+    source->stop    = NULL;
+    source->destroy = NULL;
+    source->h       = NULL;
   }
-  free(source);
   return false;
 }
 

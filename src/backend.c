@@ -110,11 +110,24 @@ f2b_backend_init(f2b_backend_t *backend, f2b_config_section_t *config) {
   if (dlerr)
     f2b_log_msg(log_error, "backend load error: %s", dlerr);
   if (backend->h) {
-    if (backend->cfg && backend->destroy)
+    if (backend->cfg && backend->destroy) {
       backend->destroy(backend->cfg);
+      backend->cfg = NULL;
+    }
     dlclose(backend->h);
+    backend->create  = NULL;
+    backend->config  = NULL;
+    backend->state   = NULL;
+    backend->logcb   = NULL;
+    backend->start   = NULL;
+    backend->stop    = NULL;
+    backend->ping    = NULL;
+    backend->ban     = NULL;
+    backend->unban   = NULL;
+    backend->check   = NULL;
+    backend->destroy = NULL;
+    backend->h       = NULL;
   }
-  free(backend);
   return false;
 }
 

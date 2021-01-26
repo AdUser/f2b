@@ -176,11 +176,22 @@ f2b_filter_init(f2b_filter_t *filter, f2b_config_section_t *config) {
   if (dlerr)
     f2b_log_msg(log_error, "filter load error: %s", dlerr);
   if (filter->h) {
-    if (filter->cfg && filter->destroy)
+    if (filter->cfg && filter->destroy) {
       filter->destroy(filter->cfg);
+      filter->cfg = NULL;
+    }
     dlclose(filter->h);
+    filter->create  = NULL;
+    filter->config  = NULL;
+    filter->append  = NULL;
+    filter->logcb   = NULL;
+    filter->state   = NULL;
+    filter->flush   = NULL;
+    filter->stats   = NULL;
+    filter->match   = NULL;
+    filter->destroy = NULL;
+    filter->h       = NULL;
   }
-  free(filter);
   return false;
 }
 
