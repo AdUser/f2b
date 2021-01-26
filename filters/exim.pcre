@@ -1,0 +1,11 @@
+SMTP protocol synchronization error \(input sent without waiting for greeting\): rejected connection from .*\[<HOST>\]
+SMTP protocol synchronization error \(next input sent too soon: pipelining was not advertised\): rejected .*\[<HOST>\]
+rejected EHLO from \[<HOST>\]: syntactically invalid argument
+rejected HELO from \[<HOST>\]: syntactically invalid argument
+Connection from \[<HOST>\] refused: too many connections from that IP address
+\[<HOST>\] .* host is listed in zen.spamhaus.org
+\[<HOST>\] .* host is listed in bl.spamcop.net
+\[<HOST>\] .* relay not permitted
+\[<HOST>\] .* too many connections from that IP address
+\[<HOST>\] .* rejected after DATA: This message was detected as possible malware
+\[<HOST>\] .* temporarily rejected RCPT \<\S+\>: lowest numbered MX record points to local host
