@@ -16,11 +16,12 @@
 #define HOST_TOKEN "<HOST>"
 #define FILTER_LIBRARY_PARAM "load"
 
-static bool
+static size_t
 f2b_filter_load_file(f2b_filter_t *filter, const char *path) {
   f2b_config_param_t *param;
   FILE *f = NULL;
   size_t linenum = 0;
+  size_t loaded = 0;
   char line[REGEX_LINE_MAX] = "";
   char *p, *q;
 
@@ -29,7 +30,7 @@ f2b_filter_load_file(f2b_filter_t *filter, const char *path) {
 
   if ((f = fopen(path, "r")) == NULL) {
     f2b_log_msg(log_error, "can't open regex list '%s': %s", path, strerror(errno));
-    return false;
+    return 0;
   }
 
   filter->flush(filter->cfg);
@@ -73,12 +74,13 @@ f2b_filter_load_file(f2b_filter_t *filter, const char *path) {
           f2b_log_msg(log_warn, "can't create regex from pattern at %s:%zu: %s", path, linenum, p);
           continue;
         }
+        loaded++;
         break;
     }
   }
   fclose(f);
 
-  return true;
+  return loaded;
 }
 
 f2b_filter_t *
@@ -232,11 +234,14 @@ f2b_filter_cmd_stats(char *buf, size_t bufsize, f2b_filter_t *filter) {
 
 void
 f2b_filter_cmd_reload(char *buf, size_t bufsize, f2b_filter_t *filter) {
+  size_t c = 0;
   assert(buf    != NULL);
   assert(filter != NULL);
 
   filter->flush(filter->cfg);
-  if (f2b_filter_load_file(filter, filter->init)) {
-    snprintf(buf, bufsize, "can't reload filter");
+  if ((c = f2b_filter_load_file(filter, filter->init)) > 0) {
+    snprintf(buf, bufsize, "loaded %zu regexps\n", c);
+  } else {
+    snprintf(buf, bufsize, "can't reload filter\n");
   }
 }
