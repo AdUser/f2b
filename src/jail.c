@@ -397,11 +397,7 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
     goto cleanup1;
   }
 
-  if (jail->source->flags & MOD_NEED_FILTER) {
-    if (!jail->filter) {
-      f2b_log_msg(log_error, "jail '%s': source '%s' needs filter, but jail has no one", jail->name, jail->source->name);
-      goto cleanup1;
-    }
+  if (jail->flags & JAIL_HAS_FILTER) {
     if ((section = f2b_config_section_find(config->filters, jail->filter->name)) == NULL) {
       f2b_log_msg(log_error, "jail '%s': no filter with name '%s'", jail->name, jail->filter->name);
       goto cleanup2;
@@ -410,6 +406,9 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
       f2b_log_msg(log_error, "jail '%s': no regexps loaded from '%s'", jail->name, jail->filter->init);
       goto cleanup2;
     }
+  } else if (jail->source->flags & MOD_NEED_FILTER) {
+    f2b_log_msg(log_error, "jail '%s': source '%s' needs filter, but jail has no one", jail->name, jail->source->name);
+    goto cleanup1;
   }
 
   if (!jail->backend) {
