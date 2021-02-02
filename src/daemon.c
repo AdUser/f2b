@@ -62,6 +62,7 @@ void usage(int exitcode) {
   exit(exitcode);
 }
 
+static time_t started = 0;
 static f2b_csock_t *csock = NULL;
 #ifndef WITH_CSOCKET
 /* add stubs to reduce #ifdef count */
@@ -117,6 +118,10 @@ f2b_csocket_cmd_process(const f2b_cmd_t *cmd, f2b_buf_t *res) {
   } else if (cmd->type == CMD_SHUTDOWN) {
     state = stop;
   } else if (cmd->type == CMD_STATUS) {
+    time_t uptime = time(NULL) - started;
+    len = snprintf(buf, sizeof(buf), "uptime: %ld days, %.1f hrs\n",
+      uptime / 86400, (float) (uptime % 86400) / 3600);
+    f2b_buf_append(res, buf, len);
     len = snprintf(buf, sizeof(buf), "pid: %u\npidfile: %s\n", getpid(), appconfig.pidfile_path);
     f2b_buf_append(res, buf, len);
     len = snprintf(buf, sizeof(buf), "csocket: %s\n",  appconfig.csocket_path);
@@ -340,6 +345,7 @@ int main(int argc, char *argv[]) {
   if (config.defaults)
     f2b_jail_set_defaults(config.defaults);
 
+  started = time(NULL);
   jails_start(&config);
   f2b_config_free(&config);
 
