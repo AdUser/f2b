@@ -40,8 +40,7 @@ stats(cfg_t *cfg, char *buf, size_t bufsize) {
   char tmp[PATTERN_MAX + 64];
   const char *fmt =
     "- pattern: %s\n"
-    "  matches: %d\n"
-    "  tag: %08x\n";
+    "  info: tag=%08X score=%d matches=%d\n";
 
   assert(cfg != NULL);
 
@@ -49,7 +48,7 @@ stats(cfg_t *cfg, char *buf, size_t bufsize) {
     return false;
 
   for (rx_t *rx = cfg->regexps; rx != NULL; rx = rx->next) {
-    snprintf(tmp, sizeof(tmp), fmt, rx->pattern, rx->matches, rx->ftag);
+    snprintf(tmp, sizeof(tmp), fmt, rx->pattern, rx->ftag, rx->score, rx->matches);
     strlcat(buf, tmp, bufsize);
   }
 

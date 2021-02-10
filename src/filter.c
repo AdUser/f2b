@@ -60,7 +60,7 @@ f2b_filter_load_file(f2b_filter_t *filter, const char *path) {
         if ((p = strstr(p, "set: ")) != NULL) {
           /* inline config line */
           if ((param = f2b_config_param_create(p + 5)) != NULL) {
-            filter->config(filter->h, param->name, param->value);
+            filter->config(filter->cfg, param->name, param->value);
             free(param);
           }
         } /* else: just comment line */
