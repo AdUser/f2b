@@ -106,19 +106,23 @@ file_rotated(const cfg_t *cfg, f2b_file_t *file) {
 }
 
 static bool
-file_getline(f2b_file_t *file, char *buf, size_t bufsize) {
+file_getline(const cfg_t *cfg, f2b_file_t *file, char *buf, size_t bufsize) {
   char *p;
   assert(file != NULL);
   assert(buf != NULL);
 
-  if (feof(file->fd))
-    clearerr(file->fd);
   /* fread()+EOF set is implementation defined */
   if (fgets(buf, bufsize, file->fd) != NULL) {
     if ((p = strchr(buf, '\n')) != NULL)
       *p = '\0'; /* strip newline(s) */
     file->lines++;
     return true;
+  }
+  if (feof(file->fd))
+    clearerr(file->fd);
+  if (ferror(file->fd)) {
+    log_msg(cfg, error, "file error: %s -- %s", file->path, strerror(errno));
+    clearerr(file->fd);
   }
 
   return false;
@@ -215,7 +219,7 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
       log_msg(cfg, error, "can't open file: %s", file->path);
       continue;
     }
-    if (file_getline(file, buf, bufsize))
+    if (file_getline(cfg, file, buf, bufsize))
       return file->stag;
   }
 
