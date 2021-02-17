@@ -63,6 +63,7 @@ file_open(f2b_file_t *file, const char *path) {
   memcpy(&file->st, &st, sizeof(st));
   strlcpy(file->path, buf, sizeof(file->path));
   file->fd = fd;
+  file->stag = fnv_32a_str(file->path, FNV1_32A_INIT);
 
   return true;
 }
@@ -175,7 +176,6 @@ start(cfg_t *cfg) {
       free(file);
       continue;
     }
-    file->stag = fnv_32a_str(globbuf.gl_pathv[i], FNV1_32A_INIT);
     if (cfg->files == NULL) {
       cfg->files = file;
     } else {
