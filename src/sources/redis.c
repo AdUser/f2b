@@ -66,16 +66,18 @@ redis_connect(cfg_t *cfg) {
       }
       freeReplyObject(reply);
     }
+    if ((reply = redisCommand(conn, "SUBSCRIBE %s", cfg->hash)) == NULL) {
+      log_msg(cfg, error, "can't subscribe: %s", conn->errstr);
+      break;
+    }
+    if (reply->type == REDIS_REPLY_ERROR) {
+      log_msg(cfg, error, "can't subscribe: %s", reply->str);
+      break;
+    }
     timeout.tv_sec  = 0;
     timeout.tv_usec = 10000; /* 0.01s */
     if (redisSetTimeout(conn, timeout) != REDIS_OK) {
       log_msg(cfg, error, "can't enable nonblocking mode");
-      break;
-    }
-    if ((reply = redisCommand(conn, "SUBSCRIBE %s", cfg->hash)) == NULL)
-      break;
-    if (reply->type == REDIS_REPLY_ERROR) {
-      log_msg(cfg, error, "can't subscribe: %s", reply->str);
       break;
     }
     freeReplyObject(reply);
