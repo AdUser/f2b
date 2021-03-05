@@ -1,0 +1,2 @@
+# set: defscore=5
+closed \(2nd stage\), user <> .* remote <HOST>:[0-9]+, reason: allocation watchdog determined stale session state
