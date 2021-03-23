@@ -17,15 +17,15 @@ typedef struct f2b_csock_t f2b_csock_t;
  */
 
 /**
- * @brief Create UNIX socket with given path
- * @param path Path to socket endpoint
- * @returns Socket fd
+ * @brief Create control socket
+ * @param spec String with socket path/address specification
+ * @returns Allocated socket struct
  */
-f2b_csock_t * f2b_csocket_create (const char *path);
+f2b_csock_t * f2b_csocket_create (const char *spec);
+
 /**
- * @brief Close UNIX socket and unlink endpoint
- * @param csock Socket fd
- * @param path Path to socket endpoint
+ * @brief Destroy socket struct and free resources
+ * @param csock Socket struct
  */
 void f2b_csocket_destroy(f2b_csock_t *csock);
 
