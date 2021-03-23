@@ -7,7 +7,14 @@
 #ifndef F2B_CSOCKET_H_
 #define F2B_CSOCKET_H_
 
-#define MAXCONNS 5
+#define CSOCKET_MAX_LISTEN 3
+#define CSOCKET_MAX_CLIENTS 10
+#define CSOCKET_DEFAULT_PORT "3370"
+
+/* connection flags */
+#define CSOCKET_CONN_TYPE_UNIX 0x01
+#define CSOCKET_CONN_TYPE_INET 0x02
+#define CSOCKET_CONN_NEED_AUTH 0x10
 
 typedef struct f2b_csock_t f2b_csock_t;
 
@@ -21,7 +28,7 @@ typedef struct f2b_csock_t f2b_csock_t;
  * @param spec String with socket path/address specification
  * @returns Allocated socket struct
  */
-f2b_csock_t * f2b_csocket_create (const char *spec);
+f2b_csock_t * f2b_csocket_create (f2b_config_section_t *config);
 
 /**
  * @brief Destroy socket struct and free resources

@@ -5,6 +5,7 @@
  * published by the Free Software Foundation.
  */
 #include "common.h"
+#include "config.h"
 #include "buf.h"
 #include "log.h"
 #include "commands.h"
@@ -12,6 +13,7 @@
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <netdb.h>
 #include <sys/un.h>
 #include <sys/select.h>
 
@@ -19,12 +21,20 @@ typedef struct f2b_conn_t {
   f2b_buf_t recv;
   f2b_buf_t send;
   int sock;
+  int flags;
 } f2b_conn_t;
 
-struct f2b_csock_t {
-  f2b_conn_t *clients[MAXCONNS];
-  const char *path;
+typedef struct f2b_sock_t {
+  const char *spec;
   int sock;
+} f2b_sock_t;
+
+struct f2b_csock_t {
+  f2b_sock_t *listen[CSOCKET_MAX_LISTEN];
+  f2b_conn_t *clients[CSOCKET_MAX_CLIENTS];
+  int nlisten;
+  int nclients;
+  char password[32];
 };
 
 /* helpers */
@@ -34,7 +44,7 @@ max(int a, int b) {
   return a > b ? a : b;
 }
 
-/* connection-related functions */
+/* client connection-related functions */
 
 f2b_conn_t *
 f2b_conn_create(size_t rbuf, size_t wbuf) {
@@ -124,28 +134,103 @@ f2b_conn_process(f2b_conn_t *conn, bool in, void (*cb)(const f2b_cmd_t *cmd, f2b
   return 0;
 }
 
-/* control socket-related functions */
+/* listen socket-related functions */
 
-f2b_csock_t *
-f2b_csocket_create(const char *path) {
-  f2b_csock_t *csock;
+int
+f2b_sock_create_unix(const char *path) {
   struct sockaddr_un addr;
   int sock = -1;
-
-  assert(path != NULL);
-
+  /* create socket  */
   if ((sock = socket(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0)) < 0) {
-    f2b_log_msg(log_error, "can't create control socket: %s", strerror(errno));
-    return NULL;
+    f2b_log_msg(log_error, "can't create control socket at %s", strerror(errno));
+    unlink(path);
+    return -1;
   }
-
+  /* setup */
   memset(&addr, 0x0, sizeof(addr));
   addr.sun_family = AF_UNIX;
   strlcpy(addr.sun_path, path, sizeof(addr.sun_path) - 1);
-
-  unlink(path);
+  /* try bind */
   if (bind(sock, (struct sockaddr *) &addr, sizeof(struct sockaddr_un)) != 0) {
     f2b_log_msg(log_error, "bind() on socket failed: %s", strerror(errno));
+    unlink(path);
+    return -1;
+  }
+  return sock;
+}
+
+int
+f2b_sock_create_inet(const char *addr) {
+  struct addrinfo hints;
+  struct addrinfo *res;
+  char host[128] = "";
+  char *port = NULL;
+  int ret, sock;
+  strlcpy(host, addr, sizeof(host));
+  /* detect host/port pair */
+  if ((port = strstr(host, "]:")) != NULL) {
+    /* ipv6 + port */
+    *port = '\0'; port += 2;
+  } else if (host[0] == '[') {
+    /* ipv6 without port */
+    port = CSOCKET_DEFAULT_PORT;
+  } else if (strstr(host, "::") != NULL) {
+    /* also ipv6 without port */
+    port = CSOCKET_DEFAULT_PORT;
+  } else if ((port = strstr(host, ":")) != 0) {
+    /* ipv4 + port */
+    *port = '\0'; port += 1;
+  } else {
+    /* ipv4 without port */
+    port = CSOCKET_DEFAULT_PORT;
+  }
+  /* setup getaddrinfo() structs */
+  memset(&hints, 0, sizeof(struct addrinfo));
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_protocol = 0;
+  /* resolve hostname */
+  if ((ret = getaddrinfo(host, port, &hints, &res)) < 0) {
+    f2b_log_msg(log_error, "getaddrinfo(): %s", gai_strerror(ret));
+    return -1;
+  }
+  if (!res) {
+    f2b_log_msg(log_error, "can't resolve hostname");
+    return -1;
+  }
+  /* handle results */
+  res[0].ai_socktype |= SOCK_NONBLOCK;
+  sock = socket(res[0].ai_family, res[0].ai_socktype, res[0].ai_protocol);
+  if (sock >= 0) {
+    if (bind(sock, res[0].ai_addr, res[0].ai_addrlen) != 0) {
+      f2b_log_msg(log_error, "bind() on socket failed: %s", strerror(errno));
+      sock = -1;
+    }
+  } else {
+    f2b_log_msg(log_error, "can't create socket: %s", strerror(errno));
+  }
+  freeaddrinfo(res);
+  return sock;
+}
+
+f2b_sock_t *
+f2b_sock_create(const char *spec) {
+  f2b_sock_t *s = NULL;
+  int sock = -1;
+
+  assert(spec != NULL);
+
+  if (strncmp(spec, "unix:", 5) == 0) {
+    sock = f2b_sock_create_unix(spec + 5);
+  } else if (strncmp(spec, "inet:", 5) == 0) {
+    sock = f2b_sock_create_inet(spec + 5);
+  } else {
+    f2b_log_msg(log_error, "unknown type of 'listen' in config: %s", spec);
+    return NULL;
+  }
+
+  if (sock < 0) {
+    /* errors already logged */
     return NULL;
   }
 
@@ -154,35 +239,80 @@ f2b_csocket_create(const char *path) {
     return NULL;
   }
 
+  if ((s = calloc(1, sizeof(f2b_sock_t))) != NULL) {
+    f2b_log_msg(log_debug, "created control socket: %s", spec + 5);
+    s->sock = sock;
+    s->spec = spec;
+    return s;
+  }
+
+  shutdown(sock, SHUT_RDWR);
+  return NULL;
+}
+
+void
+f2b_sock_destroy(f2b_sock_t *sock) {
+  assert(sock != NULL);
+  shutdown(sock->sock, SHUT_RDWR);
+  if (strncmp(sock->spec, "unix:", 5) == 0)
+    unlink(sock->spec + 5);
+  free(sock);
+}
+
+/* control socket-related functions */
+
+f2b_csock_t *
+f2b_csocket_create(f2b_config_section_t *config) {
+  f2b_csock_t *csock = NULL;
+  f2b_sock_t *sock = NULL;
+
   if ((csock = calloc(1, sizeof(f2b_csock_t))) == NULL) {
     f2b_log_msg(log_error, "can't allocate memory for csocket struct");
-    shutdown(sock, SHUT_RDWR);
-    unlink(path);
     return NULL;
   }
 
-  csock->sock = sock;
-  csock->path = path;
+  for (f2b_config_param_t *p = config->param; p != NULL; p = p->next) {
+    if (strcmp(p->name, "listen") == 0) {
+      if (csock->nlisten >= CSOCKET_MAX_LISTEN) {
+        f2b_log_msg(log_error, "ignoring excess 'listen' directive: %s", p->value);
+        continue;
+      }
+      if ((sock = f2b_sock_create(p->value)) != NULL) {
+        csock->listen[csock->nlisten] = sock;
+        csock->nlisten++;
+      }
+    }
+    if (strcmp(p->name, "password") == 0) {
+      strlcpy(csock->password, p->value, sizeof(csock->password));
+    }
+  }
+  if (csock->nlisten == 0) {
+    f2b_csocket_destroy(csock);
+    return NULL;
+  }
+  /* TODO: random password */
   return csock;
 }
 
 void
 f2b_csocket_destroy(f2b_csock_t *csock) {
+  f2b_sock_t *sock = NULL;
   f2b_conn_t *conn = NULL;
   assert(csock != NULL);
 
-  if (csock->sock >= 0)
-    shutdown(csock->sock, SHUT_RDWR);
-  if (csock->path != NULL)
-    unlink(csock->path);
-  for (int i = 0; i < MAXCONNS; i++) {
+  for (int i = 0; i < CSOCKET_MAX_LISTEN; i++) {
+    if ((sock = csock->listen[i]) == NULL)
+      continue;
+    f2b_sock_destroy(csock->listen[i]);
+    csock->listen[i] = NULL;
+  }
+  for (int i = 0; i < CSOCKET_MAX_CLIENTS; i++) {
     if ((conn = csock->clients[i]) == NULL)
       continue;
     f2b_conn_destroy(conn);
     csock->clients[i] = NULL;
   }
   free(csock);
-
   return;
 }
 
@@ -193,7 +323,7 @@ f2b_csocket_poll(f2b_csock_t *csock, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t 
   socklen_t peerlen = 0;
   fd_set rfds, wfds;
   f2b_conn_t *conn = NULL;
-  int retval, nfds;
+  int retval, sock, nfds = 0;
 
   assert(csock != NULL);
   assert(cb != NULL);
@@ -202,17 +332,20 @@ f2b_csocket_poll(f2b_csock_t *csock, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t 
   FD_ZERO(&rfds);
   FD_ZERO(&wfds);
 
-  FD_SET(csock->sock, &rfds); /* watch for new connections */
+  for (int i = 0; i < csock->nlisten; i++) {
+    sock = csock->listen[i]->sock;
+    FD_SET(sock, &rfds); /* watch for new connections */
+    nfds = max(nfds, sock);
+  }
 
   /* watch for new data on established connections */
-  nfds = csock->sock;
-  for (int cnum = 0; cnum < MAXCONNS; cnum++) {
+  for (int cnum = 0; cnum < CSOCKET_MAX_CLIENTS; cnum++) {
     if ((conn = csock->clients[cnum]) == NULL)
       continue;
     FD_SET(conn->sock, &rfds);
     if (conn->send.used)
       FD_SET(conn->sock, &wfds);
-    nfds = max(csock->sock, conn->sock);
+    nfds = max(nfds, conn->sock);
   }
 
   /* check for new data */
@@ -231,17 +364,19 @@ f2b_csocket_poll(f2b_csock_t *csock, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t 
     return; /* no new data */
 
   /* new connection on listening socket? */
-  if (FD_ISSET(csock->sock, &rfds)) {
+  for (int i = 0; i < csock->nlisten; i++) {
+    if (!FD_ISSET(csock->listen[i]->sock, &rfds))
+      continue;
     /* find free connection slot */
     int cnum = 0;
-    for (int cnum = 0; cnum < MAXCONNS; cnum++) {
+    for (int cnum = 0; cnum < CSOCKET_MAX_CLIENTS; cnum++) {
       if (csock->clients[cnum] == NULL) break;
     }
     int sock = -1;
     /* accept() new connection */
-    if ((sock = accept(csock->sock, NULL, NULL)) < 0) {
+    if ((sock = accept(csock->listen[i]->sock, NULL, NULL)) < 0) {
       f2b_log_msg(log_error, "can't accept() new connection: %s", strerror(errno));
-    } else if (cnum < MAXCONNS) {
+    } else if (cnum < CSOCKET_MAX_CLIENTS) {
       peerlen = sizeof(peer);
       if (getsockopt(sock, SOL_SOCKET, SO_PEERCRED, &peer, &peerlen) < 0)
         f2b_log_msg(log_error, "can't get remote peer credentials: %s", strerror(errno));
@@ -258,7 +393,7 @@ f2b_csocket_poll(f2b_csock_t *csock, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t 
     }
   }
 
-  for (int cnum = 0; cnum < MAXCONNS; cnum++) {
+  for (int cnum = 0; cnum < CSOCKET_MAX_CLIENTS; cnum++) {
     if ((conn = csock->clients[cnum]) == NULL)
       continue;
     retval = f2b_conn_process(conn, FD_ISSET(conn->sock, &rfds), cb);
