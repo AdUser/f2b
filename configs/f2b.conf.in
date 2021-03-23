@@ -23,6 +23,15 @@ banscore = 50
 source   = files:/var/log/messages
 backend  = exec-ipset:banned
 
+[csocket]
+listen = unix:/var/run/f2b.sock
+;listen = inet:localhost
+;listen = inet:192.168.1.1
+;listen = inet:[::1]:12345
+; auth used only for 'inet' connections
+; if password not set - it will be generated on each restart, see logs
+;password = <something-long-enough>
+
 [jail:ssh]
 source  = files:/var/log/auth.log
 filter  = preg:${CMAKE_INSTALL_FULL_DATAROOTDIR}/f2b/filters/ssh.preg
