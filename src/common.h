@@ -36,10 +36,7 @@
  * Self-descriptive
  */
 #define DEFAULT_PIDFILE_PATH "/var/run/f2b.pid"
-/**
- * Default path of unix control socket
- */
-#define DEFAULT_CSOCKET_PATH "/var/run/f2b.sock"
+
 /**
  * Default path of directory to store ip states for jails
  */

@@ -30,7 +30,7 @@ add_executable("f2b-filter-test" ${SOURCES})
 set(SOURCES "strlcpy.c" "backend-test.c" "log.c" "config.c" "backend.c")
 add_executable("f2b-backend-test" ${SOURCES})
 
-set(SOURCES "strlcpy.c" "csocket-test.c" "log.c" "buf.c" "commands.c" "csocket.c")
+set(SOURCES "strlcpy.c" "csocket-test.c" "log.c" "buf.c" "config.c" "commands.c" "csocket.c")
 add_executable("f2b-csocket-test" ${SOURCES})
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")

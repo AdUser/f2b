@@ -15,6 +15,8 @@
 #include <sys/socket.h>
 #include <signal.h>
 
+#define DEFAULT_CSOCKET_PATH "/var/run/f2b.sock"
+
 #ifdef WITH_READLINE
   #include <readline/readline.h>
   #include <readline/history.h>

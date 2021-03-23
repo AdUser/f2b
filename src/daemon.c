@@ -67,7 +67,7 @@ static f2b_csock_t *csock = NULL;
 #ifndef WITH_CSOCKET
 /* add stubs to reduce #ifdef count */
 f2b_csock_t *
-f2b_csocket_create (const char *path) {
+f2b_csocket_create (f2b_config_section_t *config) {
   UNUSED(path);
   f2b_log_msg(log_warn, "control socket support was disabled at compile-time");
   return NULL;
@@ -123,8 +123,6 @@ f2b_csocket_cmd_process(const f2b_cmd_t *cmd, f2b_buf_t *res) {
       uptime / 86400, (float) (uptime % 86400) / 3600);
     f2b_buf_append(res, buf, len);
     len = snprintf(buf, sizeof(buf), "pid: %u\npidfile: %s\n", getpid(), appconfig.pidfile_path);
-    f2b_buf_append(res, buf, len);
-    len = snprintf(buf, sizeof(buf), "csocket: %s\n",  appconfig.csocket_path);
     f2b_buf_append(res, buf, len);
     len = snprintf(buf, sizeof(buf), "statedir: %s\n", appconfig.statedir_path);
     f2b_buf_append(res, buf, len);
@@ -338,8 +336,8 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  if (appconfig.csocket_path[0] != '\0') {
-    csock = f2b_csocket_create(appconfig.csocket_path);
+  if (config.csocket) {
+    csock = f2b_csocket_create(config.csocket);
   }
 
   if (config.defaults)

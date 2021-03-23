@@ -16,7 +16,6 @@ typedef struct f2b_appconfig_t {
   char logdest[CONFIG_KEY_MAX];
   char config_path[PATH_MAX];
   char logfile_path[PATH_MAX];
-  char csocket_path[PATH_MAX];
   char pidfile_path[PATH_MAX];
   char statedir_path[PATH_MAX];
 } f2b_appconfig_t;

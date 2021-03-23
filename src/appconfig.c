@@ -21,7 +21,6 @@ f2b_appconfig_t appconfig = {
   .logdest = "file",
   .config_path   = "/etc/f2b/f2b.conf",
   .logfile_path  = "/var/log/f2b.log",
-  .csocket_path  = DEFAULT_CSOCKET_PATH,
   .pidfile_path  = DEFAULT_PIDFILE_PATH,
   .statedir_path = DEFAULT_STATEDIR_PATH,
 };
@@ -57,9 +56,6 @@ f2b_appconfig_update(f2b_config_section_t *section) {
 
   if ((pa = f2b_config_param_find(section->param, "pidfile")) != NULL)
     strlcpy(appconfig.pidfile_path, pa->value, sizeof(appconfig.pidfile_path));
-
-  if ((pa = f2b_config_param_find(section->param, "csocket")) != NULL)
-    strlcpy(appconfig.csocket_path, pa->value, sizeof(appconfig.csocket_path));
 
   if ((pa = f2b_config_param_find(section->param, "statedir")) != NULL)
     strlcpy(appconfig.statedir_path, pa->value, sizeof(appconfig.statedir_path));
