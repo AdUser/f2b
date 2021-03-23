@@ -126,6 +126,12 @@ f2b_config_section_create(const char *src) {
     return section;
   }
 
+  name = "csocket";
+  if (strncmp(line, name, strlen(name)) == 0) {
+    section->type = t_csocket;
+    return section;
+  }
+
   name = "defaults";
   if (strncmp(line, name, strlen(name)) == 0) {
     section->type = t_defaults;
@@ -184,6 +190,7 @@ f2b_config_section_append(f2b_config_t *config, f2b_config_section_t *section) {
 
   switch (section->type) {
     case t_main:     s = &config->main;     break;
+    case t_csocket:  s = &config->csocket;  break;
     case t_defaults: s = &config->defaults; break;
     case t_source:   s = &config->sources;  break;
     case t_filter:   s = &config->filters;  break;

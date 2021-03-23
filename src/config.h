@@ -32,6 +32,7 @@
 typedef enum f2b_section_type {
   t_unknown = 0, /**< default value */
   t_main,        /**< [main] section */
+  t_csocket,     /**< [csocket] section */
   t_defaults,    /**< [defaults] section */
   t_source,      /**< [source:*] section */
   t_filter,      /**< [filter:*] section */
@@ -58,6 +59,7 @@ typedef struct f2b_config_section_t {
 /** topmost f2b config struct */
 typedef struct f2b_config_t {
   f2b_config_section_t *main;      /**< section [main] */
+  f2b_config_section_t *csocket;   /**< section [csocket] */
   f2b_config_section_t *defaults;  /**< section [defaults]   */
   f2b_config_section_t *sources;   /**< sections [source:*]  */
   f2b_config_section_t *filters;   /**< sections [filter:*]  */
