@@ -265,6 +265,7 @@ f2b_csock_t *
 f2b_csocket_create(f2b_config_section_t *config) {
   f2b_csock_t *csock = NULL;
   f2b_sock_t *sock = NULL;
+  bool need_pass = false;
 
   if ((csock = calloc(1, sizeof(f2b_csock_t))) == NULL) {
     f2b_log_msg(log_error, "can't allocate memory for csocket struct");
@@ -280,6 +281,8 @@ f2b_csocket_create(f2b_config_section_t *config) {
       if ((sock = f2b_sock_create(p->value)) != NULL) {
         csock->listen[csock->nlisten] = sock;
         csock->nlisten++;
+        if (strncmp(p->value, "inet:", 5) == 0)
+          need_pass = true;
       }
     }
     if (strcmp(p->name, "password") == 0) {
@@ -290,7 +293,10 @@ f2b_csocket_create(f2b_config_section_t *config) {
     f2b_csocket_destroy(csock);
     return NULL;
   }
-  /* TODO: random password */
+  if (need_pass && strcmp(csock->password, "") == 0) {
+    snprintf(csock->password, sizeof(csock->password), "%lx+%lX", random(), random());
+    f2b_log_msg(log_info, "set random password for control socket: %s", csock->password);
+  }
   return csock;
 }
 
