@@ -88,7 +88,7 @@ void
 f2b_csocket_cmd_process(const f2b_cmd_t *cmd, f2b_buf_t *res) {
   f2b_jail_t *jail = NULL;
   char buf[4096] = "";
-  size_t len;
+  size_t len = 0;
 
   assert(cmd != NULL);
   assert(res != NULL);
