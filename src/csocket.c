@@ -22,6 +22,7 @@ typedef struct f2b_conn_t {
   f2b_buf_t send;
   int sock;
   int flags;
+  const char *password;
   char peer[40]; /* remote address ipv4/ipv6 */
 } f2b_conn_t;
 
@@ -70,6 +71,35 @@ f2b_conn_destroy(f2b_conn_t *conn) {
   free(conn);
 }
 
+bool
+f2b_conn_check_auth(f2b_conn_t *conn, f2b_cmd_t *cmd) {
+  assert(conn != NULL);
+  assert(cmd  != NULL);
+
+  if ((conn->flags & CSOCKET_CONN_NEED_AUTH) == 0)
+    return true; /* not needed */
+
+  if (conn->flags & CSOCKET_CONN_AUTH_OK)
+    return true; /* already passed */
+
+  if (cmd->type == CMD_AUTH) {
+    if (strcmp(cmd->args[1], "plain") == 0) {
+      if (strcmp(cmd->args[2], conn->password) == 0) {
+        conn->flags |= CSOCKET_CONN_AUTH_OK;
+        f2b_buf_append(&conn->send, "+ok\n", 0);
+        return true;
+      } else {
+        f2b_log_msg(log_error, "csocket auth failure from %s: password mismatch", conn->peer);
+      }
+    } else {
+      f2b_log_msg(log_error, "csocket auth failure from %s: unknown auth method", conn->peer);
+    }
+  } /* else: other command */
+
+  f2b_buf_append(&conn->send, "-unauthorized\n", 0);
+  return false;
+}
+
 int
 f2b_conn_process(f2b_conn_t *conn, bool in, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t *res)) {
   f2b_cmd_t *cmd = NULL;
@@ -108,7 +138,9 @@ f2b_conn_process(f2b_conn_t *conn, bool in, void (*cb)(const f2b_cmd_t *cmd, f2b
         }
         f2b_log_msg(log_debug, "extracted line: %s", line);
         if ((cmd = f2b_cmd_create(line)) != NULL) {
-          cb(cmd, &conn->send); /* handle command */
+          if (f2b_conn_check_auth(conn, cmd)) {
+            cb(cmd, &conn->send); /* handle command */
+          }
           f2b_cmd_destroy(cmd);
         } else {
           f2b_buf_append(&conn->send, "-can't parse input, try 'help'\n", 0);
@@ -411,6 +443,7 @@ f2b_csocket_poll(f2b_csock_t *csock, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t 
           conn->flags |= CSOCKET_CONN_NEED_AUTH;
         }
         conn->sock = sock;
+        conn->password = csock->password;
         csock->clients[cnum] = conn;
       } else {
         f2b_log_msg(log_error, "can't create new connection");

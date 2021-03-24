@@ -21,6 +21,11 @@ struct cmd_desc {
     .tokens = { "help", NULL },
     .help = "Show available commands",
   }, {
+    .type = CMD_AUTH,
+    .argc = 2, .tokenc = 3,
+    .tokens = { "auth", "<type>", "<password>", NULL },
+    .help = "Check authorization (available types is: plain)",
+  }, {
     .type = CMD_STATUS,
     .argc = 0, .tokenc = 1,
     .tokens = { "status", NULL },
@@ -204,6 +209,10 @@ f2b_cmd_parse(f2b_cmd_t *cmd, const char *src) {
     }
     if (cmd->argc == 4 && strcmp(cmd->args[2], "filter") == 0 && strcmp(cmd->args[3], "reload") == 0) {
       cmd->type = CMD_JAIL_FILTER_RELOAD; return true;
+    }
+  } else if (strcmp(cmd->args[0], "auth") == 0 && cmd->argc > 1) {
+    if (cmd->argc == 3 && strcmp(cmd->args[1], "plain") == 0) {
+      cmd->type = CMD_AUTH; return true;
     }
   } else if (strcmp(cmd->args[0], "log") == 0 && cmd->argc > 1) {
     if (cmd->argc == 2 && strcmp(cmd->args[1], "rotate") == 0) {

@@ -18,6 +18,7 @@
 
 enum f2b_command_type {
   CMD_UNKNOWN = 0,  /**< unset */
+  CMD_AUTH,         /**< authorization */
   CMD_HELP,         /**< show help for commands */
   CMD_STATUS,       /**< show general status of f2b daemon */
   CMD_RELOAD,       /**< reload all jails */
