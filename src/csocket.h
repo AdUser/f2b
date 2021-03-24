@@ -14,8 +14,7 @@
 /* connection flags */
 #define CSOCKET_CONN_TYPE_UNIX 0x01
 #define CSOCKET_CONN_TYPE_INET 0x02
-#define CSOCKET_CONN_NEED_AUTH 0x04
-#define CSOCKET_CONN_AUTH_OK   0x08
+#define CSOCKET_CONN_AUTH_OK   0x04
 
 typedef struct f2b_csock_t f2b_csock_t;
 

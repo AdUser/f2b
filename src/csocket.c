@@ -73,59 +73,61 @@ f2b_conn_destroy(f2b_conn_t *conn) {
   free(conn);
 }
 
+void
+f2b_conn_update_challenge(f2b_conn_t *conn) {
+  char buf[64] = "";
+  MD5_CTX md5;
+  memset(&md5, 0x0, sizeof(md5));
+  snprintf(buf, sizeof(buf), "%08lx+%ld", random(), time(NULL));
+  MD5Init(&md5);
+  MD5Update(&md5, buf, strlen(buf));
+  MD5Final(&md5);
+  strlcpy(conn->challenge, md5.string, sizeof(conn->challenge));
+}
+
+void
+f2b_conn_send_unauth(f2b_conn_t *conn) {
+  f2b_buf_append(&conn->send, "-unauthorized: ", 0);
+  f2b_buf_append(&conn->send, conn->challenge, 0);
+  f2b_buf_append(&conn->send, "\n", 0);
+}
+
 bool
 f2b_conn_check_auth(f2b_conn_t *conn, f2b_cmd_t *cmd) {
-  char buf[64] = "";
   MD5_CTX md5;
 
   assert(conn != NULL);
   assert(cmd  != NULL);
 
-  if ((conn->flags & CSOCKET_CONN_NEED_AUTH) == 0)
-    return true; /* not needed */
-
-  if (conn->flags & CSOCKET_CONN_AUTH_OK)
-    return true; /* already passed */
-
-  if (cmd->type == CMD_AUTH) {
-    if (strcmp(cmd->args[1], "plain") == 0) {
-      if (strcmp(cmd->args[2], conn->password) == 0) {
-        conn->flags |= CSOCKET_CONN_AUTH_OK;
-        f2b_buf_append(&conn->send, "+ok\n", 0);
-        return true;
-      } else {
-        f2b_log_msg(log_error, "csocket auth failure from %s: password mismatch", conn->peer);
-      }
-    } else if (strcmp(cmd->args[1], "challenge") == 0) {
-      MD5Init(&md5);
-      MD5Update(&md5, conn->challenge, strlen(conn->challenge));
-      MD5Update(&md5, conn->password, strlen(conn->password));
-      MD5Final(&md5);
-      memset(conn->challenge, 0x0, sizeof(conn->challenge)); /* reset */
-      if (strcmp(cmd->args[2], md5.string) == 0) {
-        conn->flags |= CSOCKET_CONN_AUTH_OK;
-        f2b_buf_append(&conn->send, "+ok\n", 0);
-        return true;
-      } else {
-        f2b_log_msg(log_error, "csocket auth failure from %s: password mismatch", conn->peer);
-      }
-    } else {
-      f2b_log_msg(log_error, "csocket auth failure from %s: unknown auth method", conn->peer);
-    }
-  } /* else: other command */
-
-  if (!conn->challenge[0]) {
-    /* generate new nonce if empty */
-    snprintf(buf, sizeof(buf), "%08lx+%08lX", random(), random());
-    MD5Init(&md5);
-    MD5Update(&md5, buf, strlen(buf));
-    MD5Final(&md5);
-    strlcpy(conn->challenge, md5.string, sizeof(conn->challenge));
+  if (conn->flags & CSOCKET_CONN_AUTH_OK) {
+    f2b_buf_append(&conn->send, "+already authorized\n", 0);
+    return true;
   }
 
-  f2b_buf_append(&conn->send, "-unauthorized: ", 0);
-  f2b_buf_append(&conn->send, conn->challenge, 0);
-  f2b_buf_append(&conn->send, "\n", 0);
+  if (strcmp(cmd->args[1], "plain") == 0) {
+    if (strcmp(cmd->args[2], conn->password) == 0) {
+      conn->flags |= CSOCKET_CONN_AUTH_OK;
+      f2b_buf_append(&conn->send, "+ok\n", 0);
+      return true;
+    }
+    f2b_log_msg(log_error, "csocket auth failure from %s: password mismatch", conn->peer);
+  } else if (strcmp(cmd->args[1], "challenge") == 0) {
+    MD5Init(&md5);
+    MD5Update(&md5, conn->challenge, strlen(conn->challenge));
+    MD5Update(&md5, conn->password, strlen(conn->password));
+    MD5Final(&md5);
+    if (strcmp(cmd->args[2], md5.string) == 0) {
+      conn->flags |= CSOCKET_CONN_AUTH_OK;
+      f2b_buf_append(&conn->send, "+ok\n", 0);
+      return true;
+    }
+    f2b_log_msg(log_error, "csocket auth failure from %s: password mismatch", conn->peer);
+  } else {
+    f2b_log_msg(log_error, "csocket auth failure from %s: unknown auth method", conn->peer);
+  }
+
+  f2b_conn_update_challenge(conn);
+  f2b_conn_send_unauth(conn);
   return false;
 }
 
@@ -167,15 +169,21 @@ f2b_conn_process(f2b_conn_t *conn, bool in, void (*cb)(const f2b_cmd_t *cmd, f2b
         }
         f2b_log_msg(log_debug, "extracted line: %s", line);
         if ((cmd = f2b_cmd_create(line)) != NULL) {
-          if (f2b_conn_check_auth(conn, cmd)) {
+          if (cmd->type == CMD_AUTH) {
+            f2b_conn_check_auth(conn, cmd);
+          } else if (conn->flags & CSOCKET_CONN_AUTH_OK) {
             cb(cmd, &conn->send); /* handle command */
+          } else {
+            f2b_conn_send_unauth(conn);
           }
           f2b_cmd_destroy(cmd);
+        } else if (conn->flags & CSOCKET_CONN_AUTH_OK) {
+          f2b_buf_append(&conn->send, "-unknown command, try 'help'\n", 0);
         } else {
-          f2b_buf_append(&conn->send, "-can't parse input, try 'help'\n", 0);
+          f2b_conn_send_unauth(conn);
         }
         free(line);
-      }
+      } /* while (f2b_buf_extract()) */
       if (conn->recv.used >= conn->recv.size) {
         f2b_log_msg(log_error, "drop connection on socket %d, recv buffer overflow", conn->sock);
         return -1;
@@ -361,7 +369,7 @@ f2b_csocket_create(f2b_config_section_t *config) {
     return NULL;
   }
   if (need_pass && strcmp(csock->password, "") == 0) {
-    snprintf(csock->password, sizeof(csock->password), "%lx+%lX", random(), random());
+    snprintf(csock->password, sizeof(csock->password), "%lx+%ld", random(), time(NULL));
     f2b_log_msg(log_info, "set random password for control socket: %s", csock->password);
   }
   return csock;
@@ -462,6 +470,7 @@ f2b_csocket_poll(f2b_csock_t *csock, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t 
           } else {
             f2b_log_msg(log_debug, "new local connection from uid %d, socket %d", peer.uid, sock);
           }
+          conn->flags |= CSOCKET_CONN_AUTH_OK;
         } else /* CSOCKET_CONN_TYPE_INET */ {
           if (addr.ss_family == AF_INET) {
             inet_ntop(AF_INET,  &(((struct sockaddr_in *) &addr)->sin_addr),  conn->peer, sizeof(conn->peer));
@@ -469,10 +478,10 @@ f2b_csocket_poll(f2b_csock_t *csock, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t 
             inet_ntop(AF_INET6, &(((struct sockaddr_in6 *) &addr)->sin6_addr), conn->peer, sizeof(conn->peer));
           }
           f2b_log_msg(log_debug, "new remote connection from %s, socket %d", conn->peer, sock);
-          conn->flags |= CSOCKET_CONN_NEED_AUTH;
         }
         conn->sock = sock;
         conn->password = csock->password;
+        f2b_conn_update_challenge(conn);
         csock->clients[cnum] = conn;
       } else {
         f2b_log_msg(log_error, "can't create new connection");
