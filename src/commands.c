@@ -24,7 +24,7 @@ struct cmd_desc {
     .type = CMD_AUTH,
     .argc = 2, .tokenc = 3,
     .tokens = { "auth", "<type>", "<password>", NULL },
-    .help = "Check authorization (available types is: plain)",
+    .help = "Check authorization (available types is: plain, challenge)",
   }, {
     .type = CMD_STATUS,
     .argc = 0, .tokenc = 1,
@@ -212,6 +212,9 @@ f2b_cmd_parse(f2b_cmd_t *cmd, const char *src) {
     }
   } else if (strcmp(cmd->args[0], "auth") == 0 && cmd->argc > 1) {
     if (cmd->argc == 3 && strcmp(cmd->args[1], "plain") == 0) {
+      cmd->type = CMD_AUTH; return true;
+    }
+    if (cmd->argc == 3 && strcmp(cmd->args[1], "challenge") == 0) {
       cmd->type = CMD_AUTH; return true;
     }
   } else if (strcmp(cmd->args[0], "log") == 0 && cmd->argc > 1) {

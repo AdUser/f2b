@@ -8,6 +8,7 @@
 #include "config.h"
 #include "buf.h"
 #include "log.h"
+#include "md5.h"
 #include "commands.h"
 #include "csocket.h"
 
@@ -24,6 +25,7 @@ typedef struct f2b_conn_t {
   int flags;
   const char *password;
   char peer[40]; /* remote address ipv4/ipv6 */
+  char challenge[40]; /* md5() of random string, nonce for auth */
 } f2b_conn_t;
 
 typedef struct f2b_sock_t {
@@ -73,6 +75,9 @@ f2b_conn_destroy(f2b_conn_t *conn) {
 
 bool
 f2b_conn_check_auth(f2b_conn_t *conn, f2b_cmd_t *cmd) {
+  char buf[64] = "";
+  MD5_CTX md5;
+
   assert(conn != NULL);
   assert(cmd  != NULL);
 
@@ -91,12 +96,36 @@ f2b_conn_check_auth(f2b_conn_t *conn, f2b_cmd_t *cmd) {
       } else {
         f2b_log_msg(log_error, "csocket auth failure from %s: password mismatch", conn->peer);
       }
+    } else if (strcmp(cmd->args[1], "challenge") == 0) {
+      MD5Init(&md5);
+      MD5Update(&md5, conn->challenge, strlen(conn->challenge));
+      MD5Update(&md5, conn->password, strlen(conn->password));
+      MD5Final(&md5);
+      memset(conn->challenge, 0x0, sizeof(conn->challenge)); /* reset */
+      if (strcmp(cmd->args[2], md5.string) == 0) {
+        conn->flags |= CSOCKET_CONN_AUTH_OK;
+        f2b_buf_append(&conn->send, "+ok\n", 0);
+        return true;
+      } else {
+        f2b_log_msg(log_error, "csocket auth failure from %s: password mismatch", conn->peer);
+      }
     } else {
       f2b_log_msg(log_error, "csocket auth failure from %s: unknown auth method", conn->peer);
     }
   } /* else: other command */
 
-  f2b_buf_append(&conn->send, "-unauthorized\n", 0);
+  if (!conn->challenge[0]) {
+    /* generate new nonce if empty */
+    snprintf(buf, sizeof(buf), "%08lx+%08lX", random(), random());
+    MD5Init(&md5);
+    MD5Update(&md5, buf, strlen(buf));
+    MD5Final(&md5);
+    strlcpy(conn->challenge, md5.string, sizeof(conn->challenge));
+  }
+
+  f2b_buf_append(&conn->send, "-unauthorized: ", 0);
+  f2b_buf_append(&conn->send, conn->challenge, 0);
+  f2b_buf_append(&conn->send, "\n", 0);
   return false;
 }
 
