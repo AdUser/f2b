@@ -22,11 +22,13 @@ typedef struct f2b_conn_t {
   f2b_buf_t send;
   int sock;
   int flags;
+  char peer[40]; /* remote address ipv4/ipv6 */
 } f2b_conn_t;
 
 typedef struct f2b_sock_t {
   const char *spec;
   int sock;
+  int flags;
 } f2b_sock_t;
 
 struct f2b_csock_t {
@@ -217,13 +219,16 @@ f2b_sock_t *
 f2b_sock_create(const char *spec) {
   f2b_sock_t *s = NULL;
   int sock = -1;
+  int flags = 0;
 
   assert(spec != NULL);
 
   if (strncmp(spec, "unix:", 5) == 0) {
     sock = f2b_sock_create_unix(spec + 5);
+    flags |= CSOCKET_CONN_TYPE_UNIX;
   } else if (strncmp(spec, "inet:", 5) == 0) {
     sock = f2b_sock_create_inet(spec + 5);
+    flags |= CSOCKET_CONN_TYPE_INET;
   } else {
     f2b_log_msg(log_error, "unknown type of 'listen' in config: %s", spec);
     return NULL;
@@ -243,6 +248,7 @@ f2b_sock_create(const char *spec) {
     f2b_log_msg(log_debug, "created control socket: %s", spec + 5);
     s->sock = sock;
     s->spec = spec;
+    s->flags = flags;
     return s;
   }
 
@@ -325,11 +331,11 @@ f2b_csocket_destroy(f2b_csock_t *csock) {
 void
 f2b_csocket_poll(f2b_csock_t *csock, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t *res)) {
   struct timeval tv = { .tv_sec = 0, .tv_usec = 0 };
-  struct ucred peer;
-  socklen_t peerlen = 0;
   fd_set rfds, wfds;
   f2b_conn_t *conn = NULL;
   int retval, sock, nfds = 0;
+  struct sockaddr_storage addr;
+  socklen_t addrlen;
 
   assert(csock != NULL);
   assert(cb != NULL);
@@ -380,14 +386,30 @@ f2b_csocket_poll(f2b_csock_t *csock, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t 
     }
     int sock = -1;
     /* accept() new connection */
-    if ((sock = accept(csock->listen[i]->sock, NULL, NULL)) < 0) {
+    addrlen = sizeof(struct sockaddr_storage);
+    if ((sock = accept(csock->listen[i]->sock, (struct sockaddr *) &addr, &addrlen)) < 0) {
       f2b_log_msg(log_error, "can't accept() new connection: %s", strerror(errno));
     } else if (cnum < CSOCKET_MAX_CLIENTS) {
-      peerlen = sizeof(peer);
-      if (getsockopt(sock, SOL_SOCKET, SO_PEERCRED, &peer, &peerlen) < 0)
-        f2b_log_msg(log_error, "can't get remote peer credentials: %s", strerror(errno));
       if ((conn = f2b_conn_create(RBUF_SIZE, WBUF_SIZE)) != NULL) {
-        f2b_log_msg(log_debug, "new connection accept()ed, socket %d from uid %d", sock, peer.uid);
+        conn->flags = csock->listen[i]->flags;
+        if (csock->listen[i]->flags & CSOCKET_CONN_TYPE_UNIX) {
+          struct ucred peer;
+          socklen_t peerlen = 0;
+          peerlen = sizeof(peer);
+          if (getsockopt(sock, SOL_SOCKET, SO_PEERCRED, &peer, &peerlen) < 0) {
+            f2b_log_msg(log_error, "can't get remote peer credentials: %s", strerror(errno));
+          } else {
+            f2b_log_msg(log_debug, "new local connection from uid %d, socket %d", peer.uid, sock);
+          }
+        } else /* CSOCKET_CONN_TYPE_INET */ {
+          if (addr.ss_family == AF_INET) {
+            inet_ntop(AF_INET,  &(((struct sockaddr_in *) &addr)->sin_addr),  conn->peer, sizeof(conn->peer));
+          } else if (addr.ss_family == AF_INET6) {
+            inet_ntop(AF_INET6, &(((struct sockaddr_in6 *) &addr)->sin6_addr), conn->peer, sizeof(conn->peer));
+          }
+          f2b_log_msg(log_debug, "new remote connection from %s, socket %d", conn->peer, sock);
+          conn->flags |= CSOCKET_CONN_NEED_AUTH;
+        }
         conn->sock = sock;
         csock->clients[cnum] = conn;
       } else {
