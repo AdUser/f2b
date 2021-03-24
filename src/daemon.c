@@ -103,7 +103,7 @@ f2b_csocket_cmd_process(const f2b_cmd_t *cmd, f2b_buf_t *res) {
 
   if (cmd->type >= CMD_JAIL_STATUS && cmd->type <= CMD_JAIL_FILTER_RELOAD) {
     if ((jail = f2b_jail_find(jails, cmd->args[1])) == NULL) {
-      len = snprintf(buf, sizeof(buf), "can't find jail '%s'\n", cmd->args[1]);
+      len = snprintf(buf, sizeof(buf), "-can't find jail '%s'\n", cmd->args[1]);
       f2b_buf_append(res, buf, len);
       return;
     }
@@ -154,21 +154,21 @@ f2b_csocket_cmd_process(const f2b_cmd_t *cmd, f2b_buf_t *res) {
       f2b_filter_cmd_stats(buf, sizeof(buf), jail->filter);
       f2b_buf_append(res, buf, 0);
     } else {
-      f2b_buf_append(res, "this jail has no filter\n", 0);
+      f2b_buf_append(res, "-this jail has no filter\n", 0);
     }
   } else if (cmd->type == CMD_JAIL_FILTER_RELOAD) {
     if (jail->flags & JAIL_HAS_FILTER) {
       f2b_filter_cmd_reload(buf, sizeof(buf), jail->filter);
       f2b_buf_append(res, buf, 0);
     } else {
-      f2b_buf_append(res, "this jail has no filter\n", 0);
+      f2b_buf_append(res, "-this jail has no filter\n", 0);
     }
   } else {
-    f2b_buf_append(res, "error: unknown command\n", 0);
+    f2b_buf_append(res, "-error: unknown command\n", 0);
   }
 
   if (res->used == 0)
-    f2b_buf_append(res, "ok\n", 3); /* default reply if not set above */
+    f2b_buf_append(res, "+ok\n", 3); /* default reply if not set above */
 
   return;
 }

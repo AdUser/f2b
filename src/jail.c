@@ -586,7 +586,7 @@ f2b_jail_cmd_set(char *res, size_t ressize, f2b_jail_t *jail, const char *param,
 
   if (f2b_jail_set_param(jail, param, value))
     return;
-  snprintf(res, ressize, "parameter not found: %s", param);
+  snprintf(res, ressize, "-parameter not found: %s", param);
 }
 
 /**
@@ -612,7 +612,7 @@ f2b_jail_cmd_ip_xxx(char *res, size_t ressize, f2b_jail_t *jail, int op, const c
       /* ban */
       time_t now = time(NULL);
       if ((addr = f2b_ipaddr_create(ip)) == NULL) {
-        snprintf(res, ressize, "can't parse ip address: %s", ip);
+        snprintf(res, ressize, "-can't parse ip address: %s", ip);
         return;
       }
       addr->lastseen = now;
@@ -625,7 +625,7 @@ f2b_jail_cmd_ip_xxx(char *res, size_t ressize, f2b_jail_t *jail, int op, const c
         jail->sfile->need_save = true;
     } else {
       /* unban & status */
-      snprintf(res, ressize, "can't find ip '%s' in jail '%s'\n", ip, jail->name);
+      snprintf(res, ressize, "-can't find ip '%s' in jail '%s'\n", ip, jail->name);
       return;
     }
   }

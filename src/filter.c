@@ -240,8 +240,8 @@ f2b_filter_cmd_reload(char *buf, size_t bufsize, f2b_filter_t *filter) {
 
   filter->flush(filter->cfg);
   if ((c = f2b_filter_load_file(filter, filter->init)) > 0) {
-    snprintf(buf, bufsize, "loaded %zu regexps\n", c);
+    snprintf(buf, bufsize, "+loaded %zu regexps\n", c);
   } else {
-    snprintf(buf, bufsize, "can't reload filter\n");
+    snprintf(buf, bufsize, "-can't reload filter\n");
   }
 }

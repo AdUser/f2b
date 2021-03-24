@@ -111,7 +111,7 @@ f2b_conn_process(f2b_conn_t *conn, bool in, void (*cb)(const f2b_cmd_t *cmd, f2b
           cb(cmd, &conn->send); /* handle command */
           f2b_cmd_destroy(cmd);
         } else {
-          f2b_buf_append(&conn->send, "can't parse input, try 'help'\n", 0);
+          f2b_buf_append(&conn->send, "-can't parse input, try 'help'\n", 0);
         }
         free(line);
       }
