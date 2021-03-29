@@ -26,6 +26,7 @@ enum f2b_command_type {
   /* logging */
   CMD_LOG_ROTATE,   /**< reopen logfile. (only for `logdest = file`) */
   CMD_LOG_LEVEL,    /**< change maximum level of logged messages */
+  CMD_LOG_EVENTS,   /**< enable/disable sending events to connected client */
   /* jail commands */
   CMD_JAIL_STATUS,         /**< show status of given jail */
   CMD_JAIL_SET,            /**< set parameter of given jail */

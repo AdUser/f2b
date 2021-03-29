@@ -51,6 +51,11 @@ struct cmd_desc {
     .tokens = { "log", "level", "<level>",  NULL },
     .help = "Change maximum level of logged messages",
   }, {
+    .type = CMD_LOG_EVENTS,
+    .argc = 1, .tokenc = 3,
+    .tokens = { "log", "events", "<bool>",  NULL },
+    .help = "Enable/disable sending events to connected client",
+  }, {
     .type = CMD_JAIL_STATUS,
     .argc = 1, .tokenc = 3,
     .tokens = { "jail", "<jailname>", "status", NULL },
@@ -223,6 +228,9 @@ f2b_cmd_parse(f2b_cmd_t *cmd, const char *src) {
     }
     if (cmd->argc == 3 && strcmp(cmd->args[1], "level") == 0) {
       cmd->type = CMD_LOG_LEVEL; return true;
+    }
+    if (cmd->argc == 3 && strcmp(cmd->args[1], "events") == 0) {
+      cmd->type = CMD_LOG_EVENTS; return true;
     }
   }
   cmd->type = CMD_UNKNOWN;

@@ -15,6 +15,7 @@
 #define CSOCKET_CONN_TYPE_UNIX 0x01
 #define CSOCKET_CONN_TYPE_INET 0x02
 #define CSOCKET_CONN_AUTH_OK   0x04
+#define CSOCKET_CONN_EVENTS    0x08
 
 /**
  * @file

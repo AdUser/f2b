@@ -131,6 +131,19 @@ f2b_conn_check_auth(f2b_conn_t *conn, f2b_cmd_t *cmd) {
   return false;
 }
 
+void
+f2b_conn_events(f2b_conn_t *conn, f2b_cmd_t *cmd) {
+  if (strcmp(cmd->args[2], "on") == 0 ||
+      strcmp(cmd->args[2], "yes") == 0 ||
+      strcmp(cmd->args[2], "true") == 0) {
+    conn->flags |= CSOCKET_CONN_EVENTS;
+    f2b_buf_append(&conn->send, "+events on\n", 0);
+  } else {
+    conn->flags &= ~CSOCKET_CONN_EVENTS;
+    f2b_buf_append(&conn->send, "+events off\n", 0);
+  }
+}
+
 int
 f2b_conn_process(f2b_conn_t *conn, bool in, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t *res)) {
   f2b_cmd_t *cmd = NULL;
@@ -171,6 +184,8 @@ f2b_conn_process(f2b_conn_t *conn, bool in, void (*cb)(const f2b_cmd_t *cmd, f2b
         if ((cmd = f2b_cmd_create(line)) != NULL) {
           if (cmd->type == CMD_AUTH) {
             f2b_conn_check_auth(conn, cmd);
+          } else if (cmd->type == CMD_LOG_EVENTS) {
+            f2b_conn_events(conn, cmd);
           } else if (conn->flags & CSOCKET_CONN_AUTH_OK) {
             cb(cmd, &conn->send); /* handle command */
           } else {
