@@ -43,4 +43,10 @@ void f2b_csocket_destroy();
  */
 void f2b_csocket_poll(void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t *res));
 
+/**
+ * @brief Send text message to connected clients
+ * @param msg text
+ */
+void f2b_csocket_event_broadcast(const char *msg);
+
 #endif /* F2B_CSOCKET_H_ */

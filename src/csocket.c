@@ -514,3 +514,17 @@ f2b_csocket_poll(void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t *res)) {
   } /* foreach connection(s) */
   return;
 }
+
+void
+f2b_csocket_event_broadcast(const char *evt) {
+  f2b_conn_t *conn = NULL;
+  for (int cnum = 0; cnum < CSOCKET_MAX_CLIENTS; cnum++) {
+    if ((conn = csock.clients[cnum]) == NULL)
+      continue;
+    if (conn->flags & CSOCKET_CONN_EVENTS) {
+      f2b_buf_append(&conn->send, "!",  1);
+      f2b_buf_append(&conn->send, evt,  0);
+      f2b_buf_append(&conn->send, "\n", 1);
+    }
+  } /* for */
+}
