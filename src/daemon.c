@@ -10,6 +10,7 @@
 #include "appconfig.h"
 #include "matches.h"
 #include "ipaddr.h"
+#include "event.h"
 #include "source.h"
 #include "filter.h"
 #include "backend.h"
@@ -82,6 +83,10 @@ f2b_csocket_poll(void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t *res)) {
 void
 f2b_csocket_cmd_process(const f2b_cmd_t *cmd, f2b_buf_t *res) {
   UNUSED(cmd); UNUSED(res); return;
+}
+void
+f2b_csocket_event_broadcast(const char *msg) {
+  UNUSED(msg);
 }
 #else /* WITH_CSOCKET */
 void
@@ -338,6 +343,7 @@ int main(int argc, char *argv[]) {
 
   if (config.csocket) {
     f2b_csocket_create(config.csocket);
+    f2b_event_handler_register(&f2b_csocket_event_broadcast);
   }
 
   if (config.defaults)
