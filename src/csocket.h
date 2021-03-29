@@ -16,8 +16,6 @@
 #define CSOCKET_CONN_TYPE_INET 0x02
 #define CSOCKET_CONN_AUTH_OK   0x04
 
-typedef struct f2b_csock_t f2b_csock_t;
-
 /**
  * @file
  * This file contains control socket manage routines
@@ -28,13 +26,13 @@ typedef struct f2b_csock_t f2b_csock_t;
  * @param spec String with socket path/address specification
  * @returns Allocated socket struct
  */
-f2b_csock_t * f2b_csocket_create (f2b_config_section_t *config);
+bool f2b_csocket_create (f2b_config_section_t *config);
 
 /**
  * @brief Destroy socket struct and free resources
  * @param csock Socket struct
  */
-void f2b_csocket_destroy(f2b_csock_t *csock);
+void f2b_csocket_destroy();
 
 /**
  * @brief Poll control socket for new messages
@@ -42,6 +40,6 @@ void f2b_csocket_destroy(f2b_csock_t *csock);
  * @param cb Callback for handling message
  * @returns -1 on error, 0 on no messages, and > 0 on some messages processed
  */
-void f2b_csocket_poll(f2b_csock_t *csock, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t *res));
+void f2b_csocket_poll(void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t *res));
 
 #endif /* F2B_CSOCKET_H_ */

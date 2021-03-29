@@ -21,7 +21,6 @@ cmd_handler(const f2b_cmd_t *cmd, f2b_buf_t *res) {
 
 int main(int argc, const char **argv) {
   f2b_config_t config;
-  f2b_csock_t *csock = NULL;
 
   if (argc < 2) {
     puts("Usage: csocket-test <csocket.conf>");
@@ -37,16 +36,16 @@ int main(int argc, const char **argv) {
     return EXIT_FAILURE;
   }
 
-  if ((csock = f2b_csocket_create(config.csocket)) == NULL) {
+  if (!f2b_csocket_create(config.csocket)) {
     perror("f2b_csocket_create()");
     exit(EXIT_FAILURE);
   }
 
   while (run) {
-    f2b_csocket_poll(csock, cmd_handler);
+    f2b_csocket_poll(cmd_handler);
     sleep(1);
   }
-  f2b_csocket_destroy(csock);
+  f2b_csocket_destroy();
 
   return 0;
 }

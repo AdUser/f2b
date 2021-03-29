@@ -63,21 +63,21 @@ void usage(int exitcode) {
 }
 
 static time_t started = 0;
-static f2b_csock_t *csock = NULL;
 #ifndef WITH_CSOCKET
 /* add stubs to reduce #ifdef count */
-f2b_csock_t *
+bool
 f2b_csocket_create (f2b_config_section_t *config) {
   UNUSED(path);
   f2b_log_msg(log_warn, "control socket support was disabled at compile-time");
   return NULL;
 }
 void
-f2b_csocket_destroy(f2b_csock_t *csock) {
-  UNUSED(csock); return;
+f2b_csocket_destroy() {
+  return;
 }
-int f2b_csocket_poll(f2b_csock_t *csock, void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t *res)) {
-  UNUSED(csock); UNUSED(cb); return 0;
+int
+f2b_csocket_poll(void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t *res)) {
+  UNUSED(cb); return 0;
 }
 void
 f2b_csocket_cmd_process(const f2b_cmd_t *cmd, f2b_buf_t *res) {
@@ -337,7 +337,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (config.csocket) {
-    csock = f2b_csocket_create(config.csocket);
+    f2b_csocket_create(config.csocket);
   }
 
   if (config.defaults)
@@ -356,7 +356,7 @@ int main(int argc, char *argv[]) {
     for (f2b_jail_t *jail = jails; jail != NULL; jail = jail->next) {
       f2b_jail_process(jail);
     }
-    f2b_csocket_poll(csock, f2b_csocket_cmd_process);
+    f2b_csocket_poll(f2b_csocket_cmd_process);
     sleep(1);
     if (state == logrotate && strcmp(appconfig.logdest, "file") == 0) {
       state = run;
@@ -378,7 +378,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  f2b_csocket_destroy(csock);
+  f2b_csocket_destroy();
 
   jails_stop(jails);
   jails = NULL;
