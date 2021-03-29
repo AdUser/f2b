@@ -179,24 +179,24 @@ f2b_jail_set_defaults(f2b_config_section_t *section) {
 }
 
 static void
-f2b_jail_evt_match(f2b_ipaddr_t *addr, f2b_match_t *match) {
+f2b_jail_evt_match(const char *jail, f2b_ipaddr_t *addr, f2b_match_t *match) {
   char buf[EVENT_MAX] = "";
-  snprintf(buf, sizeof(buf), "type=match addr=%s stag=%08X ftag=%08X score=%d",
-    addr->text, match->stag, match->ftag, match->score);
+  snprintf(buf, sizeof(buf), "event=match jail=%s addr=%s stag=%08X ftag=%08X score=%d",
+    jail, addr->text, match->stag, match->ftag, match->score);
   f2b_event_send(buf);
 }
 
 static void
-f2b_jail_evt_ban(f2b_ipaddr_t *addr, int bantime) {
+f2b_jail_evt_ban(const char *jail, f2b_ipaddr_t *addr, int bantime) {
   char buf[EVENT_MAX] = "";
-  snprintf(buf, sizeof(buf), "type=ban addr=%s bantime=%u count=%lu", addr->text, bantime, addr->bancount);
+  snprintf(buf, sizeof(buf), "event=ban jail=%s addr=%s bantime=%u count=%lu", jail, addr->text, bantime, addr->bancount);
   f2b_event_send(buf);
 }
 
 static void
-f2b_jail_evt_release(f2b_ipaddr_t *addr) {
+f2b_jail_evt_release(const char *jail, f2b_ipaddr_t *addr) {
   char buf[EVENT_MAX] = "";
-  snprintf(buf, sizeof(buf), "type=release addr=%s", addr->text);
+  snprintf(buf, sizeof(buf), "event=release jail=%s addr=%s", jail, addr->text);
   f2b_event_send(buf);
 }
 
@@ -225,7 +225,7 @@ f2b_jail_ban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
   }
 
   if (f2b_backend_ban(jail->backend, addr->text)) {
-    f2b_jail_evt_ban(addr, bantime);
+    f2b_jail_evt_ban(jail->name, addr, bantime);
     f2b_log_msg(log_note, "jail '%s': banned ip %s for %.1fhrs",
       jail->name, addr->text, (float) bantime / 3600);
     return true;
@@ -245,7 +245,7 @@ f2b_jail_unban(f2b_jail_t *jail, f2b_ipaddr_t *addr) {
   addr->release_at = 0;
 
   if (f2b_backend_unban(jail->backend, addr->text)) {
-    f2b_jail_evt_release(addr);
+    f2b_jail_evt_release(jail->name, addr);
     f2b_log_msg(log_note, "jail '%s': released ip %s", jail->name, addr->text);
     return true;
   }
@@ -336,7 +336,7 @@ f2b_jail_process(f2b_jail_t *jail) {
     match->ftag = ftag;
     match->score = score;
     f2b_matches_prepend(&addr->matches, match);
-    f2b_jail_evt_match(addr, match);
+    f2b_jail_evt_match(jail->name, addr, match);
     /* host is banned? */
     if (addr->banned) {
       if (addr->banned_at != now)
