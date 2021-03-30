@@ -77,12 +77,11 @@ void
 f2b_conn_update_challenge(f2b_conn_t *conn) {
   char buf[64] = "";
   MD5_CTX md5;
-  memset(&md5, 0x0, sizeof(md5));
   snprintf(buf, sizeof(buf), "%08lx+%ld", random(), time(NULL));
   MD5Init(&md5);
-  MD5Update(&md5, buf, strlen(buf));
+  MD5Update(&md5, (unsigned char *) buf, strlen(buf));
   MD5Final(&md5);
-  strlcpy(conn->challenge, md5.string, sizeof(conn->challenge));
+  strlcpy(conn->challenge, md5.hexdigest, sizeof(conn->challenge));
 }
 
 void
@@ -113,10 +112,10 @@ f2b_conn_check_auth(f2b_conn_t *conn, f2b_cmd_t *cmd) {
     f2b_log_msg(log_error, "csocket auth failure from %s: password mismatch", conn->peer);
   } else if (strcmp(cmd->args[1], "challenge") == 0) {
     MD5Init(&md5);
-    MD5Update(&md5, conn->challenge, strlen(conn->challenge));
-    MD5Update(&md5, conn->password, strlen(conn->password));
+    MD5Update(&md5, (unsigned char *) conn->challenge, strlen(conn->challenge));
+    MD5Update(&md5, (unsigned char *) conn->password, strlen(conn->password));
     MD5Final(&md5);
-    if (strcmp(cmd->args[2], md5.string) == 0) {
+    if (strcmp(cmd->args[2], md5.hexdigest) == 0) {
       conn->flags |= CSOCKET_CONN_AUTH_OK;
       f2b_buf_append(&conn->send, "+ok\n", 0);
       return true;
