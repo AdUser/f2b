@@ -176,9 +176,14 @@ f2b_conn_process(f2b_conn_t *conn, bool in, void (*cb)(const f2b_cmd_t *cmd, f2b
       f2b_log_msg(log_debug, "received %zd bytes from socket %d, append %d to buf", read, conn->sock, retval);
       /* extract message(s) */
       while ((line = f2b_buf_extract(&conn->recv, "\n")) != NULL) {
-        if (strlen(line) == 0) {
+        size_t len = strlen(line);
+        if (len <= 0) {
           free(line);
           continue;
+        } /* else: len > 0 */
+        if (line[len - 1] == '\r') {
+          /* strip CR */
+          line[len - 1] = '\0'; len--;
         }
         f2b_log_msg(log_debug, "extracted line: %s", line);
         if ((cmd = f2b_cmd_create(line)) != NULL) {
