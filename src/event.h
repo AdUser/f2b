@@ -16,7 +16,7 @@
  * @def EVENT_MAX
  * Maximum text length of event line
  */
-#define EVENT_MAX 128
+#define EVENT_MAX 256
 
 /**
  * @brief Send event to all registered handlers
