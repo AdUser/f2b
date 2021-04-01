@@ -339,7 +339,7 @@ f2b_jail_process(f2b_jail_t *jail) {
     f2b_jail_evt_match(jail->name, addr, match);
     /* host is banned? */
     if (addr->banned) {
-      if (addr->banned_at != now)
+      if (addr->banned_at > (now - 5))
         f2b_log_msg(log_warn, "jail '%s': ip %s was already banned", jail->name, matchbuf);
       continue;
     }
@@ -348,12 +348,11 @@ f2b_jail_process(f2b_jail_t *jail) {
     f2b_matches_expire(&addr->matches, now - findtime - 600);
     /* ...so, check host score */
     score = f2b_matches_score(&addr->matches, findtime);
-    if (score < jail->banscore) {
-      f2b_log_msg(log_info, "jail '%s': new match for ip %s (%u/%u)",
-        jail->name, matchbuf, score, jail->banscore);
+    f2b_log_msg(log_info, "jail '%s': new match for ip %s (%u/%u)",
+      jail->name, matchbuf, score, jail->banscore);
+    if (score < jail->banscore)
       continue; /* lucky bastard */
-    }
-    /* score limit reached, ban ip */
+    /* else: score limit reached, ban ip */
     f2b_jail_ban(jail, addr);
     if (jail->flags & JAIL_HAS_STATE)
       jail->sfile->need_save = true;
