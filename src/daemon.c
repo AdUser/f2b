@@ -173,7 +173,7 @@ f2b_csocket_cmd_process(const f2b_cmd_t *cmd, f2b_buf_t *res) {
   }
 
   if (res->used == 0)
-    f2b_buf_append(res, "+ok\n", 3); /* default reply if not set above */
+    f2b_buf_append(res, "+ok\n", 0); /* default reply if not set above */
 
   return;
 }

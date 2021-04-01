@@ -15,6 +15,8 @@ cmd_handler(const f2b_cmd_t *cmd, f2b_buf_t *res) {
   }
   if (cmd->type == CMD_HELP) {
     f2b_buf_append(res, f2b_cmd_help(), 0);
+  } else {
+    f2b_buf_append(res, "+ok\n", 0);
   }
   return;
 }
