@@ -229,7 +229,14 @@ f2b_conn_process(f2b_conn_t *conn, bool in, void (*cb)(const f2b_cmd_t *cmd, f2b
 int
 f2b_sock_create_unix(const char *path) {
   struct sockaddr_un addr;
+  struct stat st;
   int sock = -1;
+  /* is socket already exists? */
+  if (stat(path, &st) == 0) {
+    if ((st.st_mode & S_IFMT) == S_IFSOCK) {
+      unlink(path);
+    }
+  }
   /* create socket  */
   if ((sock = socket(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0)) < 0) {
     f2b_log_msg(log_error, "can't create control socket at %s", strerror(errno));
@@ -242,7 +249,7 @@ f2b_sock_create_unix(const char *path) {
   strlcpy(addr.sun_path, path, sizeof(addr.sun_path) - 1);
   /* try bind */
   if (bind(sock, (struct sockaddr *) &addr, sizeof(struct sockaddr_un)) != 0) {
-    f2b_log_msg(log_error, "bind() on socket failed: %s", strerror(errno));
+    f2b_log_msg(log_error, "bind() on socket failed: %s -- %s", path, strerror(errno));
     unlink(path);
     return -1;
   }
@@ -292,8 +299,11 @@ f2b_sock_create_inet(const char *addr) {
   res[0].ai_socktype |= SOCK_NONBLOCK;
   sock = socket(res[0].ai_family, res[0].ai_socktype, res[0].ai_protocol);
   if (sock >= 0) {
+    int enable = 1;
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) < 0)
+      f2b_log_msg(log_warn, "setsockopt(SO_REUSEADDR) failed: %s", strerror(errno));
     if (bind(sock, res[0].ai_addr, res[0].ai_addrlen) != 0) {
-      f2b_log_msg(log_error, "bind() on socket failed: %s", strerror(errno));
+      f2b_log_msg(log_error, "bind() on socket failed: %s -- %s", addr, strerror(errno));
       sock = -1;
     }
   } else {
