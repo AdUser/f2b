@@ -2,6 +2,7 @@ etc/f2b/conf-available/*-source-files.conf
 etc/f2b/conf-available/*-source-portknock.conf
 etc/f2b/conf-available/*-filter-preg.conf
 etc/f2b/conf-available/*-backend-exec-*.conf
+etc/f2b/conf-available/*-jail-global.conf
 etc/f2b/conf-enabled
 etc/f2b/f2b.conf
 usr/bin/f2b-*-test
