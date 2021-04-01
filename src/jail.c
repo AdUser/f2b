@@ -146,6 +146,7 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
     if (strcmp(param->name, "source") == 0) {
       f2b_jail_parse_compound_value(param->value, name, init);
       jail->source = f2b_source_create(name, init);
+      jail->flags |= JAIL_HAS_SOURCE;
       continue;
     }
     if (strcmp(param->name, "filter") == 0) {
@@ -306,7 +307,9 @@ f2b_jail_process(f2b_jail_t *jail) {
 
   f2b_backend_ping(jail->backend);
   
-  while ((stag = f2b_source_next(jail->source, line, sizeof(line), reset)) > 0) {
+  while (jail->flags & JAIL_HAS_SOURCE) {
+    if ((stag = f2b_source_next(jail->source, line, sizeof(line), reset)) <= 0)
+      break; /* no more data */
     reset = false;
     if (jail->flags & JAIL_HAS_FILTER) {
       if ((ftag = f2b_filter_match(jail->filter, line, matchbuf, sizeof(matchbuf), &score)) == 0)
@@ -409,17 +412,15 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
   assert(jail   != NULL);
   assert(config != NULL);
 
-  if (!jail->source) {
-    f2b_log_msg(log_error, "jail '%s': missing 'source' option", jail->name);
-    goto cleanup1;
-  }
-  if ((section = f2b_config_section_find(config->sources, jail->source->name)) == NULL) {
-    f2b_log_msg(log_error, "jail '%s': no source with name '%s'", jail->name, jail->source->name);
-    goto cleanup1;
-  }
-  if (!f2b_source_init(jail->source, section)) {
-    f2b_log_msg(log_error, "jail '%s': can't init source '%s' with %s", jail->name, jail->source->name, jail->source->init);
-    goto cleanup1;
+  if (jail->flags & JAIL_HAS_SOURCE) {
+    if ((section = f2b_config_section_find(config->sources, jail->source->name)) == NULL) {
+      f2b_log_msg(log_error, "jail '%s': no source with name '%s'", jail->name, jail->source->name);
+      goto cleanup1;
+    }
+    if (!f2b_source_init(jail->source, section)) {
+      f2b_log_msg(log_error, "jail '%s': can't init source '%s' with %s", jail->name, jail->source->name, jail->source->init);
+      goto cleanup1;
+    }
   }
 
   if (jail->flags & JAIL_HAS_FILTER) {
@@ -431,7 +432,7 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
       f2b_log_msg(log_error, "jail '%s': no regexps loaded from '%s'", jail->name, jail->filter->init);
       goto cleanup2;
     }
-  } else if (jail->source->flags & MOD_NEED_FILTER) {
+  } else if (jail->source && jail->source->flags & MOD_NEED_FILTER) {
     f2b_log_msg(log_error, "jail '%s': source '%s' needs filter, but jail has no one", jail->name, jail->source->name);
     goto cleanup1;
   }
@@ -451,7 +452,7 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
   }
 
   /* start all */
-  if (!f2b_source_start(jail->source)) {
+  if (jail->source && !f2b_source_start(jail->source)) {
     f2b_log_msg(log_warn, "jail '%s': source action 'start' failed", jail->name);
     goto cleanup3;
   }
@@ -567,6 +568,7 @@ f2b_jail_cmd_status(char *res, size_t ressize, f2b_jail_t *jail) {
     "flags:\n"
     "  enabled: %s\n"
     "  state: %s\n"
+    "  source: %s\n"
     "  filter: %s\n";
   const char *fmt2 =
     "times:\n"
@@ -586,6 +588,7 @@ f2b_jail_cmd_status(char *res, size_t ressize, f2b_jail_t *jail) {
     jail->name, jail->banscore,
     jail->flags & JAIL_ENABLED     ? "yes" : "no",
     jail->flags & JAIL_HAS_STATE   ? "yes" : "no",
+    jail->flags & JAIL_HAS_SOURCE  ? "yes" : "no",
     jail->flags & JAIL_HAS_FILTER  ? "yes" : "no"
   );
   snprintf(buf, sizeof(buf), fmt2,
