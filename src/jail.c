@@ -612,9 +612,11 @@ f2b_jail_cmd_set(char *res, size_t ressize, f2b_jail_t *jail, const char *param,
   assert(param != NULL);
   assert(value != NULL);
 
-  if (f2b_jail_set_param(jail, param, value))
+  if (f2b_jail_set_param(jail, param, value)) {
+    strlcpy(res, "+ok\n", ressize);
     return;
-  snprintf(res, ressize, "-parameter not found: %s", param);
+  }
+  snprintf(res, ressize, "-parameter not found: %s\n", param);
 }
 
 /**
@@ -629,6 +631,7 @@ void
 f2b_jail_cmd_ip_xxx(char *res, size_t ressize, f2b_jail_t *jail, int op, const char *ip) {
   f2b_match_t *match = NULL;
   f2b_ipaddr_t *addr = NULL;
+  bool ret = false;
 
   assert(res  != NULL);
   assert(jail != NULL);
@@ -640,7 +643,7 @@ f2b_jail_cmd_ip_xxx(char *res, size_t ressize, f2b_jail_t *jail, int op, const c
       /* ban */
       time_t now = time(NULL);
       if ((addr = f2b_ipaddr_create(ip)) == NULL) {
-        snprintf(res, ressize, "-can't parse ip address: %s", ip);
+        snprintf(res, ressize, "-can't parse ip address: %s\n", ip);
         return;
       }
       addr->lastseen = now;
@@ -658,11 +661,12 @@ f2b_jail_cmd_ip_xxx(char *res, size_t ressize, f2b_jail_t *jail, int op, const c
     }
   }
 
-  if (op > 0) {
-    f2b_jail_ban(jail, addr);
-  } else if (op < 0) {
-    f2b_jail_unban(jail, addr);
-  } else {
+  if (op == 0) {
     f2b_ipaddr_status(addr, res, ressize);
+    return;
   }
+  if (op > 0) { ret = f2b_jail_ban  (jail, addr); }
+  if (op < 0) { ret = f2b_jail_unban(jail, addr); }
+  strlcpy(res, ret ? "+ok\n" : "-error\n", ressize);
+  return;
 }

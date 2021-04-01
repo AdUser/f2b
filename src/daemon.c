@@ -136,24 +136,35 @@ f2b_csocket_cmd_process(const f2b_cmd_t *cmd, f2b_buf_t *res) {
       len = snprintf(buf, sizeof(buf), "- %s\n", jail->name);
       f2b_buf_append(res, buf, len);
     }
+    return;
   } else if (cmd->type == CMD_JAIL_STATUS) {
     f2b_jail_cmd_status(buf, sizeof(buf), jail);
     f2b_buf_append(res, buf, 0);
+    return;
   } else if (cmd->type == CMD_JAIL_SET) {
     f2b_jail_cmd_set(buf, sizeof(buf), jail, cmd->args[3], cmd->args[4]);
     f2b_buf_append(res, buf, 0);
+    return;
   } else if (cmd->type == CMD_JAIL_IP_STATUS) {
     f2b_jail_cmd_ip_xxx(buf, sizeof(buf), jail,  0, cmd->args[4]);
     f2b_buf_append(res, buf, 0);
+    return;
   } else if (cmd->type == CMD_JAIL_IP_BAN) {
     f2b_jail_cmd_ip_xxx(buf, sizeof(buf), jail,  1, cmd->args[4]);
     f2b_buf_append(res, buf, 0);
+    return;
   } else if (cmd->type == CMD_JAIL_IP_RELEASE) {
     f2b_jail_cmd_ip_xxx(buf, sizeof(buf), jail, -1, cmd->args[4]);
     f2b_buf_append(res, buf, 0);
+    return;
   } else if (cmd->type == CMD_JAIL_SOURCE_STATS) {
-    f2b_source_cmd_stats(buf, sizeof(buf), jail->source);
-    f2b_buf_append(res, buf, 0);
+    if (jail->flags & JAIL_HAS_SOURCE) {
+      f2b_source_cmd_stats(buf, sizeof(buf), jail->source);
+      f2b_buf_append(res, buf, 0);
+    } else {
+      f2b_buf_append(res, "-this jail has no source\n", 0);
+    }
+    return;
   } else if (cmd->type == CMD_JAIL_FILTER_STATS) {
     if (jail->flags & JAIL_HAS_FILTER) {
       f2b_filter_cmd_stats(buf, sizeof(buf), jail->filter);
@@ -161,6 +172,7 @@ f2b_csocket_cmd_process(const f2b_cmd_t *cmd, f2b_buf_t *res) {
     } else {
       f2b_buf_append(res, "-this jail has no filter\n", 0);
     }
+    return;
   } else if (cmd->type == CMD_JAIL_FILTER_RELOAD) {
     if (jail->flags & JAIL_HAS_FILTER) {
       f2b_filter_cmd_reload(buf, sizeof(buf), jail->filter);
@@ -168,13 +180,13 @@ f2b_csocket_cmd_process(const f2b_cmd_t *cmd, f2b_buf_t *res) {
     } else {
       f2b_buf_append(res, "-this jail has no filter\n", 0);
     }
+    return;
   } else {
     f2b_buf_append(res, "-error: unknown command\n", 0);
+    return;
   }
 
-  if (res->used == 0)
-    f2b_buf_append(res, "+ok\n", 0); /* default reply if not set above */
-
+  f2b_buf_append(res, "+ok\n", 0); /* default reply */
   return;
 }
 #endif /* WITH_CSOCKET */
