@@ -137,22 +137,22 @@ f2b_cmd_create(const char *line) {
 
   assert(line != NULL);
 
+  while (isspace(*line)) line++;
+  if (strlen(line) <= 0)
+    return NULL; /* empty string */
+
   if ((cmd = calloc(1, sizeof(f2b_cmd_t))) == NULL)
     return NULL;
 
-  if (f2b_buf_alloc(&cmd->data, strlen(line))) {
-    if (f2b_cmd_parse(cmd, line))
-      return cmd;
-    free(cmd);
-    cmd = NULL;
-  }
-
-
-  return cmd;
+  if (f2b_cmd_parse(cmd, line))
+    return cmd;
+  free(cmd);
+  return NULL;
 }
 
 void
 f2b_cmd_destroy(f2b_cmd_t *cmd) {
+  if (!cmd) return;
   f2b_buf_free(&cmd->data);
   free(cmd);
 }
@@ -167,6 +167,9 @@ f2b_cmd_parse(f2b_cmd_t *cmd, const char *src) {
   /* strip leading spaces */
   while (isblank(*src))
     src++;
+
+  if (strlen(src) == 0)
+    return false; /* empty string */
 
   f2b_buf_alloc(&cmd->data, strlen(src) + 1);
   f2b_buf_append(&cmd->data, src, 0);
@@ -234,6 +237,7 @@ f2b_cmd_parse(f2b_cmd_t *cmd, const char *src) {
     }
   }
   cmd->type = CMD_UNKNOWN;
+  memset(cmd->args, 0x0, sizeof(cmd->args));
   f2b_buf_free(&cmd->data);
 
   return false;

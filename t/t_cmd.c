@@ -4,6 +4,10 @@
 
 int main() {
   f2b_cmd_t cmd;
+  f2b_cmd_t *c;
+
+  assert(f2b_cmd_parse(&cmd, "") == false);
+  assert(f2b_cmd_parse(&cmd, " ") == false);
 
   assert(f2b_cmd_parse(&cmd, "status") == true);
   assert(cmd.type = CMD_STATUS);
@@ -35,6 +39,20 @@ int main() {
   assert(strcmp(cmd.args[2], "set")  == 0);
   assert(strcmp(cmd.args[3], "bantime") == 0);
   assert(strcmp(cmd.args[4], "7200") == 0);
+  f2b_buf_free(&cmd.data);
+
+  c = f2b_cmd_create("");
+  assert(c == NULL);
+  c = f2b_cmd_create(" ");
+  assert(c == NULL);
+  c = f2b_cmd_create("\n\r\n");
+  assert(c == NULL);
+  c = f2b_cmd_create("test");
+  assert(c == NULL); /* no such command */
+  c = f2b_cmd_create("help");
+  assert(c != NULL);
+  f2b_cmd_destroy(c);
+
   f2b_buf_free(&cmd.data);
 
   return EXIT_SUCCESS;
