@@ -150,6 +150,7 @@ flush(cfg_t *cfg) {
     free(r);
   }
   cfg->regexps = NULL;
+  cfg->defscore = MATCH_DEFSCORE;
 }
 
 void
