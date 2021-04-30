@@ -136,6 +136,10 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
   assert(section->type == t_jail || section->type == t_defaults);
 
   for (param = section->param; param != NULL; param = param->next) {
+    if (strcmp(param->name, "state") == 0) {
+      jail->flags |= JAIL_HAS_STATE;
+      continue;
+    }
     if (strcmp(param->name, "source") == 0) {
       f2b_jail_parse_compound_value(param->value, name, init);
       jail->source = f2b_source_create(name, init);
@@ -151,6 +155,7 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
     if (strcmp(param->name, "backend") == 0) {
       f2b_jail_parse_compound_value(param->value, name, init);
       jail->backend = f2b_backend_create(name, init);
+      jail->flags |= JAIL_HAS_BACKEND;
       continue;
     }
     if (f2b_jail_set_param(jail, param->name, param->value))
@@ -405,6 +410,14 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
   assert(jail   != NULL);
   assert(config != NULL);
 
+  if (jail->flags & JAIL_HAS_STATE) {
+    jail->sfile = f2b_statefile_create(appconfig.statedir_path, jail->name);
+    if (jail->sfile == NULL) {
+      f2b_log_msg(log_debug, "jail '%s': can't create statefile", jail->name);
+      goto cleanup0;
+    }
+  }
+
   if (jail->flags & JAIL_HAS_SOURCE) {
     if ((section = f2b_config_section_find(config->sources, jail->source->name)) == NULL) {
       f2b_log_msg(log_error, "jail '%s': no source with name '%s'", jail->name, jail->source->name);
@@ -454,6 +467,7 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
     goto cleanup3;
   }
 
+  jail->flags |= JAIL_CONFIGURED;
   f2b_log_msg(log_debug, "jail '%s' init complete", jail->name);
 
   return true;
@@ -473,6 +487,7 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
     f2b_source_destroy(jail->source);
     jail->source = NULL;
   }
+  cleanup0:
   return false;
 }
 
@@ -484,15 +499,8 @@ f2b_jail_start(f2b_jail_t *jail) {
 
   assert(jail != NULL);
 
-  if (jail->flags & JAIL_HAS_STATE) {
-    jail->sfile = f2b_statefile_create(appconfig.statedir_path, jail->name);
-    if (jail->sfile == NULL) {
-      /* error occured, must be already logged, just drop flag */
-      jail->flags &= ~JAIL_HAS_STATE;
-    } else {
-      jail->ipaddrs = f2b_statefile_load(jail->sfile);
-    }
-  }
+  if (jail->flags & JAIL_HAS_STATE)
+    jail->ipaddrs = f2b_statefile_load(jail->sfile);
 
   for (f2b_ipaddr_t *addr = jail->ipaddrs; addr != NULL; addr = addr->next) {
     hostc++;
@@ -527,13 +535,17 @@ f2b_jail_stop(f2b_jail_t *jail) {
 
   f2b_log_msg(log_info, "jail '%s': gracefull shutdown", jail->name);
 
-  if (!f2b_source_stop(jail->source)) {
-    f2b_log_msg(log_error, "jail '%s': action 'stop' for source failed", jail->name);
-    errors = true;
+  if (jail->flags & JAIL_HAS_SOURCE) {
+    if (!f2b_source_stop(jail->source)) {
+      f2b_log_msg(log_error, "jail '%s': action 'stop' for source failed", jail->name);
+      errors = true;
+    }
+    f2b_source_destroy(jail->source);
   }
 
-  f2b_source_destroy(jail->source);
-  f2b_filter_destroy(jail->filter);
+  if (jail->flags & JAIL_HAS_FILTER) {
+    f2b_filter_destroy(jail->filter);
+  }
 
   for (f2b_ipaddr_t *addr = jail->ipaddrs; addr != NULL; addr = addr->next) {
     if (!addr->banned)
@@ -544,11 +556,19 @@ f2b_jail_stop(f2b_jail_t *jail) {
   }
   f2b_addrlist_destroy(jail->ipaddrs);
 
-  if (!f2b_backend_stop(jail->backend)) {
-    f2b_log_msg(log_error, "jail '%s': action 'stop' for backend failed", jail->name);
-    errors = true;
+  if (jail->flags & JAIL_HAS_BACKEND) {
+    if (!f2b_backend_stop(jail->backend)) {
+      f2b_log_msg(log_error, "jail '%s': action 'stop' for backend failed", jail->name);
+      errors = true;
+    }
+    f2b_backend_destroy(jail->backend);
   }
 
+  if (jail->flags & JAIL_HAS_STATE) {
+    f2b_statefile_destroy(jail->sfile);
+  }
+
+  jail->flags &= ~JAIL_CONFIGURED;
   return errors;
 }
 

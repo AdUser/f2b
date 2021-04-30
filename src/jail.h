@@ -13,10 +13,13 @@
  */
 
 /* jail flags */
-#define JAIL_ENABLED       0x01
-#define JAIL_HAS_STATE     0x02
-#define JAIL_HAS_FILTER    0x04
-#define JAIL_HAS_SOURCE    0x08
+#define JAIL_CONFIGURED     1 /* loaded all modules */
+#define JAIL_ENABLED        2 /* poll for new events? */
+/* reserved : 4 */
+#define JAIL_HAS_STATE      8
+#define JAIL_HAS_SOURCE    16
+#define JAIL_HAS_FILTER    32
+#define JAIL_HAS_BACKEND   64
 
 /** jail metadata struct */
 typedef struct f2b_jail_t {
