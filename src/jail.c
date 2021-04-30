@@ -71,19 +71,12 @@ f2b_jail_set_param(f2b_jail_t *jail, const char *param, const char *value) {
   assert(param != NULL);
   assert(value != NULL);
 
+  /* only 'safe to set at runtime' parameters here */
   if (strcmp(param, "enabled") == 0) {
     if (strcmp(value, "yes") == 0) {
       jail->flags |= JAIL_ENABLED;
     } else {
       jail->flags &= ~JAIL_ENABLED;
-    }
-    return true;
-  }
-  if (strcmp(param, "state") == 0) {
-    if (strcmp(value, "yes") == 0) {
-      jail->flags |= JAIL_HAS_STATE;
-    } else {
-      jail->flags &= ~JAIL_HAS_STATE;
     }
     return true;
   }
