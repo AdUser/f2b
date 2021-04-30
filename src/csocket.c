@@ -522,6 +522,7 @@ f2b_csocket_poll(void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t *res)) {
     if (retval < 0) {
       f2b_log_msg(log_debug, "closing connection on socket %d", conn->sock);
       shutdown(conn->sock, SHUT_RDWR);
+      close(conn->sock);
       f2b_conn_destroy(conn);
       csock.clients[cnum] = NULL;
     }
