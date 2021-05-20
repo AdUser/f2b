@@ -42,5 +42,6 @@ Description: lightweight automatic anti-bot turret for your public serivces
 Package: f2b-mod-ipset
 Architecture: any
 Depends: f2b (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Recommends: ipset, ipset-persistent
 Description: lightweight automatic anti-bot turret for your public serivces
  This package contains native ipset manage backend
