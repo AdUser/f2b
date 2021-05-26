@@ -138,6 +138,7 @@ f2b_backend_destroy(f2b_backend_t *backend) {
     if (backend->cfg)
       backend->destroy(backend->cfg);
     dlclose(backend->h);
+    backend->h = NULL;
   }
   free(backend);
 }
