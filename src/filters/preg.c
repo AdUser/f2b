@@ -95,27 +95,26 @@ append(cfg_t *cfg, const char *pattern) {
   if ((regex = calloc(1, sizeof(rx_t))) == NULL)
     return false;
 
-  if ((ret = regcomp(&regex->regex, buf, flags)) == 0) {
-    regex->score = cfg->defscore;
-    regex->ftag = fnv_32a_str(pattern, FNV1_32A_INIT);
-    strlcpy(regex->pattern, pattern, sizeof(regex->pattern));
-    /* update regex list */
-    if (cfg->rlast) {
-      cfg->rlast->next = regex;
-    } else {
-      cfg->regexps = regex;
-    }
-    cfg->rlast = regex;
-    cfg->flags |= MOD_IS_READY;
-    return true;
-  } else {
+  if ((ret = regcomp(&regex->regex, buf, flags)) != 0) {
     char buf[256] = "";
     regerror(ret, &regex->regex, buf, sizeof(buf));
     log_msg(cfg, error, "regex compile error: %s", buf);
+    free(regex);
+    return false;
   }
 
-  free(regex);
-  return false;
+  regex->score = cfg->defscore;
+  regex->ftag = fnv_32a_str(pattern, FNV1_32A_INIT);
+  strlcpy(regex->pattern, pattern, sizeof(regex->pattern));
+  /* update regex list */
+  if (cfg->rlast) {
+    cfg->rlast->next = regex;
+  } else {
+    cfg->regexps = regex;
+  }
+  cfg->rlast = regex;
+  cfg->flags |= MOD_IS_READY;
+  return true;
 }
 
 uint32_t
