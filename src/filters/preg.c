@@ -24,6 +24,7 @@ struct _regexp {
 
 struct _config {
   rx_t *regexps;
+  rx_t *rlast; /* pointer to last regex in list */
   void (*logcb)(enum loglevel lvl, const char *msg);
   short int defscore;
   int flags;
@@ -97,9 +98,14 @@ append(cfg_t *cfg, const char *pattern) {
   if ((ret = regcomp(&regex->regex, buf, flags)) == 0) {
     regex->score = cfg->defscore;
     regex->ftag = fnv_32a_str(pattern, FNV1_32A_INIT);
-    regex->next = cfg->regexps;
-    cfg->regexps = regex;
     strlcpy(regex->pattern, pattern, sizeof(regex->pattern));
+    /* update regex list */
+    if (cfg->rlast) {
+      cfg->rlast->next = regex;
+    } else {
+      cfg->regexps = regex;
+    }
+    cfg->rlast = regex;
     cfg->flags |= MOD_IS_READY;
     return true;
   } else {
@@ -150,6 +156,7 @@ flush(cfg_t *cfg) {
     free(r);
   }
   cfg->regexps = NULL;
+  cfg->rlast   = NULL;
   cfg->defscore = MATCH_DEFSCORE;
 }
 
