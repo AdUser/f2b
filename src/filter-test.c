@@ -69,12 +69,10 @@ int main(int argc, char *argv[]) {
 
   while (fgets(line, sizeof(line), file) != NULL) {
     read++;
+    fputs(line, stdout);
     if ((ftag = f2b_filter_match(filter, line, match, sizeof(match), &score)) > 0) {
       matched++;
-      fprintf(stdout, "+ %s (score: %d, tag: %08X)\n", match, score, ftag);
-      continue;
-    } else {
-      fprintf(stdout, "- (no-match): %s", line);
+      fprintf(stdout, "# match -- addr: %s, score: %d, tag: %08X\n", match, score, ftag);
     }
   }
   fclose(file);
