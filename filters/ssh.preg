@@ -1,15 +1,19 @@
+# set: defscore=15
+Invalid user [[:print:]]+ from <HOST>
+Postponed keyboard-interactive for invalid user [[:print:]]+ from <HOST> port [0-9]+
+Failed password for invalid user .* from <HOST>
+# set: defscore=10
 [Aa]uthentication failure for .* from <HOST>( via [[:print:]]*)?
 [Aa]uthentication error for .* from <HOST>( via [[:print:]]*)?
 User not known to the underlying authentication module for .* from <HOST>
 Failed password for .* from <HOST>
 refused connect from [[:print:]]+ \(<HOST>\)
 Received disconnect from <HOST>: [0-9]*: [[:print:]]+: Auth fail
-Did not receive identification string from <HOST>
-Invalid user [[:print:]]+ from <HOST>
-Connection closed by <HOST>( port [0-9]+)? \[preauth\]
-Postponed keyboard-interactive for invalid user [[:print:]]+ from <HOST> port [0-9]+
 User [[:print:]]+ from <HOST> not allowed because not listed in AllowUsers
 User [[:print:]]+ from <HOST> not allowed because listed in DenyUsers
 User [[:print:]]+ from <HOST> not allowed because not in any group
 User [[:print:]]+ from <HOST> not allowed because a group is listed in DenyGroups
 User [[:print:]]+ from <HOST> not allowed because none of user's groups are listed in AllowGroups
+# set: defscore=5
+Did not receive identification string from <HOST>
+Connection closed by <HOST>( port [0-9]+)? \[preauth\]
