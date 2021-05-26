@@ -13,24 +13,24 @@
 
 struct _regexp {
   rx_t *next;
+  uint32_t ftag;
+  int matches;
+  short int score;
   pcre *regex;
   pcre_extra *data;
-  int matches;
-  uint32_t ftag;
-  short int score;
   char pattern[PATTERN_MAX];
 };
 
 struct _config {
-  void (*logcb)(enum loglevel lvl, const char *msg);
   rx_t *regexps;
   rx_t *rlast; /* pointer to last regex in list */
-  int flags;
+  void (*logcb)(enum loglevel lvl, const char *msg);
   short int defscore;
+  int flags;
+  char id[ID_MAX];
   bool icase;
   bool study;
   bool usejit;
-  char id[ID_MAX];
 };
 
 #include "filter.c"
