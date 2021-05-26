@@ -131,7 +131,7 @@ match(cfg_t *cfg, const char *line, char *buf, size_t buf_size, short int *score
     memcpy(buf, &line[match[1].rm_so], match_len);
     buf[match_len] = '\0';
     buf[buf_size - 1]  = '\0';
-    *score = cfg->defscore;
+    *score = r->score;
     return r->ftag;
   }
 
