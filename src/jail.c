@@ -410,6 +410,11 @@ f2b_jail_init(f2b_jail_t *jail, f2b_config_t *config) {
   assert(jail   != NULL);
   assert(config != NULL);
 
+  if ((jail->flags & (JAIL_HAS_SOURCE | JAIL_HAS_BACKEND)) == 0) {
+    f2b_log_msg(log_error, "jail '%s': misconfigured, at least source or backend must be set", jail->name);
+    return false;
+  }
+
   if (jail->flags & JAIL_HAS_STATE) {
     jail->sfile = f2b_statefile_create(appconfig.statedir_path, jail->name);
     if (jail->sfile == NULL) {
@@ -653,6 +658,11 @@ f2b_jail_cmd_ip_xxx(char *res, size_t ressize, f2b_jail_t *jail, int op, const c
   assert(res  != NULL);
   assert(jail != NULL);
   assert(ip   != NULL);
+
+  if ((jail->flags & JAIL_HAS_BACKEND) == 0 && op != 0) {
+    strlcpy(res, "-jail has no configured backend\n", ressize);
+    return;
+  }
 
   if ((addr = f2b_addrlist_lookup(jail->ipaddrs, ip)) == NULL) {
     /* address not found in list */
