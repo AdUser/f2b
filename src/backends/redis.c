@@ -129,7 +129,7 @@ config(cfg_t *cfg, const char *key, const char *value) {
     return true;
   }
   if (strcmp(key, "shared") == 0) {
-    cfg->shared = (strcmp(value, "yes") ? true : false);
+    cfg->shared = (strcmp(value, "yes") == 0 ? true : false);
     return true;
   }
   if (strcmp(key, "host") == 0) {
