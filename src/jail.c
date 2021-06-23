@@ -502,25 +502,30 @@ f2b_jail_start(f2b_jail_t *jail) {
   if (jail->flags & JAIL_HAS_STATE)
     jail->ipaddrs = f2b_statefile_load(jail->sfile);
 
+  /* addrlist cleanup */
   for (f2b_ipaddr_t *addr = jail->ipaddrs; addr != NULL; addr = addr->next) {
     hostc++;
-    if (!addr->banned)
-      continue; /* if list NOW contains such addresses, it may be bug */
-    if (f2b_backend_check(jail->backend, addr->text))
-      continue; /* already banned or backend don't support check() */
-    if (now >= addr->release_at) {
+    if (addr->banned && now >= addr->release_at)
       addr->banned = false;
-      continue; /* ban time already expired */
-    }
-    if (f2b_backend_ban(jail->backend, addr->text)) {
-      remains = addr->release_at - now;
-      f2b_log_msg(log_note, "jail '%s': restored ban of ip %s (%.1fhrs remain)",
-        jail->name, addr->text, (float) remains / 3600);
-    } else {
-      f2b_log_msg(log_error, "jail '%s': can't ban ip %s", jail->name, addr->text);
-    }
   }
   jail->stats.hosts = hostc;
+
+  /* actual ban restore */
+  if (jail->flags & JAIL_HAS_BACKEND) {
+    for (f2b_ipaddr_t *addr = jail->ipaddrs; addr != NULL; addr = addr->next) {
+      if (!addr->banned)
+        continue;
+      if (f2b_backend_check(jail->backend, addr->text))
+        continue; /* already banned or backend don't support check() */
+      if (f2b_backend_ban(jail->backend, addr->text)) {
+        remains = addr->release_at - now;
+        f2b_log_msg(log_note, "jail '%s': restored ban of ip %s (%.1fhrs remain)",
+          jail->name, addr->text, (float) remains / 3600);
+      } else {
+        f2b_log_msg(log_error, "jail '%s': can't ban ip %s", jail->name, addr->text);
+      }
+    }
+  }
 
   f2b_log_msg(log_info, "jail '%s' started", jail->name);
 
@@ -547,22 +552,21 @@ f2b_jail_stop(f2b_jail_t *jail) {
     f2b_filter_destroy(jail->filter);
   }
 
-  for (f2b_ipaddr_t *addr = jail->ipaddrs; addr != NULL; addr = addr->next) {
-    if (!addr->banned)
-      continue;
-    if (f2b_jail_unban(jail, addr))
-      continue;
-    errors = true;
-  }
-  f2b_addrlist_destroy(jail->ipaddrs);
-
   if (jail->flags & JAIL_HAS_BACKEND) {
+    for (f2b_ipaddr_t *addr = jail->ipaddrs; addr != NULL; addr = addr->next) {
+      if (!addr->banned)
+        continue;
+      if (f2b_jail_unban(jail, addr))
+        continue;
+      errors = true;
+    }
     if (!f2b_backend_stop(jail->backend)) {
       f2b_log_msg(log_error, "jail '%s': action 'stop' for backend failed", jail->name);
       errors = true;
     }
     f2b_backend_destroy(jail->backend);
   }
+  f2b_addrlist_destroy(jail->ipaddrs);
 
   if (jail->flags & JAIL_HAS_STATE) {
     f2b_statefile_destroy(jail->sfile);
