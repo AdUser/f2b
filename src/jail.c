@@ -127,8 +127,6 @@ f2b_jail_set_param(f2b_jail_t *jail, const char *param, const char *value) {
 
 void
 f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
-  char name[CONFIG_KEY_MAX];
-  char init[CONFIG_KEY_MAX];
   f2b_config_param_t *param = NULL;
 
   assert(jail != NULL);
@@ -141,20 +139,17 @@ f2b_jail_apply_config(f2b_jail_t *jail, f2b_config_section_t *section) {
       continue;
     }
     if (strcmp(param->name, "source") == 0) {
-      f2b_jail_parse_compound_value(param->value, name, init);
-      jail->source = f2b_source_create(name, init);
+      f2b_jail_parse_compound_value(param->value, jail->source_name, jail->source_init);
       jail->flags |= JAIL_HAS_SOURCE;
       continue;
     }
     if (strcmp(param->name, "filter") == 0) {
-      f2b_jail_parse_compound_value(param->value, name, init);
-      jail->filter = f2b_filter_create(name, init);
+      f2b_jail_parse_compound_value(param->value, jail->filter_name, jail->filter_init);
       jail->flags |= JAIL_HAS_FILTER;
       continue;
     }
     if (strcmp(param->name, "backend") == 0) {
-      f2b_jail_parse_compound_value(param->value, name, init);
-      jail->backend = f2b_backend_create(name, init);
+      f2b_jail_parse_compound_value(param->value, jail->backend_name, jail->backend_init);
       jail->flags |= JAIL_HAS_BACKEND;
       continue;
     }
@@ -268,6 +263,13 @@ f2b_jail_create(f2b_config_section_t *section) {
   memcpy(jail, &defaults, sizeof(f2b_jail_t));
   strlcpy(jail->name, section->name, sizeof(jail->name));
   f2b_jail_apply_config(jail, section);
+
+  if (jail->flags & JAIL_HAS_SOURCE)
+    jail->source = f2b_source_create(jail->source_name, jail->source_init);
+  if (jail->flags & JAIL_HAS_FILTER)
+    jail->filter = f2b_filter_create(jail->filter_name, jail->filter_init);
+  if (jail->flags & JAIL_HAS_BACKEND)
+    jail->backend = f2b_backend_create(jail->backend_name, jail->backend_init);
 
   return jail;
 }

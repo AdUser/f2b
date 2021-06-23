@@ -41,6 +41,12 @@ typedef struct f2b_jail_t {
     unsigned int bans;       /**< number of ban events */
     unsigned int matches;    /**< number of match events */
   } stats;
+  char source_name[CONFIG_KEY_MAX];
+  char source_init[CONFIG_VAL_MAX];
+  char filter_name[CONFIG_KEY_MAX];
+  char filter_init[CONFIG_VAL_MAX];
+  char backend_name[CONFIG_KEY_MAX];
+  char backend_init[CONFIG_VAL_MAX];
   f2b_source_t  *source;  /**< pointer to source */
   f2b_filter_t  *filter;  /**< pointer to filter */
   f2b_backend_t *backend; /**< pointer to backend */
