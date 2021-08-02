@@ -486,6 +486,7 @@ f2b_csocket_poll(void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t *res)) {
       if ((conn = f2b_conn_create(RBUF_SIZE, WBUF_SIZE)) != NULL) {
         conn->flags = csock.listen[i]->flags;
         if (csock.listen[i]->flags & CSOCKET_CONN_TYPE_UNIX) {
+#ifdef __linux__
           struct ucred peer;
           socklen_t peerlen = 0;
           peerlen = sizeof(peer);
@@ -494,6 +495,9 @@ f2b_csocket_poll(void (*cb)(const f2b_cmd_t *cmd, f2b_buf_t *res)) {
           } else {
             f2b_log_msg(log_debug, "new local connection from uid %d, socket %d", peer.uid, sock);
           }
+#else
+          f2b_log_msg(log_debug, "new local connection from socket %d", sock);
+#endif
           conn->flags |= CSOCKET_CONN_AUTH_OK;
         } else /* CSOCKET_CONN_TYPE_INET */ {
           if (addr.ss_family == AF_INET) {
