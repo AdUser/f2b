@@ -8,6 +8,7 @@
 #include "matches.h"
 #include "ipaddr.h"
 
+#include <sys/socket.h>
 #include <arpa/inet.h>
 
 f2b_ipaddr_t *

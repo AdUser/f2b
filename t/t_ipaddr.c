@@ -2,6 +2,7 @@
 #include "../src/matches.h"
 #include "../src/ipaddr.h"
 
+#include <sys/socket.h>
 #include <arpa/inet.h>
 
 int main() {
