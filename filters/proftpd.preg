@@ -1,7 +1,9 @@
 # set: defscore=30
 \(.*\[<HOST>\]\): SECURITY VIOLATION: Root login attempted
+\(.*\[<HOST>\]\): SECURITY VIOLATION: Passive connection from .* rejected
 # set: defscore=15
 \(.*\[<HOST>\]\): USER .*: no such user found
 \(.*\[<HOST>\]\): USER .* \(Login failed\): Incorrect password
 # set: defscore=1
 \(.*\[<HOST>\]\): FTP session opened
+\(.*\[<HOST>\]\): crypt\(3\) failed
