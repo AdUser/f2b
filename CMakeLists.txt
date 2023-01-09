@@ -40,9 +40,6 @@ if (WITH_HARDENING)
   add_definitions("-D_FORTIFY_SOURCE=2")
 endif ()
 
-pkg_check_modules(IPSET "libipset")
-pkg_check_modules(REDIS "hiredis")
-pkg_check_modules(PCRE  "libpcre")
 pkg_check_modules(READLINE "readline" REQUIRED)
 
 message(STATUS "----------------------------------------")
