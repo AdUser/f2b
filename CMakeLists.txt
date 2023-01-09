@@ -6,6 +6,8 @@ cmake_minimum_required(VERSION 2.6)
 
 include(CTest)
 
+find_package(PkgConfig REQUIRED)
+
 option(WITH_CLIENT    "Simple client for configuring daemon" ON)
 option(WITH_CSOCKET   "Unix control socket support for daemon" ON)
 option(WITH_HARDENING "Enable hardening options" ON)
@@ -38,6 +40,12 @@ if (WITH_HARDENING)
   add_definitions("-D_FORTIFY_SOURCE=2")
 endif ()
 
+pkg_check_modules(IPSET "libipset")
+pkg_check_modules(REDIS "hiredis")
+pkg_check_modules(PCRE  "libpcre")
+pkg_check_modules(READLINE "readline" REQUIRED)
+
+message(STATUS "----------------------------------------")
 message(STATUS "Compiler   : ${CMAKE_C_COMPILER} (${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION})")
 message(STATUS "- CFLAGS   : ${CMAKE_C_FLAGS}")
 message(STATUS "Paths:")
