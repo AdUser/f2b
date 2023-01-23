@@ -1,7 +1,0 @@
-# set: defscore=10
-<HOST>#[0-9]+ .* query \(cache\) '[0-9.]+.in-addr.arpa/(PTR|SOA)/IN' denied
-# requests to '.' or top-level domains
-<HOST>#[0-9]+ .* query \(cache\) '[a-z.]+/ANY/IN' denied
-<HOST>#[0-9]+ .* query \(cache\) '[a-z.]+/A/IN' denied
-# set: defscore=1
-<HOST>#[0-9]+ .* query \(cache\) '[0-9a-z.-]+/RRSIG/IN' denied

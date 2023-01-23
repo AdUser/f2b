@@ -71,7 +71,6 @@ add_subdirectory(src)
 add_subdirectory(t)
 set_property(DIRECTORY "t" PROPERTY COMPILE_FLAGS "-g;-ggdb;-Wall;-Wextra;-pedantic;-O0")
 
-install(DIRECTORY "filters"  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/${CNAME}")
 file(GLOB_RECURSE CONFIGS "*.conf.in")
 foreach(CONFIG ${CONFIGS})
   string(REPLACE ".conf.in" ".conf" GENERATED ${CONFIG})

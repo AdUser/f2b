@@ -10,7 +10,7 @@ Vcs-Browser: https://github.com/AdUser/f2b
 
 Package: f2b
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, f2b-filters
 Description: lightweight automatic anti-bot turret for your public serivces
  Features:
  .

@@ -1,6 +1,0 @@
-pop3-login: Aborted login \(auth failed, [0-9]+ attempts in [0-9]+ secs\): .* rip=<HOST>
-imap-login: Aborted login \(auth failed, [0-9]+ attempts in [0-9]+ secs\): .* rip=<HOST>
-pop3-login: Disconnected \(auth failed, [0-9]+ attempts in [0-9]+ secs\): .* rip=<HOST>
-imap-login: Disconnected \(auth failed, [0-9]+ attempts in [0-9]+ secs\): .* rip=<HOST>
-# set: defscore=5
-submission-login: Client has quit the connection \(tried to use disallowed plaintext auth\): .* rip=<HOST>
