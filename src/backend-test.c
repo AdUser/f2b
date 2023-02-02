@@ -100,6 +100,7 @@ int main(int argc, char *argv[]) {
   }
 
   fputs("usage: <cmd> <ipaddr>\n", stdout);
+  fputs("  available commands: ban, unban, check\n", stdout);
   fputs("press Ctrl-D for exit\n", stdout);
   while (1) {
     fputs("test >> ", stdout);
