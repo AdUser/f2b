@@ -25,6 +25,7 @@ struct _config {
   char name[ID_MAX + 1];
   void (*logcb)(enum loglevel lvl, const char *msg);
   struct ipset *ipset;
+  enum ipset_cmd last_cmd;
   int flags;
   bool shared;
 };
@@ -65,7 +66,9 @@ my_ipset_std_error_cb(struct ipset *ipset, void *cfg) {
       break;
     case IPSET_ERROR :
     default:
-      log_msg(cfg, error, "error: %s", ipset_session_report_msg(sess));
+      if (((cfg_t *) cfg)->last_cmd != IPSET_CMD_TEST) {
+        log_msg(cfg, error, "error: %s", ipset_session_report_msg(sess));
+      }
       break;
   }
 
@@ -85,6 +88,7 @@ create(const char *id) {
   cfg->logcb = &logcb_stub;
   cfg->flags |= MOD_IS_READY;
   cfg->flags |= MOD_TYPE_BACKEND;
+  cfg->last_cmd = IPSET_CMD_NONE;
   return cfg;
 }
 
@@ -147,7 +151,7 @@ ban(cfg_t *cfg, const char *ip) {
   char *argv[] = { "ignored", "add", cfg->name, ipw, NULL };
   assert(cfg != NULL);
   strlcpy(ipw, ip, sizeof(ipw));
-
+  cfg->last_cmd = IPSET_CMD_ADD;
   return ipset_parse_argv(cfg->ipset, 4, argv) == 0;
 }
 
@@ -157,7 +161,7 @@ unban(cfg_t *cfg, const char *ip) {
   char *argv[] = { "ignored", "del", cfg->name, ipw, NULL };
   assert(cfg != NULL);
   strlcpy(ipw, ip, sizeof(ipw));
-
+  cfg->last_cmd = IPSET_CMD_DEL;
   return ipset_parse_argv(cfg->ipset, 4, argv) == 0;
 }
 
@@ -167,7 +171,7 @@ check(cfg_t *cfg, const char *ip) {
   char *argv[] = { "ignored", "test", cfg->name, ipw, NULL };
   assert(cfg != NULL);
   strlcpy(ipw, ip, sizeof(ipw));
-
+  cfg->last_cmd = IPSET_CMD_TEST;
   return ipset_parse_argv(cfg->ipset, 4, argv) == 0;
 }
 
