@@ -6,13 +6,50 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## [0.6] - 2023-02-07
+### Added
+
+	* add 'log level <level>' command
+	* add 'log events' command
+	*	support for libipset > 7.X
+	* readline support in f2bc
+	* add log rotation to debian package
+	* new options for daemon -- "coredumps" && "nice"
+	* allow jails without filter
+	* replace simple "match count" with advanced "scored matches"
+	* add source/filter match tags in stats
+	* show daemon uptime in status
+
+### Changed
+
+	* filters collection now in separate repository
+	* change modules naming & location
+	* change 'rotate' command to 'log rotate' for consistency
+	* client and control socket fully refactored to use plain tcp
+	* allow redis source/backend fail on start (no network yet)
+	* filter-test now uses config instead direct library load
+	* match count now not limited to last 5
+	* jail's "maxcount" parameter replaced with "maxscore" (need config fix)
+	* if missing password for control socket in config it will be set random (and send to logfile)
+	* build system now relies on pkg-config instead cmake modules
+
+### Removed
+
+	* multicast source/backend (replaced with f2bcd)
+
+### Fixed
+
+	* don't hard depend on mountall
+	* fix setting jail 'state' param
+	* SO_PEERCRED is linux-specific now
+
 ## [0.5] - 2017-01-19
 ### Added
 
-  + added 'fatal' log facility
-  + added empty filter for use with sources that providing bare ip address
+	+ added 'fatal' log facility
+	+ added empty filter for use with sources that providing bare ip address
 	+ added doxygen comments to all sources
-  + added some documentation: see  docs/install.md and docs/configuration.md
+	+ added some documentation: see  docs/install.md and docs/configuration.md
 	+ added ability to save and restore banned addresses on reload/restart
 	+ added 'portknock' source
 	+ added 'mcast' source/backend (not well tested yet)
@@ -25,72 +62,72 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-  * better error handling in 'redis' source & backend
-  * fix freopen() calls: std{in,out,err} may be read-only
-  * fix setting uid/git & daemon options
-  * fix compatibility with old pcre (< 8.20) in filter/pcre
-  * fixed f2b-backend-test cmdline parse
+	* better error handling in 'redis' source & backend
+	* fix freopen() calls: std{in,out,err} may be read-only
 	* fix setting uid/git & daemon options
-  * fix errcb in 'redis' source
-  * fix SIGUSR1 handler
+	* fix compatibility with old pcre (< 8.20) in filter/pcre
+	* fixed f2b-backend-test cmdline parse
+	* fix setting uid/git & daemon options
+	* fix errcb in 'redis' source
+	* fix SIGUSR1 handler
 
 ## [0.4] - 2016-10-07
 ### Added
 
-  * make source(s) also a module. now available:
-    * files source
-    * redis source
-  * f2b-source-test utility
-  * SIGUSR1 handler for logfile reopening
-  * timeout in client
-  * filters/nginx-bots.pcre
+	* make source(s) also a module. now available:
+	  * files source
+	  * redis source
+	* f2b-source-test utility
+	* SIGUSR1 handler for logfile reopening
+	* timeout in client
+	* filters/nginx-bots.pcre
 
 ### Changed
 
-  * f2b-filter-test now show per-pattern match stats
-  * install short readme file in conf-enabled dir
-  * tested & fixed redis backend
-  * f2b-backend-test : simplify usage
-  * chg jail commands 'show', 'ban' & 'release' : add expicit 'ip' prefix
-  * rename commands: regex stats -> filter stats, regex add -> filter reload
+	* f2b-filter-test now show per-pattern match stats
+	* install short readme file in conf-enabled dir
+	* tested & fixed redis backend
+	* f2b-backend-test : simplify usage
+	* chg jail commands 'show', 'ban' & 'release' : add expicit 'ip' prefix
+	* rename commands: regex stats -> filter stats, regex add -> filter reload
 
 ### Fixed
 
-  * inversion of 'shared' option for 'exec' backend
-  * correctly write pidfile
-  * bans with maxretry = 1
-  * redis detection in cmake
-  * double free in filter's flush()
+	* inversion of 'shared' option for 'exec' backend
+	* correctly write pidfile
+	* bans with maxretry = 1
+	* redis detection in cmake
+	* double free in filter's flush()
 
 ## [0.3] - 2016-09-12
 ### Added
 
-  * "jail <jail> regex stats" command
-  * "jail <jail> regex add" command
-  * apply CMAKE_INSTALL_PREFIX to configs
-  * added config for exec backend for ipfw
-  * redis backend (experimental)
-  * added config reload
+	* "jail <jail> regex stats" command
+	* "jail <jail> regex add" command
+	* apply CMAKE_INSTALL_PREFIX to configs
+	* added config for exec backend for ipfw
+	* redis backend (experimental)
+	* added config reload
 	* log file rotation
 
 ### Changed
 
-  * enable 'icase' for filters by default
-  * enable 'sharing' for backends by default
+	* enable 'icase' for filters by default
+	* enable 'sharing' for backends by default
 	* tune configs location
 	* enable hardening in build opts by default
 	* fix ssh filter patterns
-  * use strl*() instead snprintf()/strncpy() in backends
+	* use strl*() instead snprintf()/strncpy() in backends
 	* rename tests utils
 	* print date/time in log file
 	* disable buffering for logfile
-  * add stats() funtion to filter's api
+	* add stats() funtion to filter's api
 
 ### Fixed
 
 	* fix segfault in preg filter
 	* fix cppcheck warnings
-  * fix bsd build
+	* fix bsd build
 	* fix termination of daemon
 
 ## [0.2] - 2016-08-21
