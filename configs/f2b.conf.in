@@ -13,7 +13,7 @@ nice = 0
 
 [defaults]
 state    = no
-enabled  = no
+enabled  = yes
 bantime  = 3600
 findtime = 300
 expiretime = 14400
