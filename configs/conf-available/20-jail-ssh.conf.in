@@ -1,0 +1,3 @@
+[jail:ssh]
+source  = files:/var/log/auth.log
+filter  = preg:${CMAKE_INSTALL_FULL_DATAROOTDIR}/f2b/filters/ssh.preg

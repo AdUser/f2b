@@ -1,0 +1,3 @@
+[jail:nginx]
+source  = files:/var/log/nginx/*access*.log
+filter  = pcre:${CMAKE_INSTALL_FULL_DATAROOTDIR}/f2b/filters/nginx-bots.pcre

@@ -30,7 +30,3 @@ listen = unix:/var/run/f2b.sock
 ; auth used only for 'inet' connections
 ; if password not set - it will be generated on each restart, see logs
 ;password = <something-long-enough>
-
-[jail:ssh]
-source  = files:/var/log/auth.log
-filter  = preg:${CMAKE_INSTALL_FULL_DATAROOTDIR}/f2b/filters/ssh.preg
