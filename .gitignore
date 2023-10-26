@@ -1,3 +1,6 @@
 CMakeCache.txt
 CMakeFiles/
 *.cmake
+# generated configs:
+configs/f2b.conf
+configs/conf-available/20-jail-*.conf
