@@ -2,7 +2,7 @@ set(CNAME "f2b")
 set(VERSION "0.6")
 
 project(${CNAME} C)
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.4)
 
 include(CTest)
 
@@ -18,11 +18,6 @@ option(WITH_IPSET     "Build native ipset backend" OFF)
 
 if (NOT DEFINED CMAKE_INSTALL_PREFIX)
   set(CMAKE_INSTALL_PREFIX "/usr")
-endif ()
-# HACK: cmake >= 3.4 fixes this
-if (CMAKE_INSTALL_PREFIX MATCHES "^/usr/?$")
-  set(CMAKE_INSTALL_SYSCONFDIR "/etc")
-  set(CMAKE_INSTALL_LOCALSTATEDIR "/var")
 endif ()
 include(GNUInstallDirs)
 
