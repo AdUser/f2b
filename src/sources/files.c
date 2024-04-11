@@ -215,8 +215,9 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
   for (f2b_file_t *file = cfg->current; file != NULL; file = file->next) {
     if (file_rotated(cfg, file))
       file_close(file);
-    if (file->fd == NULL && !file_open(file, NULL)) {
-      log_msg(cfg, error, "can't open file: %s", file->path);
+    if (file->fd == NULL) {
+      if (!file_open(file, NULL))
+        log_msg(cfg, error, "can't open file: %s", file->path);
       continue;
     }
     if (file_getline(cfg, file, buf, bufsize))
