@@ -2,6 +2,7 @@
 includes = ${CMAKE_INSTALL_FULL_SYSCONFDIR}/f2b/conf-enabled
 pidfile = /var/run/f2b.pid
 statedir = ${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/f2b
+; valid destinations: stdout, stderr, syslog, file (logfile option should be set)
 logdest = syslog
 loglevel = info
 logfile = /var/log/f2b.log

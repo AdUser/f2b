@@ -10,7 +10,12 @@
 #include <sys/syslog.h>
 
 static log_msgtype_t minlevel = log_info;
-static enum { log_stderr = 0, log_file = 1, log_syslog = 2 } dest = log_stderr;
+static enum {
+  log_stderr = 0,
+  log_stdout = 1,
+  log_file   = 2,
+  log_syslog = 3
+} dest = log_stderr;
 static FILE *logfile = NULL;
 
 static const char *loglevels[] = {
@@ -77,6 +82,13 @@ void f2b_log_set_level(const char *level) {
   if (strcmp(level, "warn")  == 0) { minlevel = log_warn;  return; }
   if (strcmp(level, "error") == 0) { minlevel = log_error; return; }
   if (strcmp(level, "fatal") == 0) { minlevel = log_fatal; return; }
+}
+
+void f2b_log_to_stdout() {
+  if (logfile && logfile != stdout)
+    fclose(logfile);
+  dest = log_stdout;
+  logfile = stdout;
 }
 
 void f2b_log_to_stderr() {

@@ -52,6 +52,8 @@ void f2b_log_set_level(const char *level);
  * @param path Path for logfile
  */
 void f2b_log_to_file  (const char *path);
+/** @brief Use logging to stdout */
+void f2b_log_to_stdout();
 /** @brief Use logging to stderr */
 void f2b_log_to_stderr();
 /** @brief Use logging to syslog */
