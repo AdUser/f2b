@@ -25,6 +25,7 @@ Other noticeable options are:
 * `CMAKE_BUILD_TYPE` (Debug, Release or unset) -- sets compiler optimization level and debugging info. Set to "Release" for production code.
 * `CMAKE_C_COMPILER` -- allows specify another compiler
 * `CMAKE_INSTALL_PREFIX` -- set root of install dir ($DESTDIR also will be prefixed if set).
+* `INIT_SCRIPT` -- install system init script (values: off/openrc/systemd, default: off)
 
 After building you may type `sudo make install` to install compiled binaries and other files.
 Default install layout is:

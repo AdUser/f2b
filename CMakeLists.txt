@@ -17,6 +17,8 @@ option(WITH_PCRE      "Build pcre-compatible filter" ON)
 option(WITH_REDIS     "Build redis source/backend" OFF)
 option(WITH_IPSET     "Build native ipset backend" OFF)
 
+set(INIT_SCRIPT "OFF") # valid variants: "off", "sysvinit", "openrc", "systemd"
+
 if (NOT DEFINED CMAKE_INSTALL_PREFIX)
   set(CMAKE_INSTALL_PREFIX "/usr")
 endif ()
@@ -75,6 +77,12 @@ install(DIRECTORY "configs/"     DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/${CNAM
   FILES_MATCHING PATTERN "README.txt")
 install(FILES "configs/f2b.conf" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/${CNAME}"
   RENAME "f2b.conf.sample")
+
+if (INIT_SCRIPT STREQUAL "openrc")
+  install(FILES "contrib/init.openrc" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/init.d" RENAME "f2b")
+elseif (INIT_SCRIPT STREQUAL "systemd")
+  install(FILES "contrib/f2b.service" DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/systemd/system")
+endif ()
 
 add_custom_target("dist" COMMAND
   "git" "archive" "--format=tar.gz"
