@@ -1,8 +1,9 @@
+cmake_minimum_required(VERSION 3.4)
+
 set(CNAME "f2b")
 set(VERSION "0.6")
 
 project(${CNAME} C)
-cmake_minimum_required(VERSION 3.4)
 
 include(CTest)
 
