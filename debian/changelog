@@ -1,3 +1,9 @@
+f2b (0.6.1-1) unstable; urgency=medium
+
+  * bugfix version
+
+ -- Alex 'AdUser' Z <ad_user@runbox.com>  Tue, 04 Jun 2024 09:48:18 +1000
+
 f2b (0.6-1) unstable; urgency=medium
 
   * new version
