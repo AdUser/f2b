@@ -208,14 +208,14 @@ stats(cfg_t *cfg, char *buf, size_t bufsize) {
   char tmp[256];
   const char *fmt =
     "- listen: %s:%s\n"
-    "  accepts: %u\n";
+    "  info: tag=%08X sock=%ld accepts=%u\n";
   assert(cfg != NULL);
 
   if (buf == NULL || bufsize == 0)
     return false;
 
   for (f2b_port_t *p = cfg->ports; p != NULL; p = p->next) {
-    snprintf(tmp, sizeof(tmp), fmt, p->host, p->port, p->accepts);
+    snprintf(tmp, sizeof(tmp), fmt, p->host, p->port, p->stag, p->sock, p->accepts);
     strlcat(buf, tmp, bufsize);
   }
 

@@ -229,14 +229,11 @@ next(cfg_t *cfg, char *buf, size_t bufsize, bool reset) {
 
 bool
 stats(cfg_t *cfg, char *buf, size_t bufsize) {
-  struct tm tm;
   char tmp[PATH_MAX + 512];
-  char mtime[30];
+  time_t mtime;
   const char *fmt =
     "- path: %s\n"
-    "  mtime: %s\n"
-    "  file: fd=%d inode=%d size=%ld pos=%ld tag=%08X\n"
-    "  read: %lu lines\n";
+    "  info: fd=%d inode=%d size=%ld pos=%ld tag=%08X readl=%lu mtime=%lu\n";
   int fd, ino; off_t sz; long pos;
   assert(cfg != NULL);
   assert(buf != NULL);
@@ -248,13 +245,11 @@ stats(cfg_t *cfg, char *buf, size_t bufsize) {
   for (f2b_file_t *f = cfg->files; f != NULL; f = f->next) {
     if (f->fd) {
       fd = fileno(f->fd), ino = f->st.st_ino, sz = f->st.st_size, pos = ftell(f->fd);
-      localtime_r(&f->st.st_mtime, &tm);
-      strftime(mtime, sizeof(mtime), "%Y-%m-%d %H:%M:%S", &tm);
+      mtime = f->st.st_mtime;
     } else {
-      fd = -1, ino = -1, sz = 0, pos = -1;
-      strlcpy(mtime, "-", sizeof(mtime));
+      fd = -1, ino = -1, sz = 0, pos = -1, mtime = 0;
     }
-    snprintf(tmp, sizeof(tmp), fmt, f->path, mtime, fd, ino, sz, pos, f->stag, f->lines);
+    snprintf(tmp, sizeof(tmp), fmt, f->path, fd, ino, sz, pos, f->stag, f->lines, mtime);
     strlcat(buf, tmp, bufsize);
   }
 
